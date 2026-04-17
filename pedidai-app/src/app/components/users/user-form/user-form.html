@@ -1,0 +1,148 @@
+<div class="min-h-screen bg-gray-50 flex items-start justify-center p-4 md:p-8">
+  <div class="w-full max-w-2xl">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+      <button
+        (click)="cancel()"
+        class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <h1 class="text-2xl font-bold text-gray-800">
+        {{ isEdit ? ('USERS.FORM.EDIT_TITLE' | translate) : ('USERS.FORM.NEW_TITLE' | translate) }}
+      </h1>
+    </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="flex justify-center py-12">
+        <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }
+
+    @if (!loading()) {
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+
+        <!-- Error -->
+        @if (error()) {
+          <div class="mb-5 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+            {{ error() }}
+          </div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="save()" class="space-y-5">
+          <!-- Name row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ 'USERS.FORM.FIRST_NAME' | translate }} <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="firstName"
+                [placeholder]="'USERS.FORM.FIRST_NAME_PH' | translate"
+                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                [class]="fieldError('firstName') ? 'border-red-400 bg-red-50' : 'border-gray-300'"/>
+              @if (fieldError('firstName')) {
+                <p class="mt-1 text-xs text-red-600">{{ 'USERS.FORM.FIRST_NAME_REQUIRED' | translate }}</p>
+              }
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ 'USERS.FORM.LAST_NAME' | translate }} <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="lastName"
+                [placeholder]="'USERS.FORM.LAST_NAME_PH' | translate"
+                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                [class]="fieldError('lastName') ? 'border-red-400 bg-red-50' : 'border-gray-300'"/>
+              @if (fieldError('lastName')) {
+                <p class="mt-1 text-xs text-red-600">{{ 'USERS.FORM.LAST_NAME_REQUIRED' | translate }}</p>
+              }
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              {{ 'USERS.FORM.EMAIL' | translate }} <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              formControlName="email"
+              [placeholder]="'USERS.FORM.EMAIL_PH' | translate"
+              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              [class]="fieldError('email') ? 'border-red-400 bg-red-50' : 'border-gray-300'"/>
+            @if (fieldError('email')) {
+              <p class="mt-1 text-xs text-red-600">{{ 'USERS.FORM.EMAIL_INVALID' | translate }}</p>
+            }
+          </div>
+
+          <!-- Phone + Role -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'USERS.FORM.PHONE' | translate }}</label>
+              <input
+                type="tel"
+                formControlName="phone"
+                [placeholder]="'USERS.FORM.PHONE_PH' | translate"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ 'USERS.FORM.ROLE' | translate }} <span class="text-red-500">*</span>
+              </label>
+              <select
+                formControlName="role"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="USER">{{ 'USERS.FORM.ROLE_USER' | translate }}</option>
+                <option value="ADMIN">{{ 'USERS.FORM.ROLE_ADMIN' | translate }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Password (create only) -->
+          @if (!isEdit) {
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ 'USERS.FORM.PASSWORD' | translate }} <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                formControlName="password"
+                [placeholder]="'USERS.FORM.PASSWORD_PH' | translate"
+                class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                [class]="fieldError('password') ? 'border-red-400 bg-red-50' : 'border-gray-300'"/>
+              @if (fieldError('password')) {
+                <p class="mt-1 text-xs text-red-600">{{ 'USERS.FORM.PASSWORD_REQUIRED' | translate }}</p>
+              }
+            </div>
+          }
+
+          <!-- Actions -->
+          <div class="flex gap-3 pt-2">
+            <button
+              type="submit"
+              [disabled]="saving()"
+              class="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+              @if (saving()) {
+                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                {{ 'USERS.FORM.SAVING' | translate }}
+              } @else {
+                {{ isEdit ? ('USERS.FORM.SAVE' | translate) : ('USERS.FORM.CREATE' | translate) }}
+              }
+            </button>
+            <button
+              type="button"
+              (click)="cancel()"
+              class="px-5 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
+              {{ 'USERS.FORM.CANCEL' | translate }}
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  </div>
+</div>

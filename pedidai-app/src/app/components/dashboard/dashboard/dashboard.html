@@ -1,0 +1,164 @@
+<div class="space-y-6 p-4 md:p-8">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-900">{{ 'DASHBOARD.TITLE' | translate }}</h1>
+    <a routerLink="/ai" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+      {{ 'DASHBOARD.NEW_ORDER_AI' | translate }}
+    </a>
+  </div>
+
+  <!-- Stats cards -->
+  @if (loadingStats()) {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      @for (_ of [1,2,3]; track $index) {
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 animate-pulse h-28"></div>
+      }
+    </div>
+  } @else if (statsError()) {
+    <p class="text-sm text-red-500">{{ statsError() }}</p>
+  } @else if (stats()) {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 border-l-4 border-l-blue-500 flex items-center gap-4">
+        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">{{ 'DASHBOARD.ORDERS_MONTH' | translate }}</p>
+          <p class="text-3xl font-bold text-gray-900 mt-0.5">{{ stats()!.totalComandes }}</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 border-l-4 border-l-emerald-500 flex items-center gap-4">
+        <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">{{ 'DASHBOARD.TOTAL_SPEND' | translate }}</p>
+          <p class="text-3xl font-bold text-gray-900 mt-0.5">{{ stats()!.despesaComandes | number:'1.2-2' }} €</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 border-l-4 border-l-orange-500 flex items-center gap-4">
+        <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">{{ 'DASHBOARD.PENDING_ORDERS' | translate }}</p>
+          <p class="text-3xl font-bold text-orange-500 mt-0.5">{{ stats()!.comandesPendents }}</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Recent orders table -->
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 class="text-base font-semibold text-gray-900">{{ 'DASHBOARD.RECENT_ORDERS' | translate }}</h2>
+        <a routerLink="/orders" class="text-sm text-blue-600 hover:underline">{{ 'DASHBOARD.SEE_ALL' | translate }}</a>
+      </div>
+      @if (loadingOrders()) {
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+              <tr>
+                <th class="px-6 py-3 text-left font-medium">{{ 'DASHBOARD.NAME' | translate }}</th>
+                <th class="px-6 py-3 text-left font-medium">{{ 'DASHBOARD.SUPPLIER' | translate }}</th>
+                <th class="px-6 py-3 text-left font-medium">{{ 'DASHBOARD.STATUS' | translate }}</th>
+                <th class="px-6 py-3 text-right font-medium">{{ 'DASHBOARD.TOTAL' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @for (_ of [1,2,3,4,5]; track $index) {
+                <tr>
+                  <td class="px-6 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-32"></div></td>
+                  <td class="px-6 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-24"></div></td>
+                  <td class="px-6 py-3"><div class="h-5 bg-gray-200 rounded-full animate-pulse w-16"></div></td>
+                  <td class="px-6 py-3 flex justify-end"><div class="h-4 bg-gray-200 rounded animate-pulse w-16"></div></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else if (recentOrders().length === 0) {
+        <div class="p-6 text-sm text-gray-400">{{ 'DASHBOARD.NO_RECENT_ORDERS' | translate }}</div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+              <tr>
+                <th class="px-6 py-3 text-left font-medium">{{ 'DASHBOARD.NAME' | translate }}</th>
+                <th class="px-6 py-3 text-left font-medium">{{ 'DASHBOARD.SUPPLIER' | translate }}</th>
+                <th class="px-6 py-3 text-left font-medium">{{ 'DASHBOARD.STATUS' | translate }}</th>
+                <th class="px-6 py-3 text-right font-medium">{{ 'DASHBOARD.TOTAL' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @for (order of recentOrders(); track order.uuid) {
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-3 text-gray-900 font-medium">
+                    <a [routerLink]="['/orders', order.uuid]" class="hover:text-blue-600">{{ order.name }}</a>
+                  </td>
+                  <td class="px-6 py-3 text-gray-500">{{ order.supplierName ?? getSupplierName(order.supplierUuid) }}</td>
+                  <td class="px-6 py-3">
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium" [class]="statusClass(order.status)">
+                      {{ 'ORDERS.STATUS_' + order.status | translate }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-3 text-right font-medium text-gray-900">{{ order.totalAmount | number:'1.2-2' }} €</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- AI Suggestions card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 class="text-base font-semibold text-gray-900">{{ 'DASHBOARD.AI_SUGGESTIONS' | translate }}</h2>
+        <a routerLink="/ai/suggestions" class="text-sm text-blue-600 hover:underline">{{ 'DASHBOARD.SEE_ALL_SUGGESTIONS' | translate }}</a>
+      </div>
+      @if (loadingSuggestions()) {
+        <div class="divide-y divide-gray-100">
+          @for (_ of [1,2,3,4]; track $index) {
+            <div class="px-6 py-3">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex-1 space-y-1.5">
+                  <div class="h-4 bg-gray-200 rounded animate-pulse w-28"></div>
+                  <div class="h-3 bg-gray-200 rounded animate-pulse w-20"></div>
+                </div>
+                <div class="h-5 bg-gray-200 rounded-full animate-pulse w-14 shrink-0"></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (suggestionsError()) {
+        <div class="p-6 text-sm text-gray-400">{{ suggestionsError() }}</div>
+      } @else if (suggestions().length === 0) {
+        <div class="p-6 text-sm text-gray-500">{{ 'DASHBOARD.ALL_UP_TO_DATE' | translate }}</div>
+      } @else {
+        <div class="divide-y divide-gray-100">
+          @for (s of suggestions().slice(0,4); track $index) {
+            <div class="px-6 py-3">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-gray-900 truncate">{{ s.product }}</p>
+                  <p class="text-xs text-gray-500">{{ s.supplier }} · {{ s.quantity }} {{ s.unit ?? 'u.' }}</p>
+                </div>
+                <span class="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-medium" [class]="urgencyClass(s.urgency)">
+                  {{ 'AI.SUGGESTIONS.URGENCY_' + s.urgency.toUpperCase() | translate }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

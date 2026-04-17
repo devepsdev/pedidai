@@ -1,0 +1,170 @@
+<!-- Success state -->
+@if (success()) {
+  <div class="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-16 relative overflow-hidden">
+    <div class="absolute inset-0 flex items-center justify-end pe-[8%] pointer-events-none" aria-hidden="true">
+      <img src="logo-pedidai.png" alt="" class="w-[360px] h-[360px] opacity-[0.055] select-none" style="filter: blur(2px);">
+    </div>
+    <div class="w-full max-w-md text-center">
+      <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <h2 class="text-2xl font-extrabold text-gray-900 mb-3">{{ 'AUTH.REGISTER.SUCCESS_TITLE' | translate }}</h2>
+      <p class="text-gray-500 mb-6">{{ 'AUTH.REGISTER.SUCCESS_MSG' | translate }}</p>
+      <a routerLink="/login"
+        class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors">
+        {{ 'AUTH.REGISTER.SUCCESS_BTN' | translate }}
+      </a>
+    </div>
+  </div>
+}
+
+@if (!success()) {
+  <div class="min-h-screen bg-slate-50 pt-24 pb-16 px-4 relative overflow-hidden">
+    <div class="absolute inset-0 flex items-center justify-end pe-[8%] pointer-events-none" aria-hidden="true">
+      <img src="logo-pedidai.png" alt="" class="w-[360px] h-[360px] opacity-[0.055] select-none" style="filter: blur(2px);">
+    </div>
+    <div class="max-w-2xl mx-auto">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <a routerLink="/" class="inline-flex items-center gap-2 mb-6">
+          <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-extrabold text-white">P</div>
+          <span class="text-2xl font-extrabold text-gray-900">Pedid<span class="brand-ai">AI</span></span>
+        </a>
+        <h1 class="text-3xl font-extrabold text-gray-900">{{ 'AUTH.REGISTER.TITLE' | translate }}</h1>
+        <p class="text-gray-500 mt-2">{{ 'AUTH.REGISTER.SUBTITLE' | translate }}</p>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <!-- Error -->
+        @if (error()) {
+          <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
+            {{ error() }}
+          </div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6">
+          <!-- Company section -->
+          <div>
+            <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">{{ 'AUTH.REGISTER.COMPANY_SECTION' | translate }}</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'AUTH.REGISTER.COMPANY_NAME' | translate }} <span class="text-red-500">*</span></label>
+                <input type="text" formControlName="companyName" [placeholder]="'AUTH.REGISTER.COMPANY_NAME_PH' | translate"
+                  class="w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  [class]="fieldError('companyName') ? 'border-red-400 bg-red-50' : 'border-gray-200'"/>
+                @if (fieldError('companyName')) {
+                  <p class="mt-1 text-xs text-red-600">{{ 'AUTH.REGISTER.FIELD_REQUIRED' | translate }}</p>
+                }
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'AUTH.REGISTER.TAX_ID' | translate }} <span class="text-red-500">*</span></label>
+                <input type="text" formControlName="taxId" placeholder="B12345678"
+                  class="w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  [class]="fieldError('taxId') ? 'border-red-400 bg-red-50' : 'border-gray-200'"/>
+                @if (fieldError('taxId')) {
+                  <p class="mt-1 text-xs text-red-600">{{ 'AUTH.REGISTER.FIELD_REQUIRED' | translate }}</p>
+                }
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'AUTH.REGISTER.COMPANY_EMAIL' | translate }} <span class="text-red-500">*</span></label>
+                <input type="email" formControlName="companyEmail" [placeholder]="'AUTH.REGISTER.COMPANY_EMAIL_PH' | translate"
+                  class="w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  [class]="fieldError('companyEmail') ? 'border-red-400 bg-red-50' : 'border-gray-200'"/>
+                @if (fieldError('companyEmail')) {
+                  <p class="mt-1 text-xs text-red-600">{{ 'AUTH.REGISTER.EMAIL_REQUIRED' | translate }}</p>
+                }
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'AUTH.REGISTER.PHONE' | translate }}</label>
+                <input type="tel" formControlName="companyPhone" placeholder="600 000 000"
+                  class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'AUTH.REGISTER.ADDRESS' | translate }}</label>
+                <input type="text" formControlName="companyAddress" [placeholder]="'AUTH.REGISTER.ADDRESS_PH' | translate"
+                  class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'AUTH.REGISTER.CITY' | translate }}</label>
+                <input type="text" formControlName="companyCity" [placeholder]="'AUTH.REGISTER.CITY_PH' | translate"
+                  class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'AUTH.REGISTER.POSTAL_CODE' | translate }}</label>
+                <input type="text" formControlName="companyPostalCode" placeholder="08000"
+                  class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin section -->
+          <div>
+            <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">{{ 'AUTH.REGISTER.ADMIN_SECTION' | translate }}</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'AUTH.REGISTER.FIRST_NAME' | translate }} <span class="text-red-500">*</span></label>
+                <input type="text" formControlName="adminFirstName" placeholder="Carlos"
+                  class="w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  [class]="fieldError('adminFirstName') ? 'border-red-400 bg-red-50' : 'border-gray-200'"/>
+                @if (fieldError('adminFirstName')) {
+                  <p class="mt-1 text-xs text-red-600">{{ 'AUTH.REGISTER.FIELD_REQUIRED' | translate }}</p>
+                }
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'AUTH.REGISTER.LAST_NAME' | translate }} <span class="text-red-500">*</span></label>
+                <input type="text" formControlName="adminLastName" placeholder="García López"
+                  class="w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  [class]="fieldError('adminLastName') ? 'border-red-400 bg-red-50' : 'border-gray-200'"/>
+                @if (fieldError('adminLastName')) {
+                  <p class="mt-1 text-xs text-red-600">{{ 'AUTH.REGISTER.FIELD_REQUIRED' | translate }}</p>
+                }
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'AUTH.REGISTER.PASSWORD' | translate }} <span class="text-red-500">*</span></label>
+                <input type="password" formControlName="password" [placeholder]="'AUTH.REGISTER.PASSWORD_PH' | translate"
+                  class="w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  [class]="passwordErrors ? 'border-red-400 bg-red-50' : 'border-gray-200'"/>
+                @if (passwordErrors?.['required']) {
+                  <p class="mt-1 text-xs text-red-600">{{ 'AUTH.REGISTER.PASSWORD_REQUIRED' | translate }}</p>
+                } @else if (passwordErrors?.['minlength']) {
+                  <p class="mt-1 text-xs text-red-600">{{ 'AUTH.REGISTER.PASSWORD_MIN' | translate }}</p>
+                } @else if (passwordErrors?.['uppercase']) {
+                  <p class="mt-1 text-xs text-red-600">{{ 'AUTH.REGISTER.PASSWORD_UPPERCASE' | translate }}</p>
+                } @else if (passwordErrors?.['number']) {
+                  <p class="mt-1 text-xs text-red-600">{{ 'AUTH.REGISTER.PASSWORD_NUMBER' | translate }}</p>
+                }
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'AUTH.REGISTER.CONFIRM_PASSWORD' | translate }} <span class="text-red-500">*</span></label>
+                <input type="password" formControlName="confirmPassword" [placeholder]="'AUTH.REGISTER.CONFIRM_PASSWORD_PH' | translate"
+                  class="w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  [class]="(fieldError('confirmPassword') || mismatch) ? 'border-red-400 bg-red-50' : 'border-gray-200'"/>
+                @if (mismatch) {
+                  <p class="mt-1 text-xs text-red-600">{{ 'AUTH.REGISTER.PASSWORD_MISMATCH' | translate }}</p>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" [disabled]="saving()"
+            class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-base">
+            @if (saving()) {
+              <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              {{ 'AUTH.REGISTER.SUBMITTING' | translate }}
+            } @else {
+              {{ 'AUTH.REGISTER.SUBMIT' | translate }}
+            }
+          </button>
+
+          <p class="text-center text-sm text-gray-500">
+            {{ 'AUTH.REGISTER.ALREADY_ACCOUNT' | translate }}
+            <a routerLink="/login" class="text-blue-600 font-medium hover:underline">{{ 'AUTH.REGISTER.LOGIN_LINK' | translate }}</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,27 @@
+<div class="flex h-screen overflow-hidden bg-gray-50">
+  <!-- Sidebar (fixed on mobile, part of flow on desktop) -->
+  <app-sidebar [open]="sidebarOpen()" class="lg:flex-shrink-0" />
+
+  <!-- Overlay — mobile only, shown when sidebar open -->
+  @if (sidebarOpen()) {
+    <div class="fixed inset-0 bg-black/50 z-20 lg:hidden" (click)="toggleSidebar()"></div>
+  }
+
+  <!-- Main content area -->
+  <div class="flex flex-col flex-1 min-w-0 overflow-hidden lg:ml-0 relative">
+
+    <!-- Brand watermark -->
+    <div class="absolute inset-0 flex items-center justify-end pe-[8%] pointer-events-none z-0" aria-hidden="true">
+      <img
+        src="logo-pedidai.png"
+        alt=""
+        class="w-[380px] h-[380px] opacity-[0.055] select-none"
+        style="filter: blur(2px);">
+    </div>
+
+    <app-navbar (menuToggle)="toggleSidebar()" />
+    <main class="flex-1 overflow-y-auto relative z-10">
+      <router-outlet />
+    </main>
+  </div>
+</div>

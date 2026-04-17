@@ -1,0 +1,119 @@
+<section id="pricing" class="py-20 bg-slate-50">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    <div class="text-center mb-14">
+      <p class="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-2">{{ 'LANDING.PRICING.LABEL' | translate }}</p>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900">{{ 'LANDING.PRICING.TITLE' | translate }}</h2>
+      <p class="mt-4 text-lg text-gray-500 max-w-xl mx-auto">{{ 'LANDING.PRICING.SUBTITLE' | translate }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+      <!-- Free plan -->
+      <div class="bg-white rounded-2xl border border-gray-200 p-8">
+        <div class="mb-6">
+          <h3 class="text-xl font-bold text-gray-900 mb-1">{{ 'LANDING.PRICING.FREE_NAME' | translate }}</h3>
+          <p class="text-sm text-gray-500">{{ 'LANDING.PRICING.FREE_DESC' | translate }}</p>
+        </div>
+        <div class="mb-6">
+          <span class="text-4xl font-extrabold text-gray-900">{{ 'LANDING.PRICING.FREE_PRICE' | translate }}</span>
+          <span class="text-gray-500 ml-1">{{ 'LANDING.PRICING.FREE_PERIOD' | translate }}</span>
+        </div>
+        <ul class="space-y-3 mb-8">
+          <li class="flex items-center gap-3 text-sm text-gray-600">
+            <svg class="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ 'LANDING.PRICING.FREE_F1' | translate }}
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-600">
+            <svg class="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ 'LANDING.PRICING.FREE_F2' | translate }}
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-600">
+            <svg class="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ 'LANDING.PRICING.FREE_F3' | translate }}
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-400">
+            <svg class="w-5 h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            {{ 'LANDING.PRICING.FREE_F4' | translate }}
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-400">
+            <svg class="w-5 h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            {{ 'LANDING.PRICING.FREE_F5' | translate }}
+          </li>
+        </ul>
+        <a routerLink="/register"
+          class="block w-full text-center py-3 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-blue-400 hover:text-blue-600 transition-colors">
+          {{ 'LANDING.PRICING.FREE_CTA' | translate }}
+        </a>
+      </div>
+
+      <!-- Pro plan -->
+      <div class="bg-slate-900 rounded-2xl border-2 border-blue-500 p-8 relative shadow-xl shadow-blue-500/20">
+        <!-- Badge -->
+        <div class="absolute -top-4 left-1/2 -translate-x-1/2">
+          <span class="bg-blue-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
+            {{ 'LANDING.PRICING.POPULAR' | translate }}
+          </span>
+        </div>
+        <div class="mb-6">
+          <h3 class="text-xl font-bold text-white mb-1">{{ 'LANDING.PRICING.PRO_NAME' | translate }}</h3>
+          <p class="text-sm text-slate-400">{{ 'LANDING.PRICING.PRO_DESC' | translate }}</p>
+        </div>
+        <div class="mb-6">
+          <span class="text-4xl font-extrabold text-white">{{ 'LANDING.PRICING.PRO_PRICE' | translate }}</span>
+          <span class="text-slate-400 ml-1">{{ 'LANDING.PRICING.PRO_PERIOD' | translate }}</span>
+        </div>
+        <ul class="space-y-3 mb-8">
+          <li class="flex items-center gap-3 text-sm text-slate-200">
+            <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ 'LANDING.PRICING.PRO_F1' | translate }}
+          </li>
+          <li class="flex items-center gap-3 text-sm text-slate-200">
+            <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ 'LANDING.PRICING.PRO_F2' | translate }}
+          </li>
+          <li class="flex items-center gap-3 text-sm text-slate-200">
+            <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ 'LANDING.PRICING.PRO_F3' | translate }}
+          </li>
+          <li class="flex items-center gap-3 text-sm text-slate-200">
+            <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ 'LANDING.PRICING.PRO_F4' | translate }}
+          </li>
+          <li class="flex items-center gap-3 text-sm text-slate-200">
+            <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ 'LANDING.PRICING.PRO_F5' | translate }}
+          </li>
+          <li class="flex items-center gap-3 text-sm text-slate-200">
+            <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ 'LANDING.PRICING.PRO_F6' | translate }}
+          </li>
+        </ul>
+        <a routerLink="/register"
+          class="block w-full text-center py-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-semibold transition-colors shadow-lg shadow-blue-500/30">
+          {{ 'LANDING.PRICING.PRO_CTA' | translate }}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,182 @@
+<div class="min-h-screen bg-gray-50 flex items-start justify-center p-4 md:p-8">
+  <div class="w-full max-w-2xl">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">
+        {{ isEdit ? ('PRODUCTS.FORM.EDIT_TITLE' | translate) : ('PRODUCTS.FORM.NEW_TITLE' | translate) }}
+      </h1>
+    </div>
+
+    @if (loading()) {
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
+        <div class="space-y-4">
+          @for (i of [1,2,3,4,5]; track i) {
+            <div class="h-10 bg-gray-200 rounded-lg"></div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (!loading()) {
+      <form [formGroup]="form" (ngSubmit)="save()" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+
+        @if (error()) {
+          <div class="mb-5 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+            {{ error() }}
+          </div>
+        }
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <!-- Nombre -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              {{ 'PRODUCTS.FORM.NAME' | translate }} <span class="text-red-500">*</span>
+            </label>
+            <input
+              formControlName="name"
+              type="text"
+              [placeholder]="'PRODUCTS.FORM.NAME_PH' | translate"
+              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              [class]="fieldError('name') ? 'border-red-400 bg-red-50' : 'border-gray-300'"/>
+            @if (fieldError('name')) {
+              <p class="mt-1 text-xs text-red-500">{{ 'PRODUCTS.FORM.NAME_REQUIRED' | translate }}</p>
+            }
+          </div>
+
+          <!-- Proveedor -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              {{ 'PRODUCTS.FORM.SUPPLIER' | translate }} <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="supplierUuid"
+              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors bg-white"
+              [class]="fieldError('supplierUuid') ? 'border-red-400 bg-red-50' : 'border-gray-300'">
+              <option value="">{{ 'PRODUCTS.FORM.SUPPLIER_SELECT' | translate }}</option>
+              @for (s of suppliers(); track s.uuid) {
+                <option [value]="s.uuid">{{ s.name }}</option>
+              }
+            </select>
+            @if (fieldError('supplierUuid')) {
+              <p class="mt-1 text-xs text-red-500">{{ 'PRODUCTS.FORM.SUPPLIER_REQUIRED' | translate }}</p>
+            }
+          </div>
+
+          <!-- Categoría -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'PRODUCTS.FORM.CATEGORY' | translate }}</label>
+            <input
+              formControlName="category"
+              type="text"
+              [placeholder]="'PRODUCTS.FORM.CATEGORY_PH' | translate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"/>
+          </div>
+
+          <!-- Precio -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              {{ 'PRODUCTS.FORM.PRICE' | translate }} <span class="text-red-500">*</span>
+            </label>
+            <input
+              formControlName="price"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              [class]="fieldError('price') ? 'border-red-400 bg-red-50' : 'border-gray-300'"/>
+            @if (fieldError('price')) {
+              <p class="mt-1 text-xs text-red-500">
+                @if (form.get('price')?.errors?.['required']) { {{ 'PRODUCTS.FORM.PRICE_REQUIRED' | translate }} }
+                @else if (form.get('price')?.errors?.['min']) { {{ 'PRODUCTS.FORM.PRICE_NEGATIVE' | translate }} }
+              </p>
+            }
+          </div>
+
+          <!-- Volumen -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'PRODUCTS.FORM.VOLUME' | translate }}</label>
+            <input
+              formControlName="volume"
+              type="number"
+              step="0.01"
+              min="0"
+              [placeholder]="'PRODUCTS.FORM.VOLUME_PH' | translate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"/>
+          </div>
+
+          <!-- Unidad -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'PRODUCTS.FORM.UNIT' | translate }}</label>
+            <select
+              formControlName="unit"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors bg-white">
+              <option value="">{{ 'PRODUCTS.FORM.UNIT_NONE' | translate }}</option>
+              @for (u of units; track u) {
+                <option [value]="u">{{ u }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Descripción -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'PRODUCTS.FORM.DESCRIPTION' | translate }}</label>
+            <textarea
+              formControlName="description"
+              rows="3"
+              [placeholder]="'PRODUCTS.FORM.DESCRIPTION_PH' | translate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors resize-none"></textarea>
+          </div>
+
+          <!-- Imagen -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'PRODUCTS.FORM.IMAGE' | translate }}</label>
+            <label class="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed rounded-xl cursor-pointer transition-colors"
+              [class]="imagePreview() || currentImageUrl() ? 'border-blue-300 bg-blue-50 hover:bg-blue-100' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'">
+              @if (imagePreview()) {
+                <img [src]="imagePreview()!" alt="preview" class="h-32 object-contain rounded-lg"/>
+              } @else if (currentImageUrl()) {
+                <img [src]="currentImageUrl()!" alt="product" class="h-32 object-contain rounded-lg"/>
+              } @else {
+                <div class="flex flex-col items-center gap-1 text-gray-400">
+                  <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                  <span class="text-sm">{{ 'PRODUCTS.FORM.IMAGE_CLICK' | translate }}</span>
+                  <span class="text-xs">{{ 'PRODUCTS.FORM.IMAGE_FORMATS' | translate }}</span>
+                </div>
+              }
+              <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" (change)="onFileSelected($event)"/>
+            </label>
+            @if (imagePreview() && currentImageUrl()) {
+              <p class="mt-1 text-xs text-blue-600">{{ 'PRODUCTS.FORM.IMAGE_CHANGE' | translate }}</p>
+            }
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-6 pt-5 border-t border-gray-100">
+          <button
+            type="button"
+            (click)="cancel()"
+            class="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            {{ 'PRODUCTS.FORM.CANCEL' | translate }}
+          </button>
+          <button
+            type="submit"
+            [disabled]="saving() || uploadingImage()"
+            class="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2">
+            @if (saving() || uploadingImage()) {
+              <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            }
+            @if (uploadingImage()) {
+              {{ 'PRODUCTS.FORM.IMAGE_UPLOADING' | translate }}
+            } @else {
+              {{ isEdit ? ('PRODUCTS.FORM.SAVE' | translate) : ('PRODUCTS.FORM.CREATE' | translate) }}
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

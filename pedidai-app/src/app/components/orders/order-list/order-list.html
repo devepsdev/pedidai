@@ -1,0 +1,419 @@
+<div class="p-4 md:p-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">{{ 'ORDERS.TITLE' | translate }}</h1>
+    <button
+      (click)="newOrder()"
+      class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      {{ 'ORDERS.NEW' | translate }}
+    </button>
+  </div>
+
+  <!-- Search bar -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+    @if (!showAdvanced()) {
+      <div class="flex flex-col sm:flex-row gap-2">
+        <select
+          [value]="statusFilter()"
+          (change)="onStatusChange($any($event.target).value)"
+          class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+          @for (s of statuses; track s.value) {
+            <option [value]="s.value">{{ s.label | translate }}</option>
+          }
+        </select>
+        <input
+          type="text"
+          [placeholder]="'ORDERS.SEARCH_PH' | translate"
+          [value]="searchText()"
+          (input)="onSearchInput($any($event.target).value)"
+          (keydown)="onSearchKeydown($event)"
+          class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        <button
+          (click)="search()"
+          class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors">
+          {{ 'ORDERS.SEARCH' | translate }}
+        </button>
+        <button
+          (click)="toggleAdvanced()"
+          class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 010 2H4a1 1 0 01-1-1zM6 9h12M9 14h6M11 19h2"/>
+          </svg>
+          {{ 'ORDERS.ADVANCED_SEARCH' | translate }}
+        </button>
+      </div>
+    } @else {
+      <!-- Advanced search panel -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 010 2H4a1 1 0 01-1-1zM6 9h12M9 14h6M11 19h2"/>
+            </svg>
+            {{ 'ORDERS.ADVANCED_SEARCH' | translate }}
+          </h3>
+          <button (click)="toggleAdvanced()" class="text-sm text-gray-500 hover:text-gray-700">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">{{ 'ORDERS.ADV_NAME' | translate }}</label>
+            <input type="text" [placeholder]="'ORDERS.ADV_NAME_PH' | translate" [value]="advName()"
+              (input)="advName.set($any($event.target).value)"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">{{ 'ORDERS.ADV_NOTES' | translate }}</label>
+            <input type="text" [placeholder]="'ORDERS.ADV_NOTES_PH' | translate" [value]="advNotes()"
+              (input)="advNotes.set($any($event.target).value)"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">{{ 'ORDERS.ADV_STATUS' | translate }}</label>
+            <select [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+              @for (s of statuses; track s.value) {
+                <option [value]="s.value">{{ s.label | translate }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">{{ 'ORDERS.ADV_SUPPLIER' | translate }}</label>
+            <select [value]="advSupplierUuid()" (change)="advSupplierUuid.set($any($event.target).value)"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+              <option value="">{{ 'ORDERS.ADV_ALL_SUPPLIERS' | translate }}</option>
+              @for (s of suppliers(); track s.uuid) {
+                <option [value]="s.uuid">{{ s.name }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">{{ 'ORDERS.ADV_MIN_AMOUNT' | translate }}</label>
+            <input type="number" placeholder="0.00" [value]="advMinAmount()"
+              (input)="advMinAmount.set($any($event.target).value)"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">{{ 'ORDERS.ADV_MAX_AMOUNT' | translate }}</label>
+            <input type="number" placeholder="9999.99" [value]="advMaxAmount()"
+              (input)="advMaxAmount.set($any($event.target).value)"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">{{ 'ORDERS.ADV_DELIVERY_FROM' | translate }}</label>
+            <input type="date" [value]="advDeliveryFrom()"
+              (input)="advDeliveryFrom.set($any($event.target).value)"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">{{ 'ORDERS.ADV_DELIVERY_TO' | translate }}</label>
+            <input type="date" [value]="advDeliveryTo()"
+              (input)="advDeliveryTo.set($any($event.target).value)"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">{{ 'ORDERS.ADV_CREATED_FROM' | translate }}</label>
+            <input type="date" [value]="advCreatedFrom()"
+              (input)="advCreatedFrom.set($any($event.target).value)"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">{{ 'ORDERS.ADV_CREATED_TO' | translate }}</label>
+            <input type="date" [value]="advCreatedTo()"
+              (input)="advCreatedTo.set($any($event.target).value)"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button (click)="clearFilters()"
+            class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors">
+            {{ 'ORDERS.CLEAR_FILTERS' | translate }}
+          </button>
+          <button (click)="search()"
+            class="px-5 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm">
+            {{ 'ORDERS.APPLY_FILTERS' | translate }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+      {{ error() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <!-- Skeleton desktop table -->
+    <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-200">
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">{{ 'ORDERS.COL_NAME' | translate }}</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">{{ 'ORDERS.COL_SUPPLIER' | translate }}</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">{{ 'ORDERS.COL_STATUS' | translate }}</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600">{{ 'ORDERS.COL_TOTAL' | translate }}</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">{{ 'ORDERS.COL_DATE' | translate }}</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">{{ 'ORDERS.COL_ACTIONS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (_ of [1,2,3,4,5]; track $index) {
+            <tr class="border-b border-gray-100">
+              <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-36"></div></td>
+              <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-28"></div></td>
+              <td class="px-4 py-3"><div class="h-5 bg-gray-200 rounded-full animate-pulse w-20"></div></td>
+              <td class="px-4 py-3 text-right"><div class="h-4 bg-gray-200 rounded animate-pulse w-16 ml-auto"></div></td>
+              <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-24"></div></td>
+              <td class="px-4 py-3"><div class="h-6 bg-gray-200 rounded-lg animate-pulse w-16"></div></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <!-- Skeleton mobile cards -->
+    <div class="md:hidden space-y-3">
+      @for (_ of [1,2,3]; track $index) {
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <div class="flex items-start justify-between mb-2">
+            <div class="h-4 bg-gray-200 rounded animate-pulse w-40"></div>
+            <div class="h-5 bg-gray-200 rounded-full animate-pulse w-20"></div>
+          </div>
+          <div class="h-3 bg-gray-200 rounded animate-pulse w-32 mb-3"></div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
+            <div class="h-3 bg-gray-200 rounded animate-pulse w-24"></div>
+          </div>
+          <div class="h-8 bg-gray-200 rounded-lg animate-pulse w-full"></div>
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- Desktop table -->
+    <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-200">
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">{{ 'ORDERS.COL_NAME' | translate }}</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">{{ 'ORDERS.COL_SUPPLIER' | translate }}</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">{{ 'ORDERS.COL_STATUS' | translate }}</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600">{{ 'ORDERS.COL_TOTAL' | translate }}</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">{{ 'ORDERS.COL_DATE' | translate }}</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">{{ 'ORDERS.COL_ACTIONS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of orders(); track order.uuid) {
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+              <td class="px-4 py-3 font-medium text-gray-800">{{ order.name }}</td>
+              <td class="px-4 py-3 text-gray-600">{{ order.supplierName ?? getSupplierName(order.supplierUuid) }}</td>
+              <td class="px-4 py-3">
+                <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full" [class]="statusClass(order.status)">
+                  {{ 'ORDERS.STATUS_' + order.status | translate }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right font-medium text-gray-800">{{ formatAmount(order.totalAmount) }}</td>
+              <td class="px-4 py-3 text-gray-600">{{ formatDate(order.createdAt) }}</td>
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <button
+                    (click)="viewDetail(order.uuid)"
+                    class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                    {{ 'ORDERS.VIEW' | translate }}
+                  </button>
+                  @if (order.status === 'PENDING') {
+                    <button
+                      (click)="openSendModal(order)"
+                      [disabled]="sendingUuid() === order.uuid"
+                      class="px-3 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      {{ sendingUuid() === order.uuid ? ('ORDERS.SENDING' | translate) : ('ORDERS.SEND' | translate) }}
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr>
+              <td colspan="6" class="px-4 py-12 text-center text-gray-400">{{ 'ORDERS.EMPTY' | translate }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile cards -->
+    <div class="md:hidden space-y-3">
+      @for (order of orders(); track order.uuid) {
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <div class="flex items-start justify-between mb-2">
+            <span class="font-semibold text-gray-800 flex-1 mr-2">{{ order.name }}</span>
+            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full shrink-0" [class]="statusClass(order.status)">
+              {{ 'ORDERS.STATUS_' + order.status | translate }}
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 mb-1">{{ order.supplierName ?? getSupplierName(order.supplierUuid) }}</p>
+          <div class="flex items-center justify-between mt-2 mb-3">
+            <span class="text-sm font-medium text-gray-800">{{ formatAmount(order.totalAmount) }}</span>
+            <span class="text-xs text-gray-400">{{ formatDate(order.createdAt) }}</span>
+          </div>
+          <div class="flex gap-2">
+            <button
+              (click)="viewDetail(order.uuid)"
+              class="flex-1 py-2 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+              {{ 'ORDERS.VIEW_DETAIL' | translate }}
+            </button>
+            @if (order.status === 'PENDING') {
+              <button
+                (click)="openSendModal(order)"
+                [disabled]="sendingUuid() === order.uuid"
+                class="flex-1 py-2 text-xs font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                {{ sendingUuid() === order.uuid ? ('ORDERS.SENDING' | translate) : ('ORDERS.SEND' | translate) }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+      @empty {
+        <div class="text-center py-12 text-gray-400">{{ 'ORDERS.EMPTY' | translate }}</div>
+      }
+    </div>
+
+    <!-- Pagination + page size -->
+    <div class="flex flex-col sm:flex-row items-center justify-between mt-6 gap-3">
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-500">
+          @if (totalElements() > 0) {
+            {{ 'ORDERS.SHOWING' | translate: {from: showingFrom(), to: showingTo(), total: totalElements()} }}
+          } @else {
+            {{ 'ORDERS.ZERO' | translate }}
+          }
+        </span>
+        <select
+          (change)="onPageSizeChange(+$any($event.target).value)"
+          class="px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+          @for (s of pageSizeOptions; track s) {
+            <option [value]="s" [selected]="s === pageSize()">{{ s }} {{ 'ORDERS.PER_PAGE' | translate }}</option>
+          }
+        </select>
+      </div>
+      @if (totalPages() > 1) {
+        <div class="flex items-center gap-1">
+          <button
+            (click)="prevPage()"
+            [disabled]="currentPage() === 0"
+            class="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+            {{ 'ORDERS.PREV' | translate }}
+          </button>
+          @for (p of pages(); track p) {
+            @if (p >= currentPage() - 2 && p <= currentPage() + 2) {
+              <button
+                (click)="goToPage(p)"
+                class="px-3 py-1.5 text-sm rounded-lg border transition-colors"
+                [class]="p === currentPage()
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'border-gray-300 hover:bg-gray-50'">
+                {{ p + 1 }}
+              </button>
+            }
+          }
+          <button
+            (click)="nextPage()"
+            [disabled]="currentPage() >= totalPages() - 1"
+            class="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+            {{ 'ORDERS.NEXT' | translate }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Send Order Modal -->
+@if (showSendModal() && pendingOrder(); as order) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50" (click)="closeSendModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md">
+      <!-- Modal header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="text-lg font-semibold text-gray-800">{{ 'ORDERS.SEND_MODAL.TITLE' | translate }}</h2>
+        <button (click)="closeSendModal()" class="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="px-6 py-5">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">{{ 'ORDERS.SEND_MODAL.ABOUT_TO_SEND' | translate }}</p>
+            <p class="font-semibold text-gray-800">{{ order.name }}</p>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 rounded-xl p-4 space-y-2.5 text-sm mb-5">
+          <div class="flex justify-between">
+            <span class="text-gray-500">{{ 'ORDERS.SEND_MODAL.SUPPLIER' | translate }}</span>
+            <span class="font-medium text-gray-800">{{ order.supplierName ?? getSupplierName(order.supplierUuid) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">{{ 'ORDERS.SEND_MODAL.TOTAL' | translate }}</span>
+            <span class="font-bold text-gray-800">{{ formatAmount(order.totalAmount) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">{{ 'ORDERS.SEND_MODAL.LINES' | translate }}</span>
+            <span class="font-medium text-gray-800">{{ order.items?.length ?? 0 }} {{ 'ORDERS.SEND_MODAL.PRODUCTS' | translate }}</span>
+          </div>
+          @if (order.deliveryDate) {
+            <div class="flex justify-between">
+              <span class="text-gray-500">{{ 'ORDERS.SEND_MODAL.DELIVERY_DATE' | translate }}</span>
+              <span class="font-medium text-gray-800">{{ formatDate(order.deliveryDate) }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-center gap-3 text-sm">
+          <svg class="w-5 h-5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          <div>
+            <p class="font-medium text-blue-700">{{ 'ORDERS.SEND_MODAL.METHOD' | translate }}</p>
+            <p class="text-blue-600 text-xs">{{ 'ORDERS.SEND_MODAL.METHOD_NOTE' | translate }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-100">
+        <button
+          (click)="closeSendModal()"
+          class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors">
+          {{ 'ORDERS.SEND_MODAL.CANCEL' | translate }}
+        </button>
+        <button
+          (click)="confirmSend()"
+          class="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+          </svg>
+          {{ 'ORDERS.SEND_MODAL.CONFIRM' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,22 @@
+<section class="py-24 bg-gradient-to-br from-slate-900 to-blue-950 relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-32 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 -left-20 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl"></div>
+  </div>
+  <div class="relative max-w-3xl mx-auto px-6 text-center">
+    <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">
+      {{ 'LANDING.CTA.TITLE' | translate }}
+    </h2>
+    <p class="text-lg text-slate-300 mb-10">
+      {{ 'LANDING.CTA.SUBTITLE' | translate }}
+    </p>
+    <a routerLink="/register"
+      class="inline-flex items-center gap-3 px-9 py-4 bg-blue-500 hover:bg-blue-400 text-white text-lg font-bold rounded-2xl transition-all shadow-xl shadow-blue-500/30">
+      {{ 'LANDING.CTA.BUTTON' | translate }}
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+      </svg>
+    </a>
+    <p class="mt-5 text-sm text-slate-400">{{ 'LANDING.CTA.DISCLAIMER' | translate }}</p>
+  </div>
+</section>

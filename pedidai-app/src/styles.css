@@ -1,0 +1,12 @@
+@import "tailwindcss";
+@source "./app/**/*.html";
+@source "./app/**/*.ts";
+
+.brand-name {
+  font-weight: 700;
+}
+
+.brand-ai {
+  color: #06b6d4;
+  font-weight: 800;
+}

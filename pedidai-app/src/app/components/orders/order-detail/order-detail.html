@@ -1,0 +1,212 @@
+<div class="p-4 md:p-6">
+  <!-- Header -->
+  <div class="flex items-center gap-3 mb-6">
+    <button
+      (click)="back()"
+      class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <h1 class="text-2xl font-bold text-gray-800">{{ 'ORDERS.DETAIL.TITLE' | translate }}</h1>
+  </div>
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="flex justify-center py-12">
+      <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  }
+
+  @if (!loading() && order(); as o) {
+    <!-- Info card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800 mb-1">{{ o.name }}</h2>
+          <p class="text-sm text-gray-500">{{ supplierName() || o.supplierUuid }}</p>
+        </div>
+        <span class="inline-flex self-start px-3 py-1 text-sm font-medium rounded-full" [class]="statusClass(o.status)">
+          {{ 'ORDERS.STATUS_' + o.status | translate }}
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+        <div>
+          <p class="text-gray-500 mb-0.5">{{ 'ORDERS.DETAIL.SUPPLIER' | translate }}</p>
+          <p class="font-medium text-gray-800">{{ supplierName() || '—' }}</p>
+        </div>
+        <div>
+          <p class="text-gray-500 mb-0.5">{{ 'ORDERS.DETAIL.CREATED_DATE' | translate }}</p>
+          <p class="font-medium text-gray-800">{{ formatDate(o.createdAt) }}</p>
+        </div>
+        @if (o.deliveryDate) {
+          <div>
+            <p class="text-gray-500 mb-0.5">{{ 'ORDERS.DETAIL.DELIVERY_DATE' | translate }}</p>
+            <p class="font-medium text-gray-800">{{ formatDate(o.deliveryDate) }}</p>
+          </div>
+        }
+        <div>
+          <p class="text-gray-500 mb-0.5">{{ 'ORDERS.DETAIL.TOTAL' | translate }}</p>
+          <p class="font-semibold text-gray-800 text-base">{{ formatAmount(o.totalAmount) }}</p>
+        </div>
+        <div>
+          <p class="text-gray-500 mb-0.5">{{ 'ORDERS.DETAIL.NOTIFICATION_METHOD' | translate }}</p>
+          <p class="font-medium text-gray-800">{{ 'ORDERS.DETAIL.EMAIL' | translate }}</p>
+        </div>
+        @if (o.updatedAt) {
+          <div>
+            <p class="text-gray-500 mb-0.5">{{ 'ORDERS.DETAIL.LAST_UPDATE' | translate }}</p>
+            <p class="font-medium text-gray-800">{{ formatDate(o.updatedAt) }}</p>
+          </div>
+        }
+      </div>
+
+      @if (o.notes) {
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          <p class="text-sm text-gray-500 mb-1">{{ 'ORDERS.DETAIL.NOTES' | translate }}</p>
+          <p class="text-sm text-gray-700">{{ o.notes }}</p>
+        </div>
+      }
+    </div>
+
+    <!-- Items table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+      <div class="px-5 py-4 border-b border-gray-100">
+        <h3 class="font-semibold text-gray-700">{{ 'ORDERS.DETAIL.ORDER_LINES' | translate }}</h3>
+      </div>
+
+      <!-- Desktop -->
+      <table class="w-full text-sm hidden md:table">
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-100">
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">{{ 'ORDERS.DETAIL.COL_PRODUCT' | translate }}</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600">{{ 'ORDERS.DETAIL.COL_QTY' | translate }}</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600">{{ 'ORDERS.DETAIL.COL_UNIT_PRICE' | translate }}</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-600">{{ 'ORDERS.DETAIL.COL_SUBTOTAL' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of o.items; track item.uuid) {
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+              <td class="px-4 py-3 text-gray-800">{{ item.productName }}</td>
+              <td class="px-4 py-3 text-right text-gray-600">{{ item.quantity }}</td>
+              <td class="px-4 py-3 text-right text-gray-600">{{ formatAmount(item.unitPrice) }}</td>
+              <td class="px-4 py-3 text-right font-medium text-gray-800">{{ formatAmount(item.subtotal) }}</td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr class="bg-gray-50">
+            <td colspan="3" class="px-4 py-3 text-right font-semibold text-gray-700">{{ 'ORDERS.CREATE.TOTAL' | translate }}</td>
+            <td class="px-4 py-3 text-right font-bold text-gray-800">{{ formatAmount(o.totalAmount) }}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- Mobile -->
+      <div class="md:hidden divide-y divide-gray-100">
+        @for (item of o.items; track item.uuid) {
+          <div class="px-4 py-3">
+            <div class="flex justify-between items-start mb-1">
+              <span class="font-medium text-gray-800">{{ item.productName }}</span>
+              <span class="font-semibold text-gray-800 ml-2">{{ formatAmount(item.subtotal) }}</span>
+            </div>
+            <div class="flex gap-4 text-xs text-gray-500">
+              <span>{{ 'ORDERS.DETAIL.MOBILE_QTY' | translate }}: {{ item.quantity }}</span>
+              <span>{{ 'ORDERS.DETAIL.MOBILE_UNIT_PRICE' | translate }}: {{ formatAmount(item.unitPrice) }}</span>
+            </div>
+          </div>
+        }
+        <div class="px-4 py-3 bg-gray-50 flex justify-between font-semibold text-gray-800">
+          <span>{{ 'ORDERS.CREATE.TOTAL' | translate }}</span>
+          <span>{{ formatAmount(o.totalAmount) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row gap-3">
+      @if (o.status === 'PENDING') {
+        <button
+          (click)="send()"
+          [disabled]="sending()"
+          class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          @if (sending()) {
+            <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            {{ 'ORDERS.DETAIL.SENDING' | translate }}
+          } @else {
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+            {{ 'ORDERS.DETAIL.SEND_TO_SUPPLIER' | translate }}
+          }
+        </button>
+        <button
+          (click)="editOrder()"
+          class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          {{ 'ORDERS.DETAIL.EDIT_ORDER' | translate }}
+        </button>
+        <button
+          (click)="confirmCancel()"
+          [disabled]="cancelling()"
+          class="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-red-300 text-red-600 text-sm font-medium rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          @if (cancelling()) {
+            <div class="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
+            {{ 'ORDERS.DETAIL.CANCELLING' | translate }}
+          } @else {
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            {{ 'ORDERS.DETAIL.CANCEL_ORDER' | translate }}
+          }
+        </button>
+      }
+      <button
+        (click)="back()"
+        class="inline-flex items-center justify-center px-5 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
+        {{ 'ORDERS.DETAIL.BACK' | translate }}
+      </button>
+    </div>
+  }
+</div>
+
+<!-- Cancel confirmation dialog -->
+@if (showCancelConfirm()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50" (click)="dismissCancel()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-gray-800">{{ 'ORDERS.DETAIL.CANCEL_CONFIRM_TITLE' | translate }}</h3>
+          <p class="text-sm text-gray-500">{{ 'ORDERS.DETAIL.CANCEL_CONFIRM_MSG' | translate }}</p>
+        </div>
+      </div>
+      <div class="flex gap-3 justify-end">
+        <button (click)="dismissCancel()"
+          class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+          {{ 'ORDERS.DETAIL.KEEP' | translate }}
+        </button>
+        <button (click)="cancelOrder()"
+          class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+          {{ 'ORDERS.DETAIL.YES_CANCEL' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,131 @@
+<div class="min-h-screen bg-gray-50 flex items-start justify-center p-4 md:p-8">
+  <div class="w-full max-w-2xl">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">
+        {{ isEdit ? ('SUPPLIERS.FORM.EDIT_TITLE' | translate) : ('SUPPLIERS.FORM.NEW_TITLE' | translate) }}
+      </h1>
+    </div>
+
+    <!-- Loading skeleton -->
+    @if (loading()) {
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
+        <div class="space-y-4">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="h-10 bg-gray-200 rounded-lg"></div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (!loading()) {
+      <form [formGroup]="form" (ngSubmit)="save()" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+
+        <!-- Error banner -->
+        @if (error()) {
+          <div class="mb-5 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+            {{ error() }}
+          </div>
+        }
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Nombre -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              {{ 'SUPPLIERS.FORM.NAME' | translate }} <span class="text-red-500">*</span>
+            </label>
+            <input
+              formControlName="name"
+              type="text"
+              [placeholder]="'SUPPLIERS.FORM.NAME_PH' | translate"
+              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              [class]="fieldError('name')
+                ? 'border-red-400 bg-red-50'
+                : 'border-gray-300'"/>
+            @if (fieldError('name')) {
+              <p class="mt-1 text-xs text-red-500">
+                @if (form.get('name')?.errors?.['required']) { {{ 'SUPPLIERS.FORM.NAME_REQUIRED' | translate }} }
+                @else if (form.get('name')?.errors?.['minlength']) { {{ 'SUPPLIERS.FORM.NAME_MIN' | translate }} }
+              </p>
+            }
+          </div>
+
+          <!-- Contacto -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'SUPPLIERS.FORM.CONTACT' | translate }}</label>
+            <input
+              formControlName="contactName"
+              type="text"
+              [placeholder]="'SUPPLIERS.FORM.CONTACT_PH' | translate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"/>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'SUPPLIERS.FORM.EMAIL' | translate }}</label>
+            <input
+              formControlName="email"
+              type="email"
+              [placeholder]="'SUPPLIERS.FORM.EMAIL_PH' | translate"
+              class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              [class]="fieldError('email')
+                ? 'border-red-400 bg-red-50'
+                : 'border-gray-300'"/>
+            @if (fieldError('email')) {
+              <p class="mt-1 text-xs text-red-500">{{ 'SUPPLIERS.FORM.EMAIL_INVALID' | translate }}</p>
+            }
+          </div>
+
+          <!-- Teléfono -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'SUPPLIERS.FORM.PHONE' | translate }}</label>
+            <input
+              formControlName="phone"
+              type="tel"
+              [placeholder]="'SUPPLIERS.FORM.PHONE_PH' | translate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"/>
+          </div>
+
+          <!-- Dirección -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'SUPPLIERS.FORM.ADDRESS' | translate }}</label>
+            <input
+              formControlName="address"
+              type="text"
+              [placeholder]="'SUPPLIERS.FORM.ADDRESS_PH' | translate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"/>
+          </div>
+
+          <!-- Notas -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'SUPPLIERS.FORM.NOTES' | translate }}</label>
+            <textarea
+              formControlName="notes"
+              rows="3"
+              [placeholder]="'SUPPLIERS.FORM.NOTES_PH' | translate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors resize-none"></textarea>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-6 pt-5 border-t border-gray-100">
+          <button
+            type="button"
+            (click)="cancel()"
+            class="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            {{ 'SUPPLIERS.FORM.CANCEL' | translate }}
+          </button>
+          <button
+            type="submit"
+            [disabled]="saving()"
+            class="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2">
+            @if (saving()) {
+              <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            }
+            {{ isEdit ? ('SUPPLIERS.FORM.SAVE' | translate) : ('SUPPLIERS.FORM.CREATE' | translate) }}
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

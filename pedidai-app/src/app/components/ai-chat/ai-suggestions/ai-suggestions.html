@@ -1,0 +1,82 @@
+<div class="p-4 md:p-6 space-y-6">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center">
+      <svg class="w-5 h-5 text-yellow-900" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+    </div>
+    <div>
+      <h1 class="text-xl font-bold text-gray-900">{{ 'AI.SUGGESTIONS.TITLE' | translate }}</h1>
+      <p class="text-xs text-gray-500">{{ 'AI.SUGGESTIONS.SUBTITLE' | translate }}</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (_ of [1,2,3]; track $index) {
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 animate-pulse h-40"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="bg-gray-50 rounded-xl p-8 text-center">
+      <p class="text-gray-500">{{ error() }}</p>
+    </div>
+  } @else if (suggestions().length === 0) {
+    <div class="bg-green-50 rounded-xl p-8 text-center border border-green-200">
+      <div class="text-4xl mb-3">✓</div>
+      <p class="text-green-800 font-semibold">{{ 'AI.SUGGESTIONS.ALL_UP_TO_DATE' | translate }}</p>
+      <p class="text-green-600 text-sm mt-1">{{ 'AI.SUGGESTIONS.ALL_UP_TO_DATE_SUB' | translate }}</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (s of suggestions(); track $index) {
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col gap-3">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <h3 class="font-semibold text-gray-900 truncate">{{ s.product }}</h3>
+              <p class="text-sm text-gray-500">{{ s.supplier }}</p>
+            </div>
+            <span class="flex-shrink-0 text-xs font-medium px-2.5 py-1 rounded-full border" [class]="urgencyClass(s.urgency)">
+              {{ 'AI.SUGGESTIONS.URGENCY_' + s.urgency.toUpperCase() | translate }}
+            </span>
+          </div>
+
+          <div class="flex items-center gap-4 text-sm text-gray-600">
+            <span><span class="font-medium text-gray-900">{{ s.quantity }}</span> {{ s.unit ?? 'u.' }}</span>
+            @if (s.estimated_savings_percent) {
+              <span class="text-green-600 font-medium">-{{ s.estimated_savings_percent }}% {{ 'AI.SUGGESTIONS.SAVINGS' | translate }}</span>
+            }
+          </div>
+
+          @if (createdUuids().has($index)) {
+            <div class="text-xs text-green-600 font-medium py-2 px-3 bg-green-50 rounded-lg">{{ 'AI.SUGGESTIONS.ORDER_CREATED' | translate }}</div>
+          } @else {
+            <button
+              (click)="openConfirm($index)"
+              [disabled]="creatingIndex() === $index"
+              class="mt-auto w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              @if (creatingIndex() === $index) { {{ 'AI.SUGGESTIONS.CREATING' | translate }} } @else { {{ 'AI.SUGGESTIONS.CREATE_ORDER' | translate }} }
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Confirm modal -->
+@if (confirmIndex() !== null) {
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ 'AI.SUGGESTIONS.CONFIRM_TITLE' | translate }}</h3>
+      <p class="text-sm text-gray-600 mb-6">
+        {{ 'AI.SUGGESTIONS.CONFIRM_MSG' | translate }} <strong>{{ suggestions()[confirmIndex()!].product }}</strong>
+        ({{ suggestions()[confirmIndex()!].quantity }} {{ suggestions()[confirmIndex()!].unit ?? 'u.' }})
+        {{ 'AI.SUGGESTIONS.CONFIRM_FROM' | translate }} <strong>{{ suggestions()[confirmIndex()!].supplier }}</strong>?
+      </p>
+      <div class="flex gap-3">
+        <button (click)="closeConfirm()" class="flex-1 py-2 px-4 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50">{{ 'AI.SUGGESTIONS.CANCEL' | translate }}</button>
+        <button (click)="createOrder(confirmIndex()!)" class="flex-1 py-2 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">{{ 'AI.SUGGESTIONS.CONFIRM' | translate }}</button>
+      </div>
+    </div>
+  </div>
+}

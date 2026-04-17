@@ -1,0 +1,90 @@
+package com.pedidai.api.dto;
+
+import jakarta.validation.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import java.time.LocalDate;
+import java.util.List;
+import static org.assertj.core.api.Assertions.*;
+
+@DisplayName("OrderRequestDTO Tests")
+class OrderRequestDTOTest {
+
+    private Validator validator;
+
+    @BeforeEach
+    void setup() {
+        validator = Validation.buildDefaultValidatorFactory().getValidator();
+    }
+
+    @Test
+    @DisplayName("Comprova que Builder construeix correctament")
+    void builder_createsDTO() {
+
+        OrderItemRequestDTO item = OrderItemRequestDTO.builder()
+                .productUuid("p-1")
+                .quantity(java.math.BigDecimal.ONE)
+                .build();
+
+        OrderRequestDTO dto = OrderRequestDTO.builder()
+                .name("Comanda Test")
+                .supplierUuid("sup-123")
+                .notes("notes")
+                .deliveryDate(LocalDate.now())
+                .items(List.of(item))
+                .build();
+
+        assertThat(dto.getName()).isEqualTo("Comanda Test");
+        assertThat(dto.getSupplierUuid()).isEqualTo("sup-123");
+        assertThat(dto.getItems()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Comprova excepció si el nom és buit")
+    void validation_fails_onBlankName() {
+        OrderRequestDTO dto = OrderRequestDTO.builder()
+                .name("")
+                .supplierUuid("x")
+                .items(List.of())
+                .build();
+
+        assertThat(validator.validate(dto)).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("Comprova excepció si el supplierUuid és buit")
+    void validation_fails_onBlankSupplier() {
+        OrderRequestDTO dto = OrderRequestDTO.builder()
+                .name("ok")
+                .supplierUuid("")
+                .items(List.of())
+                .build();
+
+        assertThat(validator.validate(dto)).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("Comprova excepció si items és nul")
+    void validation_fails_onNullItems() {
+        OrderRequestDTO dto = OrderRequestDTO.builder()
+                .name("ok")
+                .supplierUuid("x")
+                .items(null)
+                .build();
+
+        assertThat(validator.validate(dto)).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("Comprova que toString funciona")
+    void toString_notEmpty() {
+        OrderRequestDTO dto = OrderRequestDTO.builder()
+                .name("x")
+                .supplierUuid("y")
+                .items(List.of())
+                .build();
+
+        assertThat(dto.toString()).contains("name");
+    }
+}

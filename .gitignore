@@ -1,0 +1,30 @@
+# Java/Maven
+pedidai-api/target/
+pedidai-api/*.jar
+*.class
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# Env
+.env
+*.env.local
+application.properties
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (frontend Angular)
+node_modules/
+dist/
+.angular/
+
+# Logs
+*.log

@@ -1,0 +1,54 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 pt-20 relative overflow-hidden">
+  <!-- Brand watermark -->
+  <div class="absolute inset-0 flex items-center justify-end pe-[8%] pointer-events-none" aria-hidden="true">
+    <img src="logo-pedidai.png" alt="" class="w-[360px] h-[360px] opacity-[0.055] select-none" style="filter: blur(2px);">
+  </div>
+
+  <div class="w-full max-w-md relative">
+    <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
+      <!-- Logo -->
+      <div class="mb-8">
+        <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center font-bold text-white text-2xl mx-auto mb-3">P</div>
+        <h1 class="text-2xl font-bold text-gray-900">Pedid<span class="brand-ai">AI</span></h1>
+      </div>
+
+      @if (status() === 'loading') {
+        <div class="py-6">
+          <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p class="text-gray-500 text-sm">{{ 'AUTH.VERIFY.VERIFYING' | translate }}</p>
+        </div>
+      }
+
+      @if (status() === 'success') {
+        <div class="py-4">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <h2 class="text-lg font-bold text-gray-900 mb-2">{{ 'AUTH.VERIFY.SUCCESS_TITLE' | translate }}</h2>
+          <p class="text-sm text-gray-500 mb-6">{{ 'AUTH.VERIFY.SUCCESS_MSG' | translate }}</p>
+          <a routerLink="/login"
+            class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm transition-colors">
+            {{ 'AUTH.VERIFY.GO_LOGIN' | translate }}
+          </a>
+        </div>
+      }
+
+      @if (status() === 'error') {
+        <div class="py-4">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </div>
+          <h2 class="text-lg font-bold text-gray-900 mb-2">{{ 'AUTH.VERIFY.ERROR_TITLE' | translate }}</h2>
+          <p class="text-sm text-gray-500 mb-6">{{ 'AUTH.VERIFY.ERROR_MSG' | translate }}</p>
+          <a routerLink="/login" class="text-sm text-blue-600 hover:underline font-medium">
+            {{ 'AUTH.RECOVER.BACK_LOGIN' | translate }}
+          </a>
+        </div>
+      }
+    </div>
+  </div>
+</div>
