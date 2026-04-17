@@ -55,6 +55,9 @@ public class Company {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "trial_ends_at")
+    private LocalDateTime trialEndsAt;
+
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<User> users;
 
@@ -77,6 +80,8 @@ public class Company {
 
         INACTIVE,
 
-        PENDING
+        PENDING,
+
+        SUSPENDED
     }
 }

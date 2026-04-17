@@ -101,7 +101,7 @@ class UserServiceImplTest {
         // Given
         when(userRepository.findByEmail("test@pedidai.com")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
-        when(jwtUtil.generateToken("test@pedidai.com")).thenReturn("jwt-token");
+        when(jwtUtil.generateToken(eq("test@pedidai.com"), any(String.class))).thenReturn("jwt-token");
 
         // When
         LoginResponseDTO response = userService.login(loginRequest);
@@ -113,7 +113,7 @@ class UserServiceImplTest {
         assertThat(response.getUser().getEmail()).isEqualTo("test@pedidai.com");
 
         verify(userRepository).save(testUser);
-        verify(jwtUtil).generateToken("test@pedidai.com");
+        verify(jwtUtil).generateToken(eq("test@pedidai.com"), any(String.class));
     }
 
     @Test

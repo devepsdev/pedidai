@@ -1,0 +1,76 @@
+<div class="min-h-screen bg-slate-950 text-slate-300 p-6">
+  <div class="mb-6 flex items-center gap-3">
+    <a routerLink="/superadmin" class="text-slate-500 hover:text-slate-300 transition-colors text-sm">← Dashboard</a>
+    <span class="text-slate-700">/</span>
+    <h1 class="text-xl font-extrabold text-white">{{ 'SUPERADMIN.USERS.TITLE' | translate }}</h1>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex flex-col sm:flex-row gap-3 mb-5">
+    <input [(ngModel)]="searchValue" (ngModelChange)="onSearchChange($event)"
+      placeholder="Buscar por nombre o email..."
+      class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"/>
+    <select [(ngModel)]="roleFilterValue" (ngModelChange)="onRoleFilterChange($event)"
+      class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+      <option value="">Todos los roles</option>
+      <option value="ADMIN">Admin</option>
+      <option value="USER">Usuario</option>
+      <option value="SUPER_ADMIN">Super Admin</option>
+    </select>
+  </div>
+
+  <div class="bg-slate-800 rounded-xl overflow-hidden">
+    @if (loading()) {
+      <div class="p-8 text-center text-slate-500 text-sm animate-pulse">Cargando...</div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="border-b border-slate-700">
+            <tr class="text-xs text-slate-400 uppercase tracking-wider">
+              <th class="text-left px-4 py-3">Usuario</th>
+              <th class="text-left px-4 py-3 hidden sm:table-cell">Email</th>
+              <th class="text-left px-4 py-3">Rol</th>
+              <th class="text-left px-4 py-3 hidden md:table-cell">Empresa</th>
+              <th class="text-center px-4 py-3 hidden lg:table-cell">Activo</th>
+              <th class="text-left px-4 py-3 hidden xl:table-cell">Registro</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-700/50">
+            @for (u of users(); track u.uuid) {
+              <tr class="hover:bg-slate-700/30 transition-colors">
+                <td class="px-4 py-3 text-white font-medium">{{ u.firstName }} {{ u.lastName }}</td>
+                <td class="px-4 py-3 text-slate-400 hidden sm:table-cell text-xs">{{ u.email }}</td>
+                <td class="px-4 py-3">
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded-full" [class]="roleBadge(u.role)">{{ u.role }}</span>
+                </td>
+                <td class="px-4 py-3 text-slate-400 hidden md:table-cell">
+                  <a [routerLink]="['/superadmin/companies', u.companyUuid]"
+                     class="hover:text-cyan-400 transition-colors">{{ u.companyName }}</a>
+                </td>
+                <td class="px-4 py-3 text-center hidden lg:table-cell">
+                  <span [class]="u.active ? 'text-green-400' : 'text-red-400'">{{ u.active ? '✓' : '✗' }}</span>
+                </td>
+                <td class="px-4 py-3 text-slate-400 text-xs hidden xl:table-cell">{{ u.createdAt | date:'dd/MM/yy' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">Sin usuarios</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="px-4 py-3 border-t border-slate-700 flex items-center justify-between text-xs text-slate-400">
+          <span>{{ totalElements() }} usuarios</span>
+          <div class="flex gap-1">
+            @for (p of pages(); track p) {
+              <button (click)="goToPage(p)"
+                class="w-7 h-7 rounded text-xs transition-colors"
+                [class]="p === currentPage() ? 'bg-cyan-500 text-white' : 'hover:bg-slate-700'">{{ p + 1 }}</button>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

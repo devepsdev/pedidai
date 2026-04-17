@@ -107,10 +107,15 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Credencials invàlides");
         }
 
+        Company company = user.getCompany();
+        if (company.getStatus() == Company.CompanyStatus.SUSPENDED) {
+            throw new BadRequestException("El compte de l'empresa està suspès. Contacta amb el suport.");
+        }
+
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
         return LoginResponseDTO.builder()
                 .token(token)

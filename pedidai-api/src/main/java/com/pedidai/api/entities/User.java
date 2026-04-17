@@ -96,6 +96,8 @@ public class User {
     public enum UserRole {
         ADMIN,
 
-        USER
+        USER,
+
+        SUPER_ADMIN
     }
 }

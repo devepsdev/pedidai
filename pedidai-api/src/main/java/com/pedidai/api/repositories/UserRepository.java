@@ -58,4 +58,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("emailVerified") Boolean emailVerified,
             @Param("role") User.UserRole role,
             Pageable pageable);
+
+    long countByRole(User.UserRole role);
+
+    long countByIsDeletedFalse();
+
+    @Query("SELECT u FROM User u WHERE u.isDeleted = false AND " +
+           "(:role IS NULL OR u.role = :role) AND " +
+           "(:companyUuid IS NULL OR u.company.uuid = :companyUuid) AND " +
+           "(:search IS NULL OR LOWER(u.firstName) LIKE LOWER(CONCAT('%',:search,'%')) OR " +
+           "LOWER(u.lastName) LIKE LOWER(CONCAT('%',:search,'%')) OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%',:search,'%')))")
+    Page<User> findByAdminFilters(@Param("role") User.UserRole role, @Param("companyUuid") String companyUuid, @Param("search") String search, Pageable pageable);
+
+    @Query("SELECT u FROM User u WHERE u.company.id = :companyId AND u.isDeleted = false ORDER BY u.createdAt DESC")
+    java.util.List<User> findByCompanyIdNotDeleted(@Param("companyId") Long companyId);
 }

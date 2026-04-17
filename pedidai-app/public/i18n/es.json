@@ -36,7 +36,11 @@
     "MANAGEMENT": "Gestión",
     "REPORTS": "Informes",
     "COMPANY": "Empresa",
-    "USERS": "Usuarios"
+    "USERS": "Usuarios",
+    "ADMIN_SECTION": "Administración",
+    "ADMIN_DASHBOARD": "Dashboard Admin",
+    "ADMIN_COMPANIES": "Empresas",
+    "ADMIN_USERS": "Usuarios"
   },
   "NAVBAR": {
     "LOGOUT": "Salir"
@@ -630,6 +634,28 @@
     "UPDATED_COUNT": "Precios actualizados",
     "SKIPPED_COUNT": "Sin cambios",
     "SCAN_ANOTHER": "Escanear otra factura"
+  },
+  "SUPERADMIN": {
+    "SECTION": "Super Admin",
+    "DASHBOARD": {
+      "TITLE": "Dashboard de Administración",
+      "TOTAL_COMPANIES": "Total empresas",
+      "TOTAL_USERS": "Total usuarios",
+      "ORDERS_30D": "Pedidos (30d)",
+      "SPENT_30D": "Gasto (30d)",
+      "LAST_30_DAYS": "Últimos 30 días",
+      "ORDERS_CHART": "Pedidos por mes",
+      "TOP_COMPANIES": "Top empresas por actividad",
+      "SEE_ALL": "Ver todas"
+    },
+    "COMPANIES": {
+      "TITLE": "Empresas",
+      "SEARCH_PH": "Buscar por nombre o CIF...",
+      "ALL_STATUSES": "Todos los estados"
+    },
+    "USERS": {
+      "TITLE": "Usuarios"
+    }
   },
   "COOKIE_BANNER": {
     "TEXT": "Utilizamos cookies técnicas necesarias para el funcionamiento de la plataforma. No usamos cookies analíticas ni publicitarias.",

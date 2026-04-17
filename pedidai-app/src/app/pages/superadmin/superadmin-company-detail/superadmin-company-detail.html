@@ -1,0 +1,118 @@
+<div class="min-h-screen bg-slate-950 text-slate-300 p-6">
+  <!-- Breadcrumb -->
+  <div class="mb-6 flex items-center gap-3">
+    <a routerLink="/superadmin/companies" class="text-slate-500 hover:text-slate-300 transition-colors text-sm">← Empresas</a>
+  </div>
+
+  @if (loading()) {
+    <div class="space-y-4">
+      <div class="bg-slate-800 rounded-xl h-32 animate-pulse"></div>
+      <div class="bg-slate-800 rounded-xl h-48 animate-pulse"></div>
+    </div>
+  }
+
+  @if (!loading() && company(); as c) {
+    <!-- Header empresa -->
+    <div class="bg-slate-800 rounded-xl p-6 mb-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-extrabold text-white">{{ c.name }}</h1>
+          <p class="text-sm text-slate-400 mt-1">{{ c.taxId }} · {{ c.email }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-semibold px-3 py-1 rounded-full" [class]="statusBadge(c.status)">{{ c.status }}</span>
+          <button (click)="openStatusModal()"
+            class="text-xs px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors">
+            Cambiar estado
+          </button>
+        </div>
+      </div>
+
+      <!-- Datos -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-5 border-t border-slate-700">
+        <div><p class="text-xs text-slate-500">Ciudad</p><p class="text-sm text-white">{{ c.city || '—' }}</p></div>
+        <div><p class="text-xs text-slate-500">Registro</p><p class="text-sm text-white">{{ c.createdAt | date:'dd/MM/yyyy' }}</p></div>
+        <div><p class="text-xs text-slate-500">Trial hasta</p><p class="text-sm text-white">{{ c.trialEndsAt ? (c.trialEndsAt | date:'dd/MM/yyyy') : '—' }}</p></div>
+        <div><p class="text-xs text-slate-500">Pedidos totales</p><p class="text-sm text-white">{{ c.orderCount }}</p></div>
+      </div>
+    </div>
+
+    <!-- Usuarios -->
+    <div class="bg-slate-800 rounded-xl overflow-hidden mb-5">
+      <div class="px-5 py-4 border-b border-slate-700">
+        <h2 class="text-sm font-bold text-white">Usuarios ({{ c.users.length }})</h2>
+      </div>
+      <div class="divide-y divide-slate-700/50">
+        @for (u of c.users; track u.uuid) {
+          <div class="px-5 py-3 flex items-center justify-between text-sm">
+            <div>
+              <p class="text-white font-medium">{{ u.firstName }} {{ u.lastName }}</p>
+              <p class="text-xs text-slate-500">{{ u.email }}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full" [class]="roleBadge(u.role)">{{ u.role }}</span>
+              @if (!u.active) {
+                <span class="text-xs text-red-400">Inactivo</span>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="px-5 py-6 text-center text-slate-500 text-sm">Sin usuarios</div>
+        }
+      </div>
+    </div>
+
+    <!-- Últimos pedidos -->
+    <div class="bg-slate-800 rounded-xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-700">
+        <h2 class="text-sm font-bold text-white">Últimos pedidos</h2>
+      </div>
+      <div class="divide-y divide-slate-700/50">
+        @for (o of c.recentOrders; track o.uuid) {
+          <div class="px-5 py-3 flex items-center justify-between text-sm">
+            <div>
+              <p class="text-white">{{ o.supplierName || '—' }}</p>
+              <p class="text-xs text-slate-500">{{ o.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full" [class]="orderStatusBadge(o.status)">{{ o.status }}</span>
+              <span class="text-white font-medium">{{ o.total | currency:'EUR' }}</span>
+            </div>
+          </div>
+        } @empty {
+          <div class="px-5 py-6 text-center text-slate-500 text-sm">Sin pedidos</div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="bg-red-900/30 border border-red-700 text-red-300 rounded-xl p-4 text-sm">{{ error() }}</div>
+  }
+</div>
+
+<!-- Modal cambio de estado -->
+@if (showStatusModal()) {
+  <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-sm border border-slate-700">
+      <h3 class="text-lg font-bold text-white mb-4">Cambiar estado de empresa</h3>
+      <select [(ngModel)]="newStatusValue" (ngModelChange)="onNewStatusChange($event)"
+        class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white mb-5 focus:outline-none focus:border-cyan-500">
+        <option value="ACTIVE">Activa</option>
+        <option value="INACTIVE">Inactiva</option>
+        <option value="SUSPENDED">Suspendida</option>
+        <option value="PENDING">Pendiente</option>
+      </select>
+      <div class="flex gap-3">
+        <button (click)="showStatusModal.set(false)"
+          class="flex-1 py-2 rounded-lg border border-slate-600 text-slate-300 text-sm hover:bg-slate-700 transition-colors">
+          Cancelar
+        </button>
+        <button (click)="confirmStatusChange()" [disabled]="saving()"
+          class="flex-1 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-semibold transition-colors disabled:opacity-50">
+          {{ saving() ? 'Guardando...' : 'Confirmar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

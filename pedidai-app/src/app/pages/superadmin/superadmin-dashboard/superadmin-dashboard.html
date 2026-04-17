@@ -1,0 +1,98 @@
+<div class="min-h-screen bg-slate-950 text-slate-300 p-6">
+  <!-- Header -->
+  <div class="mb-8">
+    <p class="text-xs font-semibold text-amber-400 uppercase tracking-widest mb-1">{{ 'SUPERADMIN.SECTION' | translate }}</p>
+    <h1 class="text-2xl font-extrabold text-white">{{ 'SUPERADMIN.DASHBOARD.TITLE' | translate }}</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="bg-slate-800 rounded-xl h-28 animate-pulse"></div>
+      }
+    </div>
+  }
+
+  @if (!loading() && dashboard(); as d) {
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <!-- Empresas -->
+      <div class="bg-slate-800 rounded-xl p-5 border-l-4 border-cyan-500">
+        <p class="text-xs text-slate-400 mb-1">{{ 'SUPERADMIN.DASHBOARD.TOTAL_COMPANIES' | translate }}</p>
+        <p class="text-3xl font-extrabold text-white">{{ d.totalCompanies }}</p>
+        <div class="flex gap-2 mt-2 text-xs">
+          <span class="text-green-400">{{ d.activeCompanies }} act.</span>
+          <span class="text-gray-400">{{ d.inactiveCompanies }} inact.</span>
+          <span class="text-red-400">{{ d.suspendedCompanies }} susp.</span>
+        </div>
+      </div>
+      <!-- Usuarios -->
+      <div class="bg-slate-800 rounded-xl p-5 border-l-4 border-blue-500">
+        <p class="text-xs text-slate-400 mb-1">{{ 'SUPERADMIN.DASHBOARD.TOTAL_USERS' | translate }}</p>
+        <p class="text-3xl font-extrabold text-white">{{ d.totalUsers }}</p>
+        <div class="flex gap-2 mt-2 text-xs">
+          <span class="text-blue-400">{{ d.totalAdmins }} admins</span>
+          <span class="text-slate-400">{{ d.totalRegularUsers }} users</span>
+        </div>
+      </div>
+      <!-- Pedidos 30d -->
+      <div class="bg-slate-800 rounded-xl p-5 border-l-4 border-purple-500">
+        <p class="text-xs text-slate-400 mb-1">{{ 'SUPERADMIN.DASHBOARD.ORDERS_30D' | translate }}</p>
+        <p class="text-3xl font-extrabold text-white">{{ d.totalOrders30d }}</p>
+        <p class="text-xs text-slate-500 mt-2">{{ 'SUPERADMIN.DASHBOARD.LAST_30_DAYS' | translate }}</p>
+      </div>
+      <!-- Gasto 30d -->
+      <div class="bg-slate-800 rounded-xl p-5 border-l-4 border-emerald-500">
+        <p class="text-xs text-slate-400 mb-1">{{ 'SUPERADMIN.DASHBOARD.SPENT_30D' | translate }}</p>
+        <p class="text-3xl font-extrabold text-white">{{ d.totalSpent30d | currency:'EUR':'symbol':'1.0-0' }}</p>
+        <p class="text-xs text-slate-500 mt-2">MRR pot.: {{ d.potentialMRR | currency:'EUR':'symbol':'1.0-0' }}</p>
+      </div>
+    </div>
+
+    <!-- Gráfica barras - pedidos por mes -->
+    @if (monthlyStats().length > 0) {
+      <div class="bg-slate-800 rounded-xl p-6 mb-6">
+        <h2 class="text-sm font-bold text-white mb-5">{{ 'SUPERADMIN.DASHBOARD.ORDERS_CHART' | translate }}</h2>
+        <div class="flex items-end gap-2 h-36">
+          @for (stat of monthlyStats(); track stat.month) {
+            <div class="flex-1 flex flex-col items-center gap-1 min-w-0">
+              <span class="text-[9px] text-slate-500 hidden sm:block">{{ stat.orderCount }}</span>
+              <div class="w-full bg-cyan-500/80 rounded-t transition-all"
+                   [style.height]="barHeight(stat.orderCount)">
+              </div>
+              <span class="text-[8px] text-slate-500 truncate w-full text-center">{{ stat.month.slice(5) }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Top empresas -->
+    <div class="bg-slate-800 rounded-xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-700 flex items-center justify-between">
+        <h2 class="text-sm font-bold text-white">{{ 'SUPERADMIN.DASHBOARD.TOP_COMPANIES' | translate }}</h2>
+        <a routerLink="/superadmin/companies" class="text-xs text-cyan-400 hover:text-cyan-300 transition-colors">
+          {{ 'SUPERADMIN.DASHBOARD.SEE_ALL' | translate }} →
+        </a>
+      </div>
+      <div class="divide-y divide-slate-700">
+        @for (company of d.topCompanies; track company.companyUuid) {
+          <div class="px-5 py-3 flex items-center justify-between text-sm">
+            <a [routerLink]="['/superadmin/companies', company.companyUuid]"
+               class="font-medium text-white hover:text-cyan-300 transition-colors">{{ company.companyName }}</a>
+            <div class="flex gap-6 text-slate-400 text-xs">
+              <span>{{ company.orderCount }} pedidos</span>
+              <span>{{ company.totalSpent | currency:'EUR':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+        } @empty {
+          <div class="px-5 py-8 text-center text-slate-500 text-sm">Sin datos</div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="bg-red-900/30 border border-red-700 text-red-300 rounded-xl p-4 text-sm">{{ error() }}</div>
+  }
+</div>

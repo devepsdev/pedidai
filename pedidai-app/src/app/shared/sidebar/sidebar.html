@@ -95,6 +95,36 @@
     </a>
   </nav>
 
+  <!-- Super Admin section -->
+  @if (isSuperAdmin) {
+    <div class="pb-1 pt-4 px-2 mb-1 text-[10px] font-bold text-amber-500/80 uppercase tracking-widest">{{ 'SIDEBAR.ADMIN_SECTION' | translate }}</div>
+
+    <a routerLink="/superadmin" routerLinkActive="bg-amber-500/10 text-white [&_svg]:text-amber-400"
+      [routerLinkActiveOptions]="{exact: true}"
+      class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-amber-500/5 hover:text-white transition-colors text-sm font-medium group">
+      <svg class="w-5 h-5 text-slate-400 group-hover:text-amber-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+      {{ 'SIDEBAR.ADMIN_DASHBOARD' | translate }}
+    </a>
+
+    <a routerLink="/superadmin/companies" routerLinkActive="bg-amber-500/10 text-white [&_svg]:text-amber-400"
+      class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-amber-500/5 hover:text-white transition-colors text-sm font-medium group">
+      <svg class="w-5 h-5 text-slate-400 group-hover:text-amber-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+      </svg>
+      {{ 'SIDEBAR.ADMIN_COMPANIES' | translate }}
+    </a>
+
+    <a routerLink="/superadmin/users" routerLinkActive="bg-amber-500/10 text-white [&_svg]:text-amber-400"
+      class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-amber-500/5 hover:text-white transition-colors text-sm font-medium group">
+      <svg class="w-5 h-5 text-slate-400 group-hover:text-amber-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+      </svg>
+      {{ 'SIDEBAR.ADMIN_USERS' | translate }}
+    </a>
+  }
+
   <!-- User info bottom with avatar -->
   @if (user) {
     <div class="px-4 py-3 border-t border-slate-700/60">

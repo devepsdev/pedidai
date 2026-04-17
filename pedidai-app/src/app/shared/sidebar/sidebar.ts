@@ -13,4 +13,8 @@ export class Sidebar {
   private auth = inject(AuthService);
 
   get user() { return this.auth.getCurrentUser(); }
+
+  get isSuperAdmin(): boolean {
+    return this.user?.role === 'SUPER_ADMIN';
+  }
 }

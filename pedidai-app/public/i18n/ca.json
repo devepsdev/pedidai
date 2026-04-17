@@ -36,7 +36,11 @@
     "MANAGEMENT": "Gestió",
     "REPORTS": "Informes",
     "COMPANY": "Empresa",
-    "USERS": "Usuaris"
+    "USERS": "Usuaris",
+    "ADMIN_SECTION": "Administració",
+    "ADMIN_DASHBOARD": "Dashboard Admin",
+    "ADMIN_COMPANIES": "Empreses",
+    "ADMIN_USERS": "Usuaris"
   },
   "NAVBAR": {
     "LOGOUT": "Sortir"
@@ -630,6 +634,28 @@
     "UPDATED_COUNT": "Preus actualitzats",
     "SKIPPED_COUNT": "Sense canvis",
     "SCAN_ANOTHER": "Escanejar altra factura"
+  },
+  "SUPERADMIN": {
+    "SECTION": "Super Admin",
+    "DASHBOARD": {
+      "TITLE": "Dashboard d'Administració",
+      "TOTAL_COMPANIES": "Total empreses",
+      "TOTAL_USERS": "Total usuaris",
+      "ORDERS_30D": "Comandes (30d)",
+      "SPENT_30D": "Despesa (30d)",
+      "LAST_30_DAYS": "Últims 30 dies",
+      "ORDERS_CHART": "Comandes per mes",
+      "TOP_COMPANIES": "Top empreses per activitat",
+      "SEE_ALL": "Veure totes"
+    },
+    "COMPANIES": {
+      "TITLE": "Empreses",
+      "SEARCH_PH": "Cercar per nom o CIF...",
+      "ALL_STATUSES": "Tots els estats"
+    },
+    "USERS": {
+      "TITLE": "Usuaris"
+    }
   },
   "COOKIE_BANNER": {
     "TEXT": "Utilitzem cookies tècniques necessàries per al funcionament de la plataforma. No fem servir cookies analítiques ni publicitàries.",

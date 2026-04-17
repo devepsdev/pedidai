@@ -20,6 +20,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -95,6 +96,9 @@ public class SecurityConfig {
 
                         // Companies - públics per al registre
                         .requestMatchers(HttpMethod.POST, "/api/companies/register").permitAll()
+
+                        // Super Admin endpoints - requereixen rol SUPER_ADMIN
+                        .requestMatchers("/api/superadmin/**").hasRole("SUPER_ADMIN")
 
                         // Tots els altres endpoints requereixen autenticació
                         .requestMatchers("/api/**").authenticated()

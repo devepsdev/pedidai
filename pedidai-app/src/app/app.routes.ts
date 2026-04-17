@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth-guard';
+import { superAdminGuard } from './guards/super-admin.guard';
 import { PublicLayoutComponent } from './layouts/public-layout/public-layout';
 import { PrivateLayoutComponent } from './layouts/private-layout/private-layout';
 import { Login } from './components/auth/login/login';
@@ -27,6 +28,10 @@ import { PrivacyPolicy } from './pages/legal/privacy-policy/privacy-policy';
 import { LegalNotice } from './pages/legal/legal-notice/legal-notice';
 import { CookiePolicy } from './pages/legal/cookie-policy/cookie-policy';
 import { TermsConditions } from './pages/legal/terms-conditions/terms-conditions';
+import { SuperadminDashboard } from './pages/superadmin/superadmin-dashboard/superadmin-dashboard';
+import { SuperadminCompanies } from './pages/superadmin/superadmin-companies/superadmin-companies';
+import { SuperadminCompanyDetail } from './pages/superadmin/superadmin-company-detail/superadmin-company-detail';
+import { SuperadminUsers } from './pages/superadmin/superadmin-users/superadmin-users';
 
 export const routes: Routes = [
   {
@@ -69,6 +74,10 @@ export const routes: Routes = [
       { path: 'invoices/scan', component: InvoiceScan },
       { path: 'ai', component: AiChat },
       { path: 'ai/suggestions', component: AiSuggestions },
+      { path: 'superadmin', component: SuperadminDashboard, canActivate: [superAdminGuard] },
+      { path: 'superadmin/companies', component: SuperadminCompanies, canActivate: [superAdminGuard] },
+      { path: 'superadmin/companies/:uuid', component: SuperadminCompanyDetail, canActivate: [superAdminGuard] },
+      { path: 'superadmin/users', component: SuperadminUsers, canActivate: [superAdminGuard] },
     ]
   },
   { path: '**', redirectTo: 'login' }

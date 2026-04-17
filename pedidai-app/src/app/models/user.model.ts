@@ -5,7 +5,7 @@ export interface UserResponse {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'ADMIN' | 'USER';
+  role: 'ADMIN' | 'USER' | 'SUPER_ADMIN';
   phone?: string;
   isActive: boolean;
   isDeleted: boolean;
