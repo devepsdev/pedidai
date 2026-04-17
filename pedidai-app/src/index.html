@@ -1,19 +1,66 @@
 <!doctype html>
-<html lang="en">
+<html lang="ca">
 <head>
   <meta charset="utf-8">
-  <title>PedidAI - Gestió intel·ligent de comandes</title>
-  <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="PedidAI - Plataforma B2B amb IA per gestionar comandes a proveïdors per a restaurants i bars de Barcelona">
+  <title>PedidAI - Gestió intel·ligent de comandes a proveïdors</title>
+  <base href="/">
+
+  <!-- SEO básico -->
+  <meta name="description" content="PedidAI és la plataforma B2B amb IA per gestionar comandes a proveïdors per a restaurants i bars de Barcelona. Escaneja factures, compara preus i fes comandes en un clic.">
+  <meta name="keywords" content="gestió comandes, proveïdors, restaurants, bars, Barcelona, intel·ligència artificial, factures, pedidos proveedores">
+  <meta name="author" content="Enrique Pérez Sánchez">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://pedidai.es/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="PedidAI - Gestió intel·ligent de comandes a proveïdors">
+  <meta property="og:description" content="Plataforma B2B amb IA per a restaurants i bars. Escaneja factures, compara preus, gestiona proveïdors.">
+  <meta property="og:url" content="https://pedidai.es">
+  <meta property="og:site_name" content="PedidAI">
+  <meta property="og:image" content="https://pedidai.es/logo-pedidai.png">
+  <meta property="og:locale" content="ca_ES">
+  <meta property="og:locale:alternate" content="es_ES">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PedidAI - Gestió intel·ligent de comandes">
+  <meta name="twitter:description" content="Plataforma B2B amb IA per a restaurants i bars de Barcelona.">
+  <meta name="twitter:image" content="https://pedidai.es/logo-pedidai.png">
+
+  <!-- PWA -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#06b6d4">
-  <meta property="og:title" content="PedidAI">
-  <meta property="og:description" content="PedidAI - Plataforma B2B amb IA per gestionar comandes a proveïdors per a restaurants i bars">
-  <meta property="og:image" content="/logo-pedidai.png">
-  <meta property="og:type" content="website">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "PedidAI",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "url": "https://pedidai.es",
+    "description": "Plataforma B2B amb intel·ligència artificial per gestionar comandes a proveïdors per a restaurants i bars",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR",
+      "description": "3 mesos de prova gratuïta, després 29€/mes"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Enrique Pérez Sánchez"
+    },
+    "areaServed": {
+      "@type": "City",
+      "name": "Barcelona"
+    }
+  }
+  </script>
 </head>
 <body>
   <app-root></app-root>

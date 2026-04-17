@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /superadmin
+Disallow: /api/
+Sitemap: https://pedidai.es/sitemap.xml
