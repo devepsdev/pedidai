@@ -43,6 +43,7 @@ export class Register {
     adminLastName: ['', Validators.required],
     password: ['', [Validators.required, Validators.minLength(8), passwordStrength]],
     confirmPassword: ['', Validators.required],
+    termsAccepted: [false, Validators.requiredTrue],
   }, { validators: passwordMatch });
 
   submit() {

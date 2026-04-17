@@ -182,9 +182,10 @@
       <div>
         <h4 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">{{ 'FOOTER.LEGAL' | translate }}</h4>
         <ul class="space-y-2 text-sm">
-          <li><a href="#" class="hover:text-white transition-colors">{{ 'FOOTER.PRIVACY' | translate }}</a></li>
-          <li><a href="#" class="hover:text-white transition-colors">{{ 'FOOTER.TERMS' | translate }}</a></li>
-          <li><a href="#" class="hover:text-white transition-colors">{{ 'FOOTER.ACCESSIBILITY' | translate }}</a></li>
+          <li><a routerLink="/privacidad" class="hover:text-white transition-colors">{{ 'FOOTER.PRIVACY' | translate }}</a></li>
+          <li><a routerLink="/aviso-legal" class="hover:text-white transition-colors">{{ 'FOOTER.LEGAL_NOTICE' | translate }}</a></li>
+          <li><a routerLink="/cookies" class="hover:text-white transition-colors">{{ 'FOOTER.COOKIES' | translate }}</a></li>
+          <li><a routerLink="/terminos" class="hover:text-white transition-colors">{{ 'FOOTER.TERMS' | translate }}</a></li>
         </ul>
       </div>
     </div>

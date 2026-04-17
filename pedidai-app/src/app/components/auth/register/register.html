@@ -148,6 +148,23 @@
             </div>
           </div>
 
+          <!-- Terms acceptance -->
+          <div>
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" formControlName="termsAccepted"
+                class="mt-0.5 w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"/>
+              <span class="text-sm text-gray-600">
+                {{ 'AUTH.REGISTER.TERMS_LABEL' | translate }}
+                <a routerLink="/terminos" class="text-blue-600 hover:underline">{{ 'AUTH.REGISTER.TERMS_LINK' | translate }}</a>
+                {{ 'AUTH.REGISTER.AND' | translate }}
+                <a routerLink="/privacidad" class="text-blue-600 hover:underline">{{ 'AUTH.REGISTER.PRIVACY_LINK' | translate }}</a>
+              </span>
+            </label>
+            @if (fieldError('termsAccepted')) {
+              <p class="mt-1 text-xs text-red-600 pl-7">{{ 'AUTH.REGISTER.TERMS_REQUIRED' | translate }}</p>
+            }
+          </div>
+
           <!-- Submit -->
           <button type="submit" [disabled]="saving()"
             class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-base">

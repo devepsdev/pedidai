@@ -18,8 +18,9 @@
     "CONTACT": "Contacte",
     "LEGAL": "Legal",
     "PRIVACY": "Política de privacitat",
-    "TERMS": "Termes d'ús",
-    "ACCESSIBILITY": "Accessibilitat",
+    "LEGAL_NOTICE": "Avís legal",
+    "COOKIES": "Política de cookies",
+    "TERMS": "Termes i condicions",
     "COPYRIGHT": "Tots els drets reservats."
   },
   "SIDEBAR": {
@@ -90,7 +91,12 @@
       "FIELD_REQUIRED": "Camp obligatori",
       "EMAIL_REQUIRED": "Introdueix un email vàlid",
       "ALREADY_ACCOUNT": "Ja tens compte?",
-      "LOGIN_LINK": "Inicia sessió"
+      "LOGIN_LINK": "Inicia sessió",
+      "TERMS_LABEL": "He llegit i accepto els",
+      "TERMS_LINK": "Termes i Condicions",
+      "AND": "i la",
+      "PRIVACY_LINK": "Política de Privacitat",
+      "TERMS_REQUIRED": "Has d'acceptar els termes i condicions per continuar"
     },
     "RECOVER": {
       "TITLE": "Recuperar contrasenya",
@@ -625,6 +631,12 @@
     "SKIPPED_COUNT": "Sense canvis",
     "SCAN_ANOTHER": "Escanejar altra factura"
   },
+  "COOKIE_BANNER": {
+    "TEXT": "Utilitzem cookies tècniques necessàries per al funcionament de la plataforma. No fem servir cookies analítiques ni publicitàries.",
+    "LEARN_MORE": "Saber-ne més",
+    "ACCEPT": "Acceptar",
+    "REJECT": "Rebutjar"
+  },
   "LANDING": {
     "HERO": {
       "BADGE": "Intel·ligència artificial per al teu negoci",
@@ -708,30 +720,24 @@
     },
     "PRICING": {
       "LABEL": "Preus",
-      "TITLE": "Plans senzills",
-      "SUBTITLE": "Sense sorpreses. Comença gratis i escala quan ho necessitis.",
-      "POPULAR": "★ Popular",
-      "FREE_NAME": "Gratis",
-      "FREE_DESC": "Per començar sense compromís",
-      "FREE_PRICE": "0€",
-      "FREE_PERIOD": "/mes",
-      "FREE_F1": "Fins a 3 proveïdors",
-      "FREE_F2": "10 comandes al mes",
-      "FREE_F3": "Dashboard bàsic",
-      "FREE_F4": "Sense IA",
-      "FREE_F5": "Sense informes PDF",
-      "FREE_CTA": "Començar gratis",
-      "PRO_NAME": "Pro",
-      "PRO_DESC": "Per a professionals que volen més",
-      "PRO_PRICE": "29€",
-      "PRO_PERIOD": "/mes",
-      "PRO_F1": "Proveïdors il·limitats",
-      "PRO_F2": "Comandes il·limitades",
-      "PRO_F3": "IA completa amb suggeriments",
-      "PRO_F4": "Informes en PDF",
-      "PRO_F5": "Multi-usuari + rols",
-      "PRO_F6": "Suport prioritari",
-      "PRO_CTA": "Començar amb Pro"
+      "TITLE": "Accés complet, gratis 3 mesos",
+      "SUBTITLE": "Sense targeta de crèdit. Sense compromís. Cancel·la quan vulguis.",
+      "TRIAL_BADGE": "★ 3 mesos gratis",
+      "TRIAL_TITLE": "Pla Pro · Prova gratuïta",
+      "TRIAL_DESC": "Accés complet a totes les funcionalitats durant 3 mesos, sense cost.",
+      "TRIAL_PERIOD": "durant 3 mesos",
+      "TRIAL_THEN": "Després: 29€/mes + IVA · Sense permanència mínima",
+      "F1": "Proveïdors il·limitats",
+      "F2": "Comandes il·limitades",
+      "F3": "IA d'anàlisi de consum",
+      "F4": "Comparador de preus entre proveïdors",
+      "F5": "Escaneig de factures amb OCR",
+      "F6": "Suggeriments predictius de comandes",
+      "F7": "Informes i exportació a PDF",
+      "F8": "Multi-usuari amb rols",
+      "F9": "Suport per email prioritari",
+      "CTA": "Començar prova gratuïta",
+      "NO_CC": "Sense targeta de crèdit · Sense permanència · Cancel·la quan vulguis"
     },
     "CTA": {
       "TITLE": "Preparat per deixar de perdre temps amb les comandes?",

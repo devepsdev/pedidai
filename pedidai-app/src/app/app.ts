@@ -1,11 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { CookieBanner } from './shared/cookie-banner/cookie-banner';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  template: `<router-outlet />`
+  imports: [RouterOutlet, CookieBanner],
+  template: `
+    <router-outlet />
+    <app-cookie-banner />
+  `
 })
 export class App {
   private translate = inject(TranslateService);

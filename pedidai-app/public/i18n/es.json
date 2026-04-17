@@ -18,8 +18,9 @@
     "CONTACT": "Contacto",
     "LEGAL": "Legal",
     "PRIVACY": "Política de privacidad",
-    "TERMS": "Términos de uso",
-    "ACCESSIBILITY": "Accesibilidad",
+    "LEGAL_NOTICE": "Aviso legal",
+    "COOKIES": "Política de cookies",
+    "TERMS": "Términos y condiciones",
     "COPYRIGHT": "Todos los derechos reservados."
   },
   "SIDEBAR": {
@@ -90,7 +91,12 @@
       "FIELD_REQUIRED": "Campo obligatorio",
       "EMAIL_REQUIRED": "Introduce un email válido",
       "ALREADY_ACCOUNT": "¿Ya tienes cuenta?",
-      "LOGIN_LINK": "Inicia sesión"
+      "LOGIN_LINK": "Inicia sesión",
+      "TERMS_LABEL": "He leído y acepto los",
+      "TERMS_LINK": "Términos y Condiciones",
+      "AND": "y la",
+      "PRIVACY_LINK": "Política de Privacidad",
+      "TERMS_REQUIRED": "Debes aceptar los términos y condiciones para continuar"
     },
     "RECOVER": {
       "TITLE": "Recuperar contraseña",
@@ -625,6 +631,12 @@
     "SKIPPED_COUNT": "Sin cambios",
     "SCAN_ANOTHER": "Escanear otra factura"
   },
+  "COOKIE_BANNER": {
+    "TEXT": "Utilizamos cookies técnicas necesarias para el funcionamiento de la plataforma. No usamos cookies analíticas ni publicitarias.",
+    "LEARN_MORE": "Saber más",
+    "ACCEPT": "Aceptar",
+    "REJECT": "Rechazar"
+  },
   "LANDING": {
     "HERO": {
       "BADGE": "Inteligencia artificial para tu negocio",
@@ -708,30 +720,24 @@
     },
     "PRICING": {
       "LABEL": "Precios",
-      "TITLE": "Planes simples",
-      "SUBTITLE": "Sin sorpresas. Empieza gratis y escala cuando lo necesites.",
-      "POPULAR": "★ Popular",
-      "FREE_NAME": "Gratis",
-      "FREE_DESC": "Para empezar sin compromiso",
-      "FREE_PRICE": "0€",
-      "FREE_PERIOD": "/mes",
-      "FREE_F1": "Hasta 3 proveedores",
-      "FREE_F2": "10 pedidos al mes",
-      "FREE_F3": "Dashboard básico",
-      "FREE_F4": "Sin IA",
-      "FREE_F5": "Sin informes PDF",
-      "FREE_CTA": "Empezar gratis",
-      "PRO_NAME": "Pro",
-      "PRO_DESC": "Para profesionales que quieren más",
-      "PRO_PRICE": "29€",
-      "PRO_PERIOD": "/mes",
-      "PRO_F1": "Proveedores ilimitados",
-      "PRO_F2": "Pedidos ilimitados",
-      "PRO_F3": "IA completa con sugerencias",
-      "PRO_F4": "Informes en PDF",
-      "PRO_F5": "Multi-usuario + roles",
-      "PRO_F6": "Soporte prioritario",
-      "PRO_CTA": "Empezar con Pro"
+      "TITLE": "Acceso completo, gratis 3 meses",
+      "SUBTITLE": "Sin tarjeta de crédito. Sin compromiso. Cancela cuando quieras.",
+      "TRIAL_BADGE": "★ 3 meses gratis",
+      "TRIAL_TITLE": "Plan Pro · Prueba gratuita",
+      "TRIAL_DESC": "Acceso completo a todas las funcionalidades durante 3 meses, sin coste.",
+      "TRIAL_PERIOD": "durante 3 meses",
+      "TRIAL_THEN": "Después: 29€/mes + IVA · Sin permanencia mínima",
+      "F1": "Proveedores ilimitados",
+      "F2": "Pedidos ilimitados",
+      "F3": "IA de análisis de consumo",
+      "F4": "Comparador de precios entre proveedores",
+      "F5": "Escaneo de facturas con OCR",
+      "F6": "Sugerencias predictivas de pedidos",
+      "F7": "Informes y exportación a PDF",
+      "F8": "Multi-usuario con roles",
+      "F9": "Soporte por email prioritario",
+      "CTA": "Empezar prueba gratuita",
+      "NO_CC": "Sin tarjeta de crédito · Sin permanencia · Cancela cuando quieras"
     },
     "CTA": {
       "TITLE": "¿Listo para dejar de perder tiempo con los pedidos?",

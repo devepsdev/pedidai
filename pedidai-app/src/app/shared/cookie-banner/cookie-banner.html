@@ -1,0 +1,20 @@
+@if (visible()) {
+  <div class="fixed bottom-0 left-0 right-0 z-50 bg-slate-900 border-t border-slate-700 shadow-2xl">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
+      <p class="text-sm text-slate-300 max-w-2xl">
+        {{ 'COOKIE_BANNER.TEXT' | translate }}
+        <a routerLink="/cookies" class="text-cyan-400 hover:text-cyan-300 underline ml-1">{{ 'COOKIE_BANNER.LEARN_MORE' | translate }}</a>
+      </p>
+      <div class="flex items-center gap-3 shrink-0">
+        <button (click)="reject()"
+          class="text-sm px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 transition-colors">
+          {{ 'COOKIE_BANNER.REJECT' | translate }}
+        </button>
+        <button (click)="accept()"
+          class="text-sm px-5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-semibold transition-colors">
+          {{ 'COOKIE_BANNER.ACCEPT' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

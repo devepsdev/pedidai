@@ -23,6 +23,10 @@ import { AiChat } from './components/ai-chat/ai-chat/ai-chat';
 import { AiSuggestions } from './components/ai-chat/ai-suggestions/ai-suggestions';
 import { InvoiceScan } from './components/invoices/invoice-scan/invoice-scan';
 import { Landing } from './pages/landing/landing';
+import { PrivacyPolicy } from './pages/legal/privacy-policy/privacy-policy';
+import { LegalNotice } from './pages/legal/legal-notice/legal-notice';
+import { CookiePolicy } from './pages/legal/cookie-policy/cookie-policy';
+import { TermsConditions } from './pages/legal/terms-conditions/terms-conditions';
 
 export const routes: Routes = [
   {
@@ -35,6 +39,10 @@ export const routes: Routes = [
       { path: 'verify-email', component: VerifyEmail },
       { path: 'recover-password', component: RecoverPassword },
       { path: 'reset-password', component: ResetPassword },
+      { path: 'privacidad', component: PrivacyPolicy },
+      { path: 'aviso-legal', component: LegalNotice },
+      { path: 'cookies', component: CookiePolicy },
+      { path: 'terminos', component: TermsConditions },
     ]
   },
   {
