@@ -4,6 +4,7 @@ import com.pedidai.api.dto.ApiResponseDTO;
 import com.pedidai.api.dto.CompanyRegistrationDTO;
 import com.pedidai.api.dto.CompanyRequestDTO;
 import com.pedidai.api.dto.CompanyResponseDTO;
+import com.pedidai.api.dto.MyPlanDTO;
 import com.pedidai.api.services.CompanyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,12 @@ public class CompanyController {
             @Valid @RequestBody CompanyRequestDTO companyRequestDTO) {
         CompanyResponseDTO updated = companyService.updateCompany(companyRequestDTO);
         return ResponseEntity.ok(ApiResponseDTO.success(updated, "Empresa actualitzada exitosament"));
+    }
+
+    @GetMapping("/my-plan")
+    public ResponseEntity<ApiResponseDTO<MyPlanDTO>> getMyPlan() {
+        return ResponseEntity.ok(ApiResponseDTO.success(
+                companyService.getMyPlan(), "Pla recuperat correctament"));
     }
 
 }

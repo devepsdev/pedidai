@@ -173,6 +173,33 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional
+    public CompanySummaryDTO extendTrial(String uuid, int months) {
+        Company company = companyRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada: " + uuid));
+        // Si ya tenía trial, extender desde hoy; si no tenía, iniciar desde hoy
+        company.setTrialEndsAt(LocalDateTime.now().plusMonths(months));
+        // Si estaba INACTIVE por trial expirado, la reactivamos
+        if (company.getStatus() == Company.CompanyStatus.INACTIVE) {
+            company.setStatus(Company.CompanyStatus.ACTIVE);
+        }
+        companyRepository.save(company);
+        return toSummaryDTO(company);
+    }
+
+    @Override
+    @Transactional
+    public CompanySummaryDTO activateCompany(String uuid, String plan) {
+        Company company = companyRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada: " + uuid));
+        // Cliente de pago: sin límite de trial, estado ACTIVE
+        company.setTrialEndsAt(null);
+        company.setStatus(Company.CompanyStatus.ACTIVE);
+        companyRepository.save(company);
+        return toSummaryDTO(company);
+    }
+
     // ---- Mappers ----
 
     private CompanySummaryDTO toSummaryDTO(Company c) {

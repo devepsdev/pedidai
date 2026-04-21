@@ -3,6 +3,7 @@ package com.pedidai.api.services.impl;
 import com.pedidai.api.dto.CompanyRegistrationDTO;
 import com.pedidai.api.dto.CompanyRequestDTO;
 import com.pedidai.api.dto.CompanyResponseDTO;
+import com.pedidai.api.dto.MyPlanDTO;
 import com.pedidai.api.entities.Company;
 import com.pedidai.api.entities.User;
 import com.pedidai.api.exceptions.BadRequestException;
@@ -47,7 +48,7 @@ public class CompanyServiceImpl implements CompanyService {
             throw new DuplicateResourceException("L'email de l'administrador ja està registrat");
         }
 
-        // 1. Crear l'empresa
+        // 1. Crear l'empresa (el trial comença des del registre, s'activa quan es verifica l'email)
         Company company = Company.builder()
                 .name(registrationDTO.getCompanyName())
                 .taxId(registrationDTO.getTaxId())
@@ -57,6 +58,7 @@ public class CompanyServiceImpl implements CompanyService {
                 .city(registrationDTO.getCompanyCity())
                 .postalCode(registrationDTO.getCompanyPostalCode())
                 .status(Company.CompanyStatus.PENDING)
+                .trialEndsAt(LocalDateTime.now().plusMonths(3))
                 .build();
 
         company = companyRepository.save(company);
@@ -167,6 +169,18 @@ public class CompanyServiceImpl implements CompanyService {
         return user.getRole() == ADMIN;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public MyPlanDTO getMyPlan() {
+        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+        Company company = companyRepository.findByUuid(companyUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada"));
+        return MyPlanDTO.builder()
+                .status(company.getStatus().name())
+                .trialEndsAt(company.getTrialEndsAt())
+                .build();
+    }
+
     private CompanyResponseDTO mapToResponseDTO(Company company) {
         return CompanyResponseDTO.builder()
                 .uuid(company.getUuid())
@@ -180,6 +194,7 @@ public class CompanyServiceImpl implements CompanyService {
                 .status(company.getStatus())
                 .createdAt(company.getCreatedAt())
                 .updatedAt(company.getUpdatedAt())
+                .trialEndsAt(company.getTrialEndsAt())
                 .build();
     }
 

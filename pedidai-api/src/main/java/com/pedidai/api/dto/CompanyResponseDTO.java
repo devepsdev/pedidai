@@ -34,4 +34,6 @@ public class CompanyResponseDTO {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    private LocalDateTime trialEndsAt;
 }

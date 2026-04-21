@@ -23,7 +23,8 @@ class CompanyResponseDTOTest {
                 "08001",
                 Company.CompanyStatus.ACTIVE,
                 now,
-                now
+                now,
+                null  // trialEndsAt
         );
 
         assertEquals("uuid-123", dto.getUuid());

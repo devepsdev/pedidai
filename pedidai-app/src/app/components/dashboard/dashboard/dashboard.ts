@@ -1,18 +1,20 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { DecimalPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { ReportService } from '../../../services/report';
 import { OrderService } from '../../../services/order';
 import { SupplierService } from '../../../services/supplier';
 import { AiService } from '../../../services/ai';
+import { CompanyService } from '../../../services/company';
 import { DashboardResponse } from '../../../models/dashboard.model';
 import { OrderResponse } from '../../../models/order.model';
 import { AiSuggestion } from '../../../models/ai.model';
+import { MyPlan } from '../../../models/company.model';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DecimalPipe, TranslateModule],
+  imports: [RouterLink, DecimalPipe, DatePipe, TranslateModule],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
@@ -20,17 +22,37 @@ export class Dashboard implements OnInit {
   private orders = inject(OrderService);
   private supplierService = inject(SupplierService);
   private ai = inject(AiService);
+  private companyService = inject(CompanyService);
 
   stats = signal<DashboardResponse | null>(null);
   recentOrders = signal<OrderResponse[]>([]);
   suggestions = signal<AiSuggestion[]>([]);
   supplierMap = signal<Record<string, string>>({});
+  myPlan = signal<MyPlan | null>(null);
 
   loadingStats = signal(true);
   loadingOrders = signal(true);
   loadingSuggestions = signal(true);
   statsError = signal('');
   suggestionsError = signal('');
+
+  /** Días restantes de trial. null = sin trial (cliente de pago o no cargado aún). */
+  trialDaysLeft = computed(() => {
+    const plan = this.myPlan();
+    if (!plan?.trialEndsAt) return null;
+    const end = new Date(plan.trialEndsAt);
+    const now = new Date();
+    const days = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return days > 0 ? days : 0;
+  });
+
+  /** Fecha de fin de trial formateada (dd/MM/yyyy). */
+  trialEndDate = computed(() => {
+    const plan = this.myPlan();
+    if (!plan?.trialEndsAt) return null;
+    const d = new Date(plan.trialEndsAt);
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  });
 
   ngOnInit() {
     this.reports.getDashboard().subscribe({
@@ -66,6 +88,11 @@ export class Dashboard implements OnInit {
         this.recentOrders.set([]);
         this.loadingOrders.set(false);
       }
+    });
+
+    this.companyService.getMyPlan().subscribe({
+      next: data => this.myPlan.set(data),
+      error: () => {} // silencioso, el banner simplemente no se muestra
     });
 
     this.ai.suggestOrders().subscribe({

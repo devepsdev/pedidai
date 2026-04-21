@@ -12,4 +12,6 @@ public interface SuperAdminService {
     CompanySummaryDTO updateCompanyStatus(String uuid, String status);
     Page<UserAdminDTO> getUsers(String search, String role, String companyUuid, Pageable pageable);
     List<MonthlyStatsDTO> getMonthlyStats();
+    CompanySummaryDTO extendTrial(String uuid, int months);
+    CompanySummaryDTO activateCompany(String uuid, String plan);
 }

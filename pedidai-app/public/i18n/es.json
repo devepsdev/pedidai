@@ -152,7 +152,10 @@
     "NAME": "Nombre",
     "SUPPLIER": "Proveedor",
     "STATUS": "Estado",
-    "TOTAL": "Total"
+    "TOTAL": "Total",
+    "TRIAL_ACTIVE": "Tu periodo de prueba gratuita finaliza el {{date}}. Contacta con hola@pedidai.es para activar el Plan Pro.",
+    "TRIAL_URGENT": "⚠️ Quedan solo {{days}} días de prueba. Contacta con hola@pedidai.es para no perder el acceso.",
+    "TRIAL_CONTACT": "Contactar"
   },
   "SUPPLIERS": {
     "TITLE": "Proveedores",
@@ -671,7 +674,7 @@
       "SUBTITLE": "La IA analiza tu consumo, compara precios y te sugiere los pedidos antes de que se te acabe el stock.",
       "CTA_PRIMARY": "Empezar gratis",
       "CTA_SECONDARY": "Ver demo",
-      "DISCLAIMER": "Sin tarjeta de crédito · Gratis para siempre",
+      "DISCLAIMER": "Sin permanencia · Cancela cuando quieras",
       "MOCKUP_ORDERS": "Pedidos",
       "MOCKUP_SPEND": "Gasto mes",
       "MOCKUP_PENDING": "Pendientes",

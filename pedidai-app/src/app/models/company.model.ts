@@ -1,4 +1,4 @@
-export type CompanyStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
+export type CompanyStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED';
 
 export interface CompanyResponse {
   uuid: string;
@@ -12,6 +12,12 @@ export interface CompanyResponse {
   status: CompanyStatus;
   createdAt: string;
   updatedAt?: string;
+  trialEndsAt?: string | null;
+}
+
+export interface MyPlan {
+  status: string;
+  trialEndsAt: string | null;
 }
 
 export interface CompanyRequest {

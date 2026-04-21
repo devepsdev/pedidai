@@ -83,4 +83,24 @@ public class SuperAdminController {
                 superAdminService.getMonthlyStats(),
                 "Estadístiques mensuals carregades correctament"));
     }
+
+    @PatchMapping("/companies/{uuid}/extend-trial")
+    @Operation(summary = "Extendre el període de prova d'una empresa")
+    public ResponseEntity<ApiResponseDTO<CompanySummaryDTO>> extendTrial(
+            @PathVariable String uuid,
+            @Valid @RequestBody ExtendTrialDTO dto) {
+        return ResponseEntity.ok(ApiResponseDTO.success(
+                superAdminService.extendTrial(uuid, dto.getMonths()),
+                "Període de prova ampliat correctament"));
+    }
+
+    @PatchMapping("/companies/{uuid}/activate")
+    @Operation(summary = "Activar una empresa com a client de pagament (simula pagament fins a integrar Stripe)")
+    public ResponseEntity<ApiResponseDTO<CompanySummaryDTO>> activateCompany(
+            @PathVariable String uuid,
+            @RequestBody ActivateCompanyDTO dto) {
+        return ResponseEntity.ok(ApiResponseDTO.success(
+                superAdminService.activateCompany(uuid, dto.getPlan()),
+                "Empresa activada com a client Pro correctament"));
+    }
 }

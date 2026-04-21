@@ -16,7 +16,9 @@ export class SuperadminCompanyDetail implements OnInit {
 
   loading = signal(true);
   saving = signal(false);
+  actionSaving = signal(false);
   error = signal('');
+  actionError = signal('');
   company = signal<CompanyDetail | null>(null);
   showStatusModal = signal(false);
   newStatus = signal('');
@@ -70,6 +72,48 @@ export class SuperadminCompanyDetail implements OnInit {
     return role === 'ADMIN' ? 'bg-blue-500/20 text-blue-400' :
            role === 'SUPER_ADMIN' ? 'bg-amber-500/20 text-amber-400' :
            'bg-slate-600/50 text-slate-400';
+  }
+
+  extendTrial(months: number = 3) {
+    const c = this.company();
+    if (!c) return;
+    this.actionSaving.set(true);
+    this.actionError.set('');
+    this.svc.extendTrial(c.uuid, months).subscribe({
+      next: updated => {
+        this.company.update(prev => prev ? {
+          ...prev,
+          status: updated.status,
+          trialEndsAt: updated.trialEndsAt ?? undefined
+        } : prev);
+        this.actionSaving.set(false);
+      },
+      error: () => {
+        this.actionError.set('Error al extender el trial');
+        this.actionSaving.set(false);
+      }
+    });
+  }
+
+  activatePro() {
+    const c = this.company();
+    if (!c) return;
+    this.actionSaving.set(true);
+    this.actionError.set('');
+    this.svc.activatePro(c.uuid).subscribe({
+      next: updated => {
+        this.company.update(prev => prev ? {
+          ...prev,
+          status: updated.status,
+          trialEndsAt: undefined
+        } : prev);
+        this.actionSaving.set(false);
+      },
+      error: () => {
+        this.actionError.set('Error al activar Plan Pro');
+        this.actionSaving.set(false);
+      }
+    });
   }
 
   orderStatusBadge(status: string): string {

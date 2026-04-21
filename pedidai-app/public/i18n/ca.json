@@ -152,7 +152,10 @@
     "NAME": "Nom",
     "SUPPLIER": "Proveïdor",
     "STATUS": "Estat",
-    "TOTAL": "Total"
+    "TOTAL": "Total",
+    "TRIAL_ACTIVE": "El teu període de prova gratuïta finalitza el {{date}}. Contacta amb hola@pedidai.es per activar el Pla Pro.",
+    "TRIAL_URGENT": "⚠️ Queden només {{days}} dies de prova. Contacta amb hola@pedidai.es per no perdre l'accés.",
+    "TRIAL_CONTACT": "Contactar"
   },
   "SUPPLIERS": {
     "TITLE": "Proveïdors",
@@ -671,7 +674,7 @@
       "SUBTITLE": "La IA analitza el teu consum, compara preus i et suggereix les comandes abans que et quedis sense estoc.",
       "CTA_PRIMARY": "Començar gratis",
       "CTA_SECONDARY": "Veure demo",
-      "DISCLAIMER": "Sense targeta de crèdit · Gratis per sempre",
+      "DISCLAIMER": "Sense permanència · Cancel·la quan vulguis",
       "MOCKUP_ORDERS": "Comandes",
       "MOCKUP_SPEND": "Despesa mes",
       "MOCKUP_PENDING": "Pendents",

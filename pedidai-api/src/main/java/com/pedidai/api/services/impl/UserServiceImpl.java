@@ -107,9 +107,28 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Credencials invàlides");
         }
 
-        Company company = user.getCompany();
-        if (company.getStatus() == Company.CompanyStatus.SUSPENDED) {
-            throw new BadRequestException("El compte de l'empresa està suspès. Contacta amb el suport.");
+        // El SUPER_ADMIN no está sujeto a ningún control de trial ni estado de empresa
+        if (user.getRole() != User.UserRole.SUPER_ADMIN) {
+            Company company = user.getCompany();
+
+            if (company.getStatus() == Company.CompanyStatus.SUSPENDED) {
+                throw new BadRequestException("El compte de l'empresa està suspès. Contacta amb el suport.");
+            }
+
+            // Comprovar si el trial ha expirat (i encara no s'ha marcat com INACTIVE)
+            if (company.getTrialEndsAt() != null && LocalDateTime.now().isAfter(company.getTrialEndsAt())) {
+                company.setStatus(Company.CompanyStatus.INACTIVE);
+                companyRepository.save(company);
+                throw new BadRequestException(
+                        "Tu periodo de prueba de 3 meses ha finalizado. " +
+                        "Contacta con hola@pedidai.es para activar el Plan Pro.");
+            }
+
+            if (company.getStatus() == Company.CompanyStatus.INACTIVE) {
+                throw new BadRequestException(
+                        "Tu periodo de prueba de 3 meses ha finalizado. " +
+                        "Contacta con hola@pedidai.es para activar el Plan Pro.");
+            }
         }
 
         user.setLastLogin(LocalDateTime.now());

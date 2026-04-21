@@ -143,4 +143,16 @@ export class SuperAdminService {
       map(r => r.data)
     );
   }
+
+  extendTrial(uuid: string, months: number): Observable<CompanySummary> {
+    return this.api.patch<ApiResponse<CompanySummary>>(
+      `/superadmin/companies/${uuid}/extend-trial`, { months }
+    ).pipe(map(r => r.data));
+  }
+
+  activatePro(uuid: string): Observable<CompanySummary> {
+    return this.api.patch<ApiResponse<CompanySummary>>(
+      `/superadmin/companies/${uuid}/activate`, { plan: 'PRO' }
+    ).pipe(map(r => r.data));
+  }
 }
