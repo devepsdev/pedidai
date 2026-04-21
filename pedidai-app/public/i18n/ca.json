@@ -727,7 +727,8 @@
       "F5_TITLE": "Informes i PDF",
       "F5_TEXT": "Genera informes de despesa per període, proveïdor i producte. Descarrega en PDF.",
       "F6_TITLE": "Multi-usuari amb rols",
-      "F6_TEXT": "Afegeix tot el teu equip amb rols Admin o Usuari. Control total de permisos."
+      "F6_TEXT": "Afegeix tot el teu equip amb rols Admin o Usuari. Control total de permisos.",
+      "CAP5_TITLE": "Analitza el teu consum de 6 mesos"
     },
     "AI": {
       "LABEL": "Intel·ligència Artificial",

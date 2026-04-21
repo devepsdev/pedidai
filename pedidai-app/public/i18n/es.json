@@ -727,7 +727,8 @@
       "F5_TITLE": "Informes y PDF",
       "F5_TEXT": "Genera informes de gasto por período, proveedor y producto. Descarga en PDF.",
       "F6_TITLE": "Multi-usuario con roles",
-      "F6_TEXT": "Añade a todo tu equipo con roles Admin o Usuario. Control total de permisos."
+      "F6_TEXT": "Añade a todo tu equipo con roles Admin o Usuario. Control total de permisos.",
+      "CAP5_TITLE": "Analiza tu consumo de 6 meses"
     },
     "AI": {
       "LABEL": "Inteligencia Artificial",
