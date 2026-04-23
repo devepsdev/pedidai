@@ -122,23 +122,23 @@
           }
 
           <!-- Actions -->
-          <div class="flex gap-3 pt-2">
+          <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+            <button
+              type="button"
+              (click)="cancel()"
+              class="w-full sm:w-auto px-5 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
+              {{ 'USERS.FORM.CANCEL' | translate }}
+            </button>
             <button
               type="submit"
               [disabled]="saving()"
-              class="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+              class="w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               @if (saving()) {
                 <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 {{ 'USERS.FORM.SAVING' | translate }}
               } @else {
                 {{ isEdit ? ('USERS.FORM.SAVE' | translate) : ('USERS.FORM.CREATE' | translate) }}
               }
-            </button>
-            <button
-              type="button"
-              (click)="cancel()"
-              class="px-5 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
-              {{ 'USERS.FORM.CANCEL' | translate }}
             </button>
           </div>
         </form>

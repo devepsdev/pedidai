@@ -745,7 +745,7 @@
       "CAP3_TEXT": "Avisa si ja hi ha una comanda similar pendent o si les quantitats semblen inusuals.",
       "CAP4_TITLE": "Suggereix comandes automàticament",
       "CAP4_TEXT": "Rep suggeriments proactius quan detecta que necessites reposar estoc aviat.",
-      "CAP5_TITLE": "Analitza el teu consum de 90 dies",
+      "CAP5_TITLE": "Analitza el teu consum de 6 mesos",
       "CAP5_TEXT": "Aprèn del teu historial real: què demanes, quan i quant. Cada setmana és més precisa."
     },
     "PRICING": {

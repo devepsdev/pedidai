@@ -271,7 +271,7 @@
             </div>
           }
 
-          <div class="grid grid-cols-2 gap-x-6 gap-y-2 mt-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 mt-2">
             <div>
               <p class="text-xs text-slate-400 uppercase tracking-wide font-medium">{{ 'INVOICE_SCAN.DETECTED_NAME' | translate }}</p>
               <p class="text-sm font-medium text-slate-800 mt-0.5">{{ result.detectedSupplierName || '—' }}</p>
@@ -292,7 +292,7 @@
             </svg>
             {{ 'INVOICE_SCAN.INVOICE_DATA' | translate }}
           </h2>
-          <div class="grid grid-cols-2 gap-x-6 gap-y-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
             <div>
               <p class="text-xs text-slate-400 uppercase tracking-wide font-medium">{{ 'INVOICE_SCAN.INVOICE_NUMBER' | translate }}</p>
               <p class="text-sm font-medium text-slate-800 mt-0.5">{{ result.invoiceNumber || '—' }}</p>

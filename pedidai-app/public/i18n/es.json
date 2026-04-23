@@ -745,7 +745,7 @@
       "CAP3_TEXT": "Avisa si ya hay un pedido similar pendiente o si las cantidades parecen inusuales.",
       "CAP4_TITLE": "Sugiere pedidos automáticamente",
       "CAP4_TEXT": "Recibe sugerencias proactivas cuando detecta que necesitas reponer stock pronto.",
-      "CAP5_TITLE": "Analiza tu consumo de 90 días",
+      "CAP5_TITLE": "Analiza tu consumo de 6 meses",
       "CAP5_TEXT": "Aprende de tu historial real: qué pides, cuándo y cuánto. Cada semana es más precisa."
     },
     "PRICING": {

@@ -15,23 +15,27 @@
   <!-- Search bar -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
     @if (!showAdvanced()) {
-      <div class="flex gap-2">
-        <input
-          type="text"
-          [placeholder]="'SUPPLIERS.SEARCH_PH' | translate"
-          [value]="searchText()"
-          (input)="onSearchInput($any($event.target).value)"
-          (keydown)="onSearchKeydown($event)"
-          class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-        <button
-          (click)="search()"
-          class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors">
-          {{ 'SUPPLIERS.SEARCH' | translate }}
-        </button>
+      <div class="flex flex-col gap-2">
+        <!-- Row 1: input + search button -->
+        <div class="flex gap-2">
+          <input
+            type="text"
+            [placeholder]="'SUPPLIERS.SEARCH_PH' | translate"
+            [value]="searchText()"
+            (input)="onSearchInput($any($event.target).value)"
+            (keydown)="onSearchKeydown($event)"
+            class="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          <button
+            (click)="search()"
+            class="shrink-0 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors">
+            {{ 'SUPPLIERS.SEARCH' | translate }}
+          </button>
+        </div>
+        <!-- Row 2: advanced search (full width on mobile) -->
         <button
           (click)="toggleAdvanced()"
-          class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          class="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 010 2H4a1 1 0 01-1-1zM6 9h12M9 14h6M11 19h2"/>
           </svg>
           {{ 'SUPPLIERS.ADVANCED_SEARCH' | translate }}
@@ -263,31 +267,33 @@
         </select>
       </div>
       @if (totalPages() > 1) {
-        <div class="flex items-center gap-1">
-          <button
-            (click)="prevPage()"
-            [disabled]="currentPage() === 0"
-            class="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-            {{ 'SUPPLIERS.PREV' | translate }}
-          </button>
-          @for (p of pages(); track p) {
-            @if (p >= currentPage() - 2 && p <= currentPage() + 2) {
-              <button
-                (click)="goToPage(p)"
-                class="px-3 py-1.5 text-sm rounded-lg border transition-colors"
-                [class]="p === currentPage()
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'border-gray-300 hover:bg-gray-50'">
-                {{ p + 1 }}
-              </button>
+        <div class="overflow-x-auto">
+          <div class="flex items-center gap-1 min-w-max">
+            <button
+              (click)="prevPage()"
+              [disabled]="currentPage() === 0"
+              class="w-8 h-8 flex items-center justify-center text-sm rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+              ‹
+            </button>
+            @for (p of pages(); track p) {
+              @if (p >= currentPage() - 2 && p <= currentPage() + 2) {
+                <button
+                  (click)="goToPage(p)"
+                  class="w-8 h-8 flex items-center justify-center text-sm rounded-lg border transition-colors"
+                  [class]="p === currentPage()
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'border-gray-300 hover:bg-gray-50'">
+                  {{ p + 1 }}
+                </button>
+              }
             }
-          }
-          <button
-            (click)="nextPage()"
-            [disabled]="currentPage() >= totalPages() - 1"
-            class="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-            {{ 'SUPPLIERS.NEXT' | translate }}
-          </button>
+            <button
+              (click)="nextPage()"
+              [disabled]="currentPage() >= totalPages() - 1"
+              class="w-8 h-8 flex items-center justify-center text-sm rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+              ›
+            </button>
+          </div>
         </div>
       }
     </div>

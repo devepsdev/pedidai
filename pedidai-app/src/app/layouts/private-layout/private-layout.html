@@ -1,6 +1,6 @@
 <div class="flex h-screen overflow-hidden bg-gray-50">
   <!-- Sidebar (fixed on mobile, part of flow on desktop) -->
-  <app-sidebar [open]="sidebarOpen()" class="lg:flex-shrink-0" />
+  <app-sidebar [open]="sidebarOpen()" (close)="toggleSidebar()" class="lg:flex-shrink-0" />
 
   <!-- Overlay — mobile only, shown when sidebar open -->
   @if (sidebarOpen()) {
