@@ -1,10 +1,10 @@
 -- ============================================================
 -- PedidAI — Migración SUPER_ADMIN
--- Base de datos: pedidoo_db
+-- Base de datos: pedidai_db
 -- Ejecutar UNA SOLA VEZ
 -- ============================================================
 
-USE pedidoo_db;
+USE pedidai_db;
 
 -- 1. Añadir columna trial_ends_at a companies (IF NOT EXISTS evita el error si ya existe)
 ALTER TABLE companies

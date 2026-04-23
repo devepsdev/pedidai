@@ -92,10 +92,10 @@ mysql -u pedidai_user -p < pedidai-db/pedidai_db_schema.sql
 **Windows (PowerShell como administrador):**
 
 ```powershell
-[System.Environment]::SetEnvironmentVariable('DB_USER_PEDIDOO', 'pedidai_user', 'Machine')
-[System.Environment]::SetEnvironmentVariable('DB_PASS_PEDIDOO', 'password_seguro', 'Machine')
-[System.Environment]::SetEnvironmentVariable('MAIL_USER_PEDIDOO', 'correo@gmail.com', 'Machine')
-[System.Environment]::SetEnvironmentVariable('MAIL_PASS_PEDIDOO', 'app_password_gmail', 'Machine')
+[System.Environment]::SetEnvironmentVariable('DB_USER_PEDIDAI', 'pedidai_user', 'Machine')
+[System.Environment]::SetEnvironmentVariable('DB_PASS_PEDIDAI', 'password_seguro', 'Machine')
+[System.Environment]::SetEnvironmentVariable('MAIL_USER_PEDIDAI', 'correo@gmail.com', 'Machine')
+[System.Environment]::SetEnvironmentVariable('MAIL_PASS_PEDIDAI', 'app_password_gmail', 'Machine')
 [System.Environment]::SetEnvironmentVariable('JWT_SECRET', 'tu_secreto_jwt_muy_largo', 'Machine')
 [System.Environment]::SetEnvironmentVariable('DEEPSEEK_API_KEY', 'tu_api_key_deepseek', 'Machine')
 ```
@@ -103,10 +103,10 @@ mysql -u pedidai_user -p < pedidai-db/pedidai_db_schema.sql
 **Linux/macOS (añadir a `~/.bashrc` o `~/.zshrc`):**
 
 ```bash
-export DB_USER_PEDIDOO=pedidai_user
-export DB_PASS_PEDIDOO=password_seguro
-export MAIL_USER_PEDIDOO=correo@gmail.com
-export MAIL_PASS_PEDIDOO=app_password_gmail
+export DB_USER_PEDIDAI=pedidai_user
+export DB_PASS_PEDIDAI=password_seguro
+export MAIL_USER_PEDIDAI=correo@gmail.com
+export MAIL_PASS_PEDIDAI=app_password_gmail
 export JWT_SECRET=tu_secreto_jwt_muy_largo
 export DEEPSEEK_API_KEY=tu_api_key_deepseek
 ```

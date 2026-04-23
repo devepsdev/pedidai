@@ -1,10 +1,10 @@
 -- ============================================================
 -- PedidAI — Migración trial_ends_at para empresas existentes
--- Base de datos: pedidoo_db
+-- Base de datos: pedidai_db
 -- Ejecutar UNA SOLA VEZ
 -- ============================================================
 
-USE pedidoo_db;
+USE pedidai_db;
 
 -- Rellenar trial_ends_at para empresas ACTIVE que no tengan fecha asignada
 -- (3 meses desde su fecha de creación)

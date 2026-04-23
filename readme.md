@@ -770,10 +770,10 @@ brew install openjdk@21
 **Windows (PowerShell como administrador):**
 
 ```powershell
-[System.Environment]::SetEnvironmentVariable('DB_USER_PEDIDOO', 'pedidai_user', 'Machine')
-[System.Environment]::SetEnvironmentVariable('DB_PASS_PEDIDOO', 'password_seguro', 'Machine')
-[System.Environment]::SetEnvironmentVariable('MAIL_USER_PEDIDOO', 'correo@gmail.com', 'Machine')
-[System.Environment]::SetEnvironmentVariable('MAIL_PASS_PEDIDOO', 'app_password', 'Machine')
+[System.Environment]::SetEnvironmentVariable('DB_USER_PEDIDAI', 'pedidai_user', 'Machine')
+[System.Environment]::SetEnvironmentVariable('DB_PASS_PEDIDAI', 'password_seguro', 'Machine')
+[System.Environment]::SetEnvironmentVariable('MAIL_USER_PEDIDAI', 'correo@gmail.com', 'Machine')
+[System.Environment]::SetEnvironmentVariable('MAIL_PASS_PEDIDAI', 'app_password', 'Machine')
 [System.Environment]::SetEnvironmentVariable('JWT_SECRET', 'secreto_jwt_largo_y_seguro', 'Machine')
 [System.Environment]::SetEnvironmentVariable('DEEPSEEK_API_KEY', 'tu_api_key', 'Machine')
 ```
@@ -781,10 +781,10 @@ brew install openjdk@21
 **Linux/macOS** (añadir a `~/.bashrc` o `~/.zshrc`):
 
 ```bash
-export DB_USER_PEDIDOO=pedidai_user
-export DB_PASS_PEDIDOO=password_seguro
-export MAIL_USER_PEDIDOO=correo@gmail.com
-export MAIL_PASS_PEDIDOO=app_password
+export DB_USER_PEDIDAI=pedidai_user
+export DB_PASS_PEDIDAI=password_seguro
+export MAIL_USER_PEDIDAI=correo@gmail.com
+export MAIL_PASS_PEDIDAI=app_password
 export JWT_SECRET=secreto_jwt_largo_y_seguro
 export DEEPSEEK_API_KEY=tu_api_key
 source ~/.bashrc
@@ -859,7 +859,7 @@ Los ficheros compilados se generan en `dist/`.
 2. Activar **Verificación en 2 pasos**
 3. Ir a <https://myaccount.google.com/apppasswords>
 4. Crear una contraseña de aplicación (16 caracteres)
-5. Usarla como valor de la variable `MAIL_PASS_PEDIDOO`
+5. Usarla como valor de la variable `MAIL_PASS_PEDIDAI`
 
 ### 6.6. Scripts Disponibles
 
@@ -902,10 +902,10 @@ After=syslog.target
 User=pedidai
 ExecStart=/usr/bin/java -jar /opt/pedidai/pedidai-api.jar
 SuccessExitStatus=143
-Environment="DB_USER_PEDIDOO=pedidai_user"
-Environment="DB_PASS_PEDIDOO=password_seguro"
-Environment="MAIL_USER_PEDIDOO=correo@gmail.com"
-Environment="MAIL_PASS_PEDIDOO=app_password"
+Environment="DB_USER_PEDIDAI=pedidai_user"
+Environment="DB_PASS_PEDIDAI=password_seguro"
+Environment="MAIL_USER_PEDIDAI=correo@gmail.com"
+Environment="MAIL_PASS_PEDIDAI=app_password"
 Environment="JWT_SECRET=secreto_jwt"
 Environment="DEEPSEEK_API_KEY=api_key"
 
@@ -981,7 +981,7 @@ Resultado esperado: `companies`, `users`, `suppliers`, `products`, `orders`, `or
 ### 6.9. Solución de Problemas Comunes
 
 **Backend no arranca — `Access denied for user`:**
-Verificar credenciales MySQL y variables de entorno `DB_USER_PEDIDOO` / `DB_PASS_PEDIDOO`.
+Verificar credenciales MySQL y variables de entorno `DB_USER_PEDIDAI` / `DB_PASS_PEDIDAI`.
 
 **Backend no arranca — `Port 8085 is already in use`:**
 Cambiar el puerto en `application.properties` o detener el proceso que ocupa el puerto.
