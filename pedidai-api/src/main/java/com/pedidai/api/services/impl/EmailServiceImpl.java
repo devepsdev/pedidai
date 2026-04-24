@@ -122,8 +122,8 @@ public class EmailServiceImpl implements EmailService {
                                             <!-- Header -->
                                             <tr>
                                                 <td style="background: linear-gradient(135deg, #06b6d4 0%%, #0f172a 100%%); padding: 30px 20px; text-align: center;">
-                                                    <img src="%s/logo-pedidai.png" alt="PedidAI" width="72" height="72" style="border-radius: 14px; display: block; margin: 0 auto 12px; border: 0;">
-                                                    <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Pedid<span style="color: #67e8f9;">oo</span></h1>
+                                                    <img src="%s/logo-email.png" alt="PedidAI" width="160" height="64" style="display: block; margin: 0 auto 12px; border: 0;">
+                                                    <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Pedid<span style="color: #67e8f9;">AI</span></h1>
                                                 </td>
                                             </tr>
                 
@@ -203,8 +203,8 @@ public class EmailServiceImpl implements EmailService {
                                             <!-- Header -->
                                             <tr>
                                                 <td style="background: linear-gradient(135deg, #06b6d4 0%%, #0f172a 100%%); padding: 30px 20px; text-align: center;">
-                                                    <img src="%s/logo-pedidai.png" alt="PedidAI" width="72" height="72" style="border-radius: 14px; display: block; margin: 0 auto 12px; border: 0;">
-                                                    <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Pedid<span style="color: #67e8f9;">oo</span></h1>
+                                                    <img src="%s/logo-email.png" alt="PedidAI" width="160" height="64" style="display: block; margin: 0 auto 12px; border: 0;">
+                                                    <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Pedid<span style="color: #67e8f9;">AI</span></h1>
                                                 </td>
                                             </tr>
                 
@@ -284,8 +284,8 @@ public class EmailServiceImpl implements EmailService {
                                             <!-- Header -->
                                             <tr>
                                                 <td style="background: linear-gradient(135deg, #06b6d4 0%%, #0f172a 100%%); padding: 30px 20px; text-align: center;">
-                                                    <img src="%s/logo-pedidai.png" alt="PedidAI" width="72" height="72" style="border-radius: 14px; display: block; margin: 0 auto 12px; border: 0;">
-                                                    <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">🎉 Benvingut a Pedid<span style="color: #67e8f9;">oo</span>!</h1>
+                                                    <img src="%s/logo-email.png" alt="PedidAI" width="160" height="64" style="display: block; margin: 0 auto 12px; border: 0;">
+                                                    <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">🎉 Benvingut a Pedid<span style="color: #67e8f9;">AI</span>!</h1>
                                                 </td>
                                             </tr>
 
@@ -435,7 +435,7 @@ public class EmailServiceImpl implements EmailService {
                                     <!-- Header -->
                                     <tr>
                                         <td style="background: linear-gradient(135deg, #06b6d4 0%%, #0f172a 100%%); padding: 30px 20px; text-align: center;">
-                                            <img src="%s/logo-pedidai.png" alt="PedidAI" width="72" height="72" style="border-radius: 14px; display: block; margin: 0 auto 12px; border: 0;">
+                                            <img src="%s/logo-email.png" alt="PedidAI" width="160" height="64" style="display: block; margin: 0 auto 12px; border: 0;">
                                             <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">🛒 Nova Comanda</h1>
                                             <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">%s</p>
                                         </td>

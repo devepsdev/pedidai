@@ -2,7 +2,7 @@
 @if (success()) {
   <div class="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-16 relative overflow-hidden">
     <div class="absolute inset-0 flex items-center justify-end pe-[8%] pointer-events-none" aria-hidden="true">
-      <img src="logo-pedidai.png" alt="" class="w-[360px] h-[360px] opacity-[0.055] select-none" style="filter: blur(2px);">
+      <img src="logo-hero.png" alt="" class="w-[360px] h-auto opacity-[0.055] select-none" style="filter: blur(2px);">
     </div>
     <div class="w-full max-w-md text-center">
       <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -23,14 +23,13 @@
 @if (!success()) {
   <div class="min-h-screen bg-slate-50 pt-24 pb-16 px-4 relative overflow-hidden">
     <div class="absolute inset-0 flex items-center justify-end pe-[8%] pointer-events-none" aria-hidden="true">
-      <img src="logo-pedidai.png" alt="" class="w-[360px] h-[360px] opacity-[0.055] select-none" style="filter: blur(2px);">
+      <img src="logo-hero.png" alt="" class="w-[360px] h-auto opacity-[0.055] select-none" style="filter: blur(2px);">
     </div>
     <div class="max-w-2xl mx-auto">
       <!-- Header -->
       <div class="text-center mb-8">
         <a routerLink="/" class="inline-flex items-center gap-2 mb-6">
-          <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-extrabold text-white">P</div>
-          <span class="text-2xl font-extrabold text-gray-900">Pedid<span class="brand-ai">AI</span></span>
+          <img src="logo-navbar.png" class="h-10 w-auto" alt="PedidAI">
         </a>
         <h1 class="text-3xl font-extrabold text-gray-900">{{ 'AUTH.REGISTER.TITLE' | translate }}</h1>
         <p class="text-gray-500 mt-2">{{ 'AUTH.REGISTER.SUBTITLE' | translate }}</p>
