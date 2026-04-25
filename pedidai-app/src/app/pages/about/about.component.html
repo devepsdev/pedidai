@@ -1,0 +1,59 @@
+<div class="min-h-screen bg-slate-900 text-slate-300 pt-24 pb-20 px-4">
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Header -->
+    <header class="mb-12">
+      <p class="text-xs font-semibold text-cyan-400 uppercase tracking-widest mb-2">Empresa</p>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">{{ 'about.title' | translate }}</h1>
+      <p class="text-slate-400 text-lg leading-relaxed">{{ 'about.tagline' | translate }}</p>
+    </header>
+
+    <div class="space-y-10 text-sm leading-relaxed">
+
+      <!-- Origin -->
+      <article class="bg-slate-800/60 rounded-xl p-6">
+        <h2 class="text-lg font-bold text-white mb-4">{{ 'about.origin.title' | translate }}</h2>
+        <p class="mb-3">{{ 'about.origin.p1' | translate }}</p>
+        <p class="mb-3">{{ 'about.origin.p2' | translate }}</p>
+        <p>{{ 'about.origin.p3' | translate }}</p>
+      </article>
+
+      <!-- Mission -->
+      <article class="bg-slate-800/60 rounded-xl p-6">
+        <h2 class="text-lg font-bold text-white mb-4">{{ 'about.mission.title' | translate }}</h2>
+        <p>{{ 'about.mission.body' | translate }}</p>
+      </article>
+
+      <!-- Team -->
+      <article class="bg-slate-800/60 rounded-xl p-6">
+        <h2 class="text-lg font-bold text-white mb-4">{{ 'about.team.title' | translate }}</h2>
+        <div class="space-y-2">
+          <h3 class="text-base font-bold text-white">Enrique Pérez Sánchez</h3>
+          <p class="text-cyan-400 text-xs font-semibold uppercase tracking-wide">{{ 'about.team.role' | translate }}</p>
+          <p class="mt-2">{{ 'about.team.bio' | translate }}</p>
+          <div class="flex gap-4 mt-3 pt-3 border-t border-slate-700">
+            <a href="https://www.linkedin.com/in/enrique-perez-sanchez" target="_blank" rel="noopener noreferrer"
+              class="text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-medium">
+              LinkedIn
+            </a>
+            <a href="https://deveps.dev" target="_blank" rel="noopener noreferrer"
+              class="text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-medium">
+              deveps.dev
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- CTA -->
+      <article class="bg-slate-800/60 rounded-xl p-6 text-center">
+        <h2 class="text-lg font-bold text-white mb-3">{{ 'about.cta.title' | translate }}</h2>
+        <p class="mb-5">{{ 'about.cta.body' | translate }}</p>
+        <a routerLink="/contacto"
+          class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm">
+          {{ 'about.cta.button' | translate }}
+        </a>
+      </article>
+
+    </div>
+  </div>
+</div>

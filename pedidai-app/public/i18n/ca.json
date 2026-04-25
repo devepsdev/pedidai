@@ -660,6 +660,52 @@
       "TITLE": "Usuaris"
     }
   },
+  "about": {
+    "title": "Sobre nosaltres",
+    "tagline": "24 anys vivint el problema. Ara el resolem amb tecnologia.",
+    "origin": {
+      "title": "L'origen",
+      "p1": "PedidAI no neix d'una pissarra ni d'una sala de reunions. Neix de 24 anys repartint fruita i verdura a centenars de restaurants i hotels de Barcelona.",
+      "p2": "Durant aquests anys he vist com es gestionen les comandes als petits negocis: WhatsApp, trucades, llibretes de paper, factures que s'amunteguen, preus que pugen sense que ningú se n'adoni i hores perdudes en feines repetitives. Aquest és el problema real, no el que es descriu en un estudi de mercat.",
+      "p3": "Mentre repartia, em vaig formar com a desenvolupador (ASIR + DAM + DAW). I un dia vaig decidir unir les dues vides: el coneixement profund del problema i la capacitat tècnica per resoldre'l. Així va néixer PedidAI."
+    },
+    "mission": {
+      "title": "La nostra missió",
+      "body": "Que qualsevol negoci petit — un bar, una perruqueria, una pastisseria, una ferreteria, una floristeria — pugui gestionar les seves comandes amb la mateixa eficàcia que les grans cadenes, sense pagar preus de software empresarial. Tecnologia accessible, llenguatge clar i preu just."
+    },
+    "team": {
+      "title": "Qui hi ha al darrere",
+      "role": "Fundador i desenvolupador",
+      "bio": "Full-stack developer i DevOps. 24 anys d'experiència al sector logístic. Triple CFGS (ASIR + DAM + DAW). Stack: Java, Spring Boot, Angular, Linux. També porto deveps.dev, serveis de desenvolupament web per a pimes."
+    },
+    "cta": {
+      "title": "Vols parlar?",
+      "body": "Si vols saber si PedidAI encaixa amb el teu negoci, contacta'm i ho veiem junts.",
+      "button": "Contactar"
+    }
+  },
+  "contact": {
+    "title": "Contacte",
+    "intro": "Sóc l'Enrique, fundador de PedidAI. Si tens qualsevol dubte, suggeriment o problema, contacta'm per qualsevol d'aquests canals.",
+    "email": {
+      "title": "Email",
+      "note": "Resposta en menys de 24h laborables."
+    },
+    "whatsapp": {
+      "title": "WhatsApp"
+    },
+    "schedule": {
+      "title": "Horari d'atenció:",
+      "weekdays": "Dilluns a divendres: 18:00 - 21:00",
+      "saturday": "Dissabtes: 10:00 - 14:00",
+      "sunday": "Diumenges: tancat"
+    },
+    "linkedin": {
+      "title": "LinkedIn",
+      "cta": "Visita la nostra pàgina"
+    },
+    "urgent": "Si la teva consulta és urgent, escriu-me per WhatsApp i ho veuré tan aviat com pugui."
+  },
   "COOKIE_BANNER": {
     "TEXT": "Utilitzem cookies tècniques necessàries per al funcionament de la plataforma. No fem servir cookies analítiques ni publicitàries.",
     "LEARN_MORE": "Saber-ne més",

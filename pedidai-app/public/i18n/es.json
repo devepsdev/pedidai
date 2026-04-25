@@ -660,6 +660,52 @@
       "TITLE": "Usuarios"
     }
   },
+  "about": {
+    "title": "Sobre nosotros",
+    "tagline": "24 años viviendo el problema. Ahora lo resolvemos con tecnología.",
+    "origin": {
+      "title": "El origen",
+      "p1": "PedidAI no nace de una pizarra ni de una sala de reuniones. Nace de 24 años repartiendo fruta y verdura a cientos de restaurantes y hoteles de Barcelona.",
+      "p2": "Durante esos años he visto cómo se gestionan los pedidos en los pequeños negocios: WhatsApp, llamadas, libretas de papel, facturas que se acumulan, precios que suben sin que nadie se dé cuenta y horas perdidas en tareas repetitivas. Ese es el problema real, no el que se describe en un estudio de mercado.",
+      "p3": "Mientras repartía, me formé como desarrollador (ASIR + DAM + DAW). Y un día decidí unir las dos vidas: el conocimiento profundo del problema y la capacidad técnica para resolverlo. Así nació PedidAI."
+    },
+    "mission": {
+      "title": "Nuestra misión",
+      "body": "Que cualquier negocio pequeño — un bar, una peluquería, una pastelería, una ferretería, una floristería — pueda gestionar sus pedidos con la misma eficacia que las grandes cadenas, sin pagar precios de software empresarial. Tecnología accesible, lenguaje claro y precio justo."
+    },
+    "team": {
+      "title": "Quién hay detrás",
+      "role": "Fundador y desarrollador",
+      "bio": "Full-stack developer y DevOps. 24 años de experiencia en el sector logístico. Triple CFGS (ASIR + DAM + DAW). Stack: Java, Spring Boot, Angular, Linux. También llevo deveps.dev, servicios de desarrollo web para pymes."
+    },
+    "cta": {
+      "title": "¿Hablamos?",
+      "body": "Si quieres saber si PedidAI encaja con tu negocio, contáctame y lo vemos juntos.",
+      "button": "Contactar"
+    }
+  },
+  "contact": {
+    "title": "Contacto",
+    "intro": "Soy Enrique, fundador de PedidAI. Si tienes cualquier duda, sugerencia o problema, contáctame por cualquiera de estos canales.",
+    "email": {
+      "title": "Email",
+      "note": "Respuesta en menos de 24h laborables."
+    },
+    "whatsapp": {
+      "title": "WhatsApp"
+    },
+    "schedule": {
+      "title": "Horario de atención:",
+      "weekdays": "Lunes a viernes: 18:00 - 21:00",
+      "saturday": "Sábados: 10:00 - 14:00",
+      "sunday": "Domingos: cerrado"
+    },
+    "linkedin": {
+      "title": "LinkedIn",
+      "cta": "Visita nuestra página"
+    },
+    "urgent": "Si tu consulta es urgente, escríbeme por WhatsApp y lo veré en cuanto pueda."
+  },
   "COOKIE_BANNER": {
     "TEXT": "Utilizamos cookies técnicas necesarias para el funcionamiento de la plataforma. No usamos cookies analíticas ni publicitarias.",
     "LEARN_MORE": "Saber más",

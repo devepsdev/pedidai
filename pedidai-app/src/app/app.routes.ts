@@ -28,6 +28,8 @@ import { PrivacyPolicy } from './pages/legal/privacy-policy/privacy-policy';
 import { LegalNotice } from './pages/legal/legal-notice/legal-notice';
 import { CookiePolicy } from './pages/legal/cookie-policy/cookie-policy';
 import { TermsConditions } from './pages/legal/terms-conditions/terms-conditions';
+import { ContactComponent } from './pages/contact/contact.component';
+import { AboutComponent } from './pages/about/about.component';
 import { SuperadminDashboard } from './pages/superadmin/superadmin-dashboard/superadmin-dashboard';
 import { SuperadminCompanies } from './pages/superadmin/superadmin-companies/superadmin-companies';
 import { SuperadminCompanyDetail } from './pages/superadmin/superadmin-company-detail/superadmin-company-detail';
@@ -48,6 +50,10 @@ export const routes: Routes = [
       { path: 'aviso-legal', component: LegalNotice },
       { path: 'cookies', component: CookiePolicy },
       { path: 'terminos', component: TermsConditions },
+      { path: 'contacto', component: ContactComponent },
+      { path: 'contacte', redirectTo: 'contacto', pathMatch: 'full' },
+      { path: 'sobre-nosotros', component: AboutComponent },
+      { path: 'sobre-nosaltres', redirectTo: 'sobre-nosotros', pathMatch: 'full' },
     ]
   },
   {
