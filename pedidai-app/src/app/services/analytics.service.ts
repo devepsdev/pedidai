@@ -4,7 +4,7 @@ declare let gtag: (...args: unknown[]) => void;
 
 @Injectable({ providedIn: 'root' })
 export class AnalyticsService {
-  private readonly GA_ID = 'G-XXXXXXXXXX';
+  private readonly GA_ID = 'G-EX93P8G7PH';
   private loaded = false;
 
   /**
