@@ -14,4 +14,9 @@ export class HeroSection {
   onScroll() {
     this.logoOffset.set(window.scrollY * 0.4);
   }
+
+  scrollTo(id: string, event: Event) {
+    event.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  }
 }
