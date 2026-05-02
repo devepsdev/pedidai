@@ -174,7 +174,8 @@ public class AiVisionServiceImpl implements AiVisionService {
         Map<String, Object> requestBody = Map.of(
                 "model", model,
                 "messages", List.of(systemMessage, userMessage),
-                "stream", false
+                "stream", false,
+                "thinking", Map.of("type", "disabled")
         );
 
         try {
