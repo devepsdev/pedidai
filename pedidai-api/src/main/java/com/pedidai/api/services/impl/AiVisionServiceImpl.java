@@ -79,7 +79,7 @@ public class AiVisionServiceImpl implements AiVisionService {
             ObjectMapper objectMapper,
             @Value("${deepseek.api.key}") String apiKey,
             @Value("${deepseek.api.url:https://api.deepseek.com}") String apiUrl,
-            @Value("${deepseek.model:deepseek-chat}") String model) {
+            @Value("${deepseek.model:deepseek-v4-flash}") String model) {
         this.objectMapper = objectMapper;
         this.model = model;
 
