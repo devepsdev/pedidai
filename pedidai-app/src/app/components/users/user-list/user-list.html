@@ -15,27 +15,23 @@
   <!-- Search bar -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
     @if (!showAdvanced()) {
-      <div class="flex flex-col gap-2">
-        <!-- Row 1: input + search button -->
-        <div class="flex gap-2">
-          <input
-            type="text"
-            [placeholder]="'USERS.SEARCH_PH' | translate"
-            [value]="searchText()"
-            (input)="onSearchInput($any($event.target).value)"
-            (keydown)="onSearchKeydown($event)"
-            class="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-          <button
-            (click)="search()"
-            class="shrink-0 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors">
-            {{ 'USERS.SEARCH' | translate }}
-          </button>
-        </div>
-        <!-- Row 2: advanced search (full width on mobile) -->
+      <div class="flex flex-col sm:flex-row gap-2">
+        <input
+          type="text"
+          [placeholder]="'USERS.SEARCH_PH' | translate"
+          [value]="searchText()"
+          (input)="onSearchInput($any($event.target).value)"
+          (keydown)="onSearchKeydown($event)"
+          class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        <button
+          (click)="search()"
+          class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors">
+          {{ 'USERS.SEARCH' | translate }}
+        </button>
         <button
           (click)="toggleAdvanced()"
-          class="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 010 2H4a1 1 0 01-1-1zM6 9h12M9 14h6M11 19h2"/>
           </svg>
           {{ 'USERS.ADVANCED_SEARCH' | translate }}
