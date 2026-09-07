@@ -891,6 +891,28 @@ cd pedidai-api
 ./mvnw clean package -DskipTests
 ```
 
+El jar y los secretos viven juntos en `/opt/apps/pedidai/`. Los secretos van en
+`/opt/apps/pedidai/.env`, con permisos `600` (solo el usuario propietario puede
+leerlo) — **nunca** como `Environment=` directamente en el `.service`, porque
+los ficheros de `/etc/systemd/system/` son legibles por cualquier usuario del
+sistema (permisos `644` por defecto), lo que expondría los secretos en claro
+a todo el que tenga acceso por shell a la máquina.
+
+Crear `/opt/apps/pedidai/.env`:
+
+```dotenv
+DB_USER_PEDIDAI=pedidai_user
+DB_PASS_PEDIDAI=password_seguro
+MAIL_USER_PEDIDAI=correo@gmail.com
+MAIL_PASS_PEDIDAI=app_password
+JWT_SECRET=secreto_jwt
+DEEPSEEK_API_KEY=api_key
+```
+
+```bash
+chmod 600 /opt/apps/pedidai/.env
+```
+
 Crear `/etc/systemd/system/pedidai-api.service`:
 
 ```ini
@@ -900,14 +922,9 @@ After=syslog.target
 
 [Service]
 User=pedidai
-ExecStart=/usr/bin/java -jar /opt/pedidai/pedidai-api.jar
+EnvironmentFile=/opt/apps/pedidai/.env
+ExecStart=/usr/bin/java -jar /opt/apps/pedidai/pedidai-api.jar
 SuccessExitStatus=143
-Environment="DB_USER_PEDIDAI=pedidai_user"
-Environment="DB_PASS_PEDIDAI=password_seguro"
-Environment="MAIL_USER_PEDIDAI=correo@gmail.com"
-Environment="MAIL_PASS_PEDIDAI=app_password"
-Environment="JWT_SECRET=secreto_jwt"
-Environment="DEEPSEEK_API_KEY=api_key"
 
 [Install]
 WantedBy=multi-user.target
