@@ -15,7 +15,8 @@ pedidai-api/*.jar
 # Env
 .env
 *.env.local
-application.properties
+# Ajustes locales con valores propios (perfil «local»); application.properties se versiona sin secretos
+application-local.properties
 
 # OS
 .DS_Store
