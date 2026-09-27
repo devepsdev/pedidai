@@ -13,6 +13,7 @@ import com.pedidai.api.services.CompanyService;
 import com.pedidai.api.services.EmailService;
 import com.pedidai.api.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class CompanyServiceImpl implements CompanyService {
     private final UserService userService;
     private final CurrentUser currentUser;
     private final RateLimiter rateLimiter;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -87,6 +89,7 @@ public class CompanyServiceImpl implements CompanyService {
 
         emailService.sendWelcomeVerification(admin.getEmail(), verificationToken, admin.getFirstName(),
                 company.getName(), I18nConfig.localeOf(language));
+        eventPublisher.publishEvent(new CompanyRegisteredEvent(company.getId()));
 
         return userService.issueSession(admin);
     }

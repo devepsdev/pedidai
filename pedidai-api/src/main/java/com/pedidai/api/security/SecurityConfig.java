@@ -108,6 +108,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/superadmin/**").hasRole("SUPER_ADMIN")
 
                         // Tots els altres endpoints requereixen autenticació
+                        // Automatitzacions internes (n8n): el controlador només accepta peticions locals
+                        .requestMatchers(HttpMethod.GET, "/api/internal/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )

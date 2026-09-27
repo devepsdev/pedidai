@@ -87,4 +87,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM User u WHERE u.company.id = :companyId")
     int deleteByCompanyId(@Param("companyId") Long companyId);
+
+    Optional<User> findFirstByCompany_IdAndRoleOrderByIdAsc(Long companyId, User.UserRole role);
 }

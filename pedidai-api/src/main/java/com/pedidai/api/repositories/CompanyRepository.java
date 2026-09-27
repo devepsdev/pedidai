@@ -50,4 +50,26 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM Company c WHERE c.id = :companyId")
     int deleteCompanyById(@Param("companyId") Long companyId);
+
+    // ── Alertes internes: només empreses client (mai la del SUPER_ADMIN) ──
+
+    String CLIENT = " NOT EXISTS (SELECT u.id FROM User u WHERE u.company = c"
+            + " AND u.role = com.pedidai.api.entities.User.UserRole.SUPER_ADMIN) ";
+
+    @Query("SELECT c FROM Company c WHERE c.createdAt >= :from AND c.createdAt < :to AND" + CLIENT
+            + "ORDER BY c.createdAt")
+    List<Company> findClientsCreatedBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT c FROM Company c WHERE c.trialEndsAt > :from AND c.trialEndsAt <= :to AND" + CLIENT
+            + "ORDER BY c.trialEndsAt")
+    List<Company> findClientsWithTrialEndingBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT COUNT(c) FROM Company c WHERE" + CLIENT)
+    long countClients();
+
+    @Query("SELECT COUNT(c) FROM Company c WHERE c.trialEndsAt > :now AND" + CLIENT)
+    long countClientsInTrial(@Param("now") LocalDateTime now);
+
+    @Query("SELECT COUNT(c) FROM Company c WHERE c.trialEndsAt IS NULL AND" + CLIENT)
+    long countPaidClients();
 }

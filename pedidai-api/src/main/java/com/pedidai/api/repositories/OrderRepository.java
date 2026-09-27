@@ -68,4 +68,6 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
                    OR o.user.id IN (SELECT u.id FROM User u WHERE u.company.id = :companyId))
             """)
     int deleteByCompanyId(@Param("companyId") Long companyId);
+
+    long countByCreatedAtGreaterThanEqual(LocalDateTime since);
 }

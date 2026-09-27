@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -42,13 +43,14 @@ class CompanyServiceImplTest {
     @Mock private EmailService emailService;
     @Mock private UserService userService;
     @Mock private CurrentUser currentUser;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     private CompanyServiceImpl service;
 
     @BeforeEach
     void setUp() {
         service = new CompanyServiceImpl(companyRepository, userRepository, passwordEncoder, emailService,
-                userService, currentUser, new RateLimiter());
+                userService, currentUser, new RateLimiter(), eventPublisher);
     }
 
     @AfterEach
@@ -89,6 +91,7 @@ class CompanyServiceImplTest {
         assertThat(admin.getValue().getLanguage()).isEqualTo("ca");
         assertThat(admin.getValue().getEmailVerified()).isFalse();
         verify(emailService).sendWelcomeVerification(eq("laura@bar.test"), anyString(), eq("Laura"), eq("Bar Prova"), any());
+        verify(eventPublisher).publishEvent(any(CompanyRegisteredEvent.class));
     }
 
     @Test

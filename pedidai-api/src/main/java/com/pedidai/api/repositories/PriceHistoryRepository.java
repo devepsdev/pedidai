@@ -39,4 +39,6 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, Long
                OR h.product.id IN (SELECT p.id FROM Product p WHERE p.supplier.company.id = :companyId)
             """)
     int deleteByCompanyId(@Param("companyId") Long companyId);
+
+    long countBySourceAndCreatedAtGreaterThanEqual(PriceHistory.Source source, java.time.LocalDateTime since);
 }
