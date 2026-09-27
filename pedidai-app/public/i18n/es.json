@@ -629,25 +629,25 @@
   },
   "about": {
     "title": "Sobre nosotros",
-    "tagline": "24 años viviendo el problema. Ahora lo resolvemos con tecnología.",
+    "tagline": "24 años llevando fruta y verdura a restaurantes.\nAhora te ayudamos a no pagar de más a tus proveedores.",
     "origin": {
       "title": "El origen",
-      "p1": "PedidAI no nace de una pizarra ni de una sala de reuniones. Nace de 24 años repartiendo fruta y verdura a cientos de restaurantes y hoteles de Barcelona.",
-      "p2": "Durante esos años he visto cómo se gestionan los pedidos en los pequeños negocios: WhatsApp, llamadas, libretas de papel, facturas que se acumulan, precios que suben sin que nadie se dé cuenta y horas perdidas en tareas repetitivas. Ese es el problema real, no el que se describe en un estudio de mercado.",
-      "p3": "Mientras repartía, me formé como desarrollador (ASIR + DAM + DAW). Y un día decidí unir las dos vidas: el conocimiento profundo del problema y la capacidad técnica para resolverlo. Así nació PedidAI."
+      "p1": "PedidAI no nace en una sala de reuniones.\nNace de 24 años repartiendo fruta y verdura a cientos de restaurantes y hoteles de Barcelona.",
+      "p2": "He visto cómo compran los bares y restaurantes: por WhatsApp, por teléfono y en libretas.\nLos albaranes se acumulan y nadie tiene tiempo de compararlos.\nY los precios suben poco a poco, sin que nadie se dé cuenta.\nEse es el problema real, no el de un estudio de mercado.",
+      "p3": "Mientras repartía, me formé como desarrollador (ASIR + DAM + DAW).\nUn día decidí unir las dos cosas: conocer el problema desde dentro y saber programar la solución.\nAsí nació PedidAI."
     },
     "mission": {
       "title": "Nuestra misión",
-      "body": "Que cualquier negocio pequeño — un bar, una peluquería, una pastelería, una ferretería, una floristería — pueda gestionar sus pedidos con la misma eficacia que las grandes cadenas, sin pagar precios de software empresarial. Tecnología accesible, lenguaje claro y precio justo."
+      "body": "Que un bar o un restaurante sepa, sin perder tiempo, cuánto le cobra cada proveedor.\nQue vea cuándo le suben un precio y pueda pedir al más barato con un mensaje.\nSin software caro ni complicado: lenguaje claro y un precio justo."
     },
     "team": {
       "title": "Quién hay detrás",
       "role": "Fundador y desarrollador",
-      "bio": "Full-stack developer y DevOps. 24 años de experiencia en el sector logístico. Triple CFGS (ASIR + DAM + DAW). Stack: Java, Spring Boot, Angular, Linux. También llevo deveps.dev, servicios de desarrollo web para pymes."
+      "bio": "Full-stack developer y DevOps.\n24 años de experiencia en el sector logístico.\nTriple CFGS (ASIR + DAM + DAW). Stack: Java, Spring Boot, Angular, Linux.\nTambién llevo deveps.dev, servicios de desarrollo web para pymes."
     },
     "cta": {
       "title": "¿Hablamos?",
-      "body": "Si quieres saber si PedidAI encaja con tu negocio, contáctame y lo vemos juntos.",
+      "body": "¿Tienes un bar o un restaurante y quieres saber si PedidAI te sirve?\nEscríbeme y lo vemos juntos.",
       "button": "Contactar"
     }
   },

@@ -629,25 +629,25 @@
   },
   "about": {
     "title": "Sobre nosaltres",
-    "tagline": "24 anys vivint el problema. Ara el resolem amb tecnologia.",
+    "tagline": "24 anys portant fruita i verdura a restaurants.\nAra t’ajudem a no pagar de més als teus proveïdors.",
     "origin": {
       "title": "L'origen",
-      "p1": "PedidAI no neix d'una pissarra ni d'una sala de reunions. Neix de 24 anys repartint fruita i verdura a centenars de restaurants i hotels de Barcelona.",
-      "p2": "Durant aquests anys he vist com es gestionen les comandes als petits negocis: WhatsApp, trucades, llibretes de paper, factures que s'amunteguen, preus que pugen sense que ningú se n'adoni i hores perdudes en feines repetitives. Aquest és el problema real, no el que es descriu en un estudi de mercat.",
-      "p3": "Mentre repartia, em vaig formar com a desenvolupador (ASIR + DAM + DAW). I un dia vaig decidir unir les dues vides: el coneixement profund del problema i la capacitat tècnica per resoldre'l. Així va néixer PedidAI."
+      "p1": "PedidAI no neix en una sala de reunions.\nNeix de 24 anys repartint fruita i verdura a centenars de restaurants i hotels de Barcelona.",
+      "p2": "He vist com compren els bars i restaurants: per WhatsApp, per telèfon i en llibretes.\nEls albarans s’acumulen i ningú té temps de comparar-los.\nI els preus pugen a poc a poc, sense que ningú se n’adoni.\nAquest és el problema real, no el d’un estudi de mercat.",
+      "p3": "Mentre repartia, em vaig formar com a desenvolupador (ASIR + DAM + DAW).\nUn dia vaig decidir unir les dues coses: conèixer el problema des de dins i saber programar la solució.\nAixí va néixer PedidAI."
     },
     "mission": {
       "title": "La nostra missió",
-      "body": "Que qualsevol negoci petit — un bar, una perruqueria, una pastisseria, una ferreteria, una floristeria — pugui gestionar les seves comandes amb la mateixa eficàcia que les grans cadenes, sense pagar preus de software empresarial. Tecnologia accessible, llenguatge clar i preu just."
+      "body": "Que un bar o un restaurant sàpiga, sense perdre temps, quant li cobra cada proveïdor.\nQue vegi quan li apugen un preu i pugui demanar al més barat amb un missatge.\nSense programari car ni complicat: llenguatge clar i un preu just."
     },
     "team": {
       "title": "Qui hi ha al darrere",
       "role": "Fundador i desenvolupador",
-      "bio": "Full-stack developer i DevOps. 24 anys d'experiència al sector logístic. Triple CFGS (ASIR + DAM + DAW). Stack: Java, Spring Boot, Angular, Linux. També porto deveps.dev, serveis de desenvolupament web per a pimes."
+      "bio": "Full-stack developer i DevOps.\n24 anys d’experiència al sector logístic.\nTriple CFGS (ASIR + DAM + DAW). Stack: Java, Spring Boot, Angular, Linux.\nTambé porto deveps.dev, serveis de desenvolupament web per a pimes."
     },
     "cta": {
       "title": "Vols parlar?",
-      "body": "Si vols saber si PedidAI encaixa amb el teu negoci, contacta'm i ho veiem junts.",
+      "body": "Tens un bar o un restaurant i vols saber si PedidAI et serveix?\nEscriu-me i ho veiem junts.",
       "button": "Contactar"
     }
   },
