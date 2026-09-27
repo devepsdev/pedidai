@@ -239,6 +239,7 @@ GRANT ALL PRIVILEGES ON pedidai_db.* TO 'pedidai_user'@'localhost';
 ```bash
 mysql -u pedidai_user -p pedidai_db < pedidai-db/pedidai_db_schema.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/001_lanzamiento.sql
+mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/002_empresa_suspendida.sql
 ```
 
 ### 8.2. Backend

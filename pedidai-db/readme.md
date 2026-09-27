@@ -1,27 +1,36 @@
-# Pedidai - Base de Datos
+# PedidAI — Base de datos
 
-Scripts SQL y documentación del esquema de base de datos de Pedidai.
+Esquema SQL, migraciones y documentación de la base de datos de PedidAI.
 
-**SGBD:** MySQL 8.0+
-**Nombre BD:** `pedidai_db`
-**Charset:** `utf8mb4`
-**Collation:** `utf8mb4_unicode_ci`
-**Motor:** InnoDB
+| | |
+| --- | --- |
+| **SGBD** | MySQL 8.0+ |
+| **Base de datos** | `pedidai_db` |
+| **Charset / collation** | `utf8mb4` / `utf8mb4_unicode_ci` |
+| **Motor** | InnoDB |
+| **JPA** | `ddl-auto=none`: el esquema se gestiona solo con estos scripts |
 
 ---
 
-## Estructura de Ficheros
+## Ficheros
 
 ```text
 pedidai-db/
-└── pedidai_db_schema.sql    # Script completo de creación del esquema
+├── pedidai_db_schema.sql          # Esquema base (solo estructura, sin datos)
+└── migrations/
+    ├── 001_lanzamiento.sql        # CIF opcional, idioma del usuario, nombre genérico de producto, historial de precios
+    └── 002_empresa_suspendida.sql # Estado SUSPENDED en companies.status
 ```
+
+Las migraciones se aplican **en orden** sobre el esquema base. Cada una se aplica una sola vez.
+
+> `pedidai_db_schema.sql` es **solo para bases nuevas y vacías**: no contiene `USE` ni `DROP TABLE`, se aplica a la base indicada en la línea de comandos y falla si las tablas ya existen. En una base con datos, aplica únicamente las migraciones que falten.
 
 ---
 
 ## Instalación
 
-### 1. Crear usuario y base de datos
+### 1. Usuario y base de datos
 
 ```sql
 CREATE USER 'pedidai_user'@'localhost' IDENTIFIED BY 'password_seguro';
@@ -30,200 +39,168 @@ GRANT ALL PRIVILEGES ON pedidai_db.* TO 'pedidai_user'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-### 2. Ejecutar el script de esquema
+### 2. Esquema y migraciones
 
 ```bash
-mysql -u pedidai_user -p < pedidai-db/pedidai_db_schema.sql
-```
-
-O desde la consola MySQL:
-
-```sql
-SOURCE /ruta/a/pedidai-db/pedidai_db_schema.sql;
-```
-
-Después, aplica en orden las migraciones de `pedidai-db/migrations/` (en una base existente, haz antes una copia con `mysqldump`):
-
-```bash
+mysql -u pedidai_user -p pedidai_db < pedidai-db/pedidai_db_schema.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/001_lanzamiento.sql
+mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/002_empresa_suspendida.sql
 ```
 
-### 3. Verificar las tablas
+### 3. Comprobación
 
 ```sql
-USE pedidai_db;
 SHOW TABLES;
 ```
 
-Resultado esperado: `companies`, `users`, `suppliers`, `products`, `orders`, `order_items`
+Resultado esperado: `companies`, `order_items`, `orders`, `price_history`, `products`, `suppliers`, `users`.
+
+### Actualizar una base existente
+
+1. Copia de seguridad: `mysqldump --single-transaction pedidai_db | gzip > pedidai_db-$(date +%Y%m%d).sql.gz`
+2. Aplica solo las migraciones que falten, en orden.
 
 ---
 
-## Diagrama Entidad-Relación
+## Diagrama entidad-relación
 
 ```text
-┌──────────────┐
-│   COMPANIES  │
-└──────┬───────┘
-       │ 1
-       ├──────────────────┬────────────────┐
-       │ N                │ N              │ N
-  ┌────┴───┐        ┌─────┴─────┐    ┌────┴───┐
-  │ USERS  │        │ SUPPLIERS │    │ ORDERS │
-  └────────┘        └─────┬─────┘    └────┬───┘
-                          │ 1             │ 1
-                          │ N             │ N
-                     ┌────┴─────┐  ┌─────┴──────┐
-                     │ PRODUCTS │  │ ORDER_ITEMS │
-                     └──────────┘  └────────────┘
+companies  1 ──< N  users
+companies  1 ──< N  suppliers  1 ──< N  products
+companies  1 ──< N  orders     1 ──< N  order_items  N >── 1  products
+suppliers  1 ──< N  orders
+users      1 ──< N  orders                  (usuario que crea el pedido)
+companies  1 ──< N  price_history  N >── 1  suppliers
+                    price_history  N >── 1  products
 ```
+
+- Una empresa tiene usuarios, proveedores, pedidos e historial de precios.
+- Un proveedor tiene productos; cada pedido es para un proveedor y lo crea un usuario.
+- Cada línea de pedido apunta a un producto.
+- Cada entrada del historial de precios apunta a la empresa, al proveedor y al producto.
 
 ---
 
-## Descripción de Tablas
+## Tablas
+
+Todas las tablas tienen `id` (`BIGINT`, clave interna, nunca expuesta en la API) y `uuid` (`VARCHAR`, identificador público). Salvo `price_history` y `order_items`, también tienen `created_at` y `updated_at`.
 
 ### `companies`
 
-Almacena la información de las empresas clientes de la plataforma.
+Empresas cliente (cada local es una empresa).
 
-| Campo         | Tipo           | Restricciones         | Descripción                     |
-| ------------- | -------------- | --------------------- | ------------------------------- |
-| `id`          | BIGINT         | PK, AUTO_INCREMENT    | Identificador interno           |
-| `uuid`        | VARCHAR(255)   | UNIQUE, NOT NULL      | Identificador universal         |
-| `name`        | VARCHAR(255)   | NOT NULL              | Nombre de la empresa            |
-| `tax_id`      | VARCHAR(50)    | UNIQUE, NOT NULL      | NIF/CIF                         |
-| `email`       | VARCHAR(255)   |                       | Email de contacto               |
-| `phone`       | VARCHAR(50)    |                       | Teléfono                        |
-| `address`     | TEXT           |                       | Dirección física                |
-| `city`        | VARCHAR(100)   |                       | Ciudad                          |
-| `postal_code` | VARCHAR(20)    |                       | Código postal                   |
-| `status`      | ENUM           | DEFAULT 'PENDING'     | ACTIVE \| INACTIVE \| PENDING   |
-| `created_at`  | TIMESTAMP      | NOT NULL              | Fecha de creación               |
-| `updated_at`  | TIMESTAMP      | NOT NULL              | Última modificación             |
+| Campo | Tipo | Restricciones | Descripción |
+| --- | --- | --- | --- |
+| `name` | VARCHAR(255) | NOT NULL | Nombre del negocio |
+| `tax_id` | VARCHAR(50) | UNIQUE, NULL | NIF/CIF; opcional hasta contratar |
+| `email` | VARCHAR(255) | | Email de contacto |
+| `phone` | VARCHAR(50) | | Teléfono |
+| `address` | TEXT | | Dirección |
+| `city` | VARCHAR(100) | | Ciudad |
+| `postal_code` | VARCHAR(20) | | Código postal |
+| `status` | ENUM | DEFAULT `PENDING` | `ACTIVE`, `INACTIVE` (prueba acabada sin contratar), `PENDING`, `SUSPENDED` (bloqueada por la plataforma) |
+| `trial_ends_at` | DATETIME | NULL | Fin de la prueba gratuita; `NULL` = cliente de pago |
 
 ### `users`
 
-Usuarios asociados a las empresas.
-
-| Campo                         | Tipo         | Restricciones    | Descripción                |
-| ----------------------------- | ------------ | ---------------- | -------------------------- |
-| `id`                          | BIGINT       | PK               | Identificador interno      |
-| `uuid`                        | VARCHAR(255) | UNIQUE, NOT NULL | Identificador universal    |
-| `company_id`                  | BIGINT       | FK, NOT NULL     | Referencia a COMPANIES     |
-| `email`                       | VARCHAR(255) | UNIQUE, NOT NULL | Email único                |
-| `password`                    | VARCHAR(255) | NOT NULL         | Hash BCrypt                |
-| `first_name`                  | VARCHAR(100) | NOT NULL         | Nombre                     |
-| `last_name`                   | VARCHAR(100) | NOT NULL         | Apellidos                  |
-| `role`                        | ENUM         | DEFAULT 'USER'   | ADMIN \| USER              |
-| `phone`                       | VARCHAR(50)  |                  | Teléfono                   |
-| `is_active`                   | BOOLEAN      | DEFAULT TRUE     | Cuenta activa              |
-| `is_deleted`                  | BOOLEAN      | DEFAULT FALSE    | Eliminado (soft delete)    |
-| `email_verified`              | BOOLEAN      | DEFAULT FALSE    | Email verificado           |
-| `email_verification_token`    | VARCHAR(255) |                  | Token de verificación      |
-| `email_verification_expires`  | TIMESTAMP    |                  | Expiración token           |
-| `password_reset_token`        | VARCHAR(255) |                  | Token de reset             |
-| `password_reset_expires`      | TIMESTAMP    |                  | Expiración reset           |
-| `last_login`                  | TIMESTAMP    |                  | Último login               |
-| `created_at`                  | TIMESTAMP    | NOT NULL         | Fecha creación             |
-| `updated_at`                  | TIMESTAMP    | NOT NULL         | Última modificación        |
-
-**FK:** `company_id` → `companies(id)` ON DELETE CASCADE
+| Campo | Tipo | Restricciones | Descripción |
+| --- | --- | --- | --- |
+| `company_id` | BIGINT | FK → `companies` | Empresa del usuario |
+| `email` | VARCHAR(255) | UNIQUE, NOT NULL | Email de acceso |
+| `password` | VARCHAR(255) | NOT NULL | Hash BCrypt |
+| `first_name` / `last_name` | VARCHAR(100) | NOT NULL | Nombre y apellidos |
+| `role` | ENUM | DEFAULT `USER` | `USER`, `ADMIN` (gestiona su empresa), `SUPER_ADMIN` (plataforma) |
+| `phone` | VARCHAR(50) | | Teléfono |
+| `language` | VARCHAR(2) | NOT NULL, DEFAULT `es` | Idioma de la interfaz, los emails y los PDF (`es` / `ca`) |
+| `is_active` | BOOLEAN | DEFAULT TRUE | Cuenta activa |
+| `is_deleted` | BOOLEAN | DEFAULT FALSE | Baja lógica |
+| `email_verified` | BOOLEAN | DEFAULT FALSE | Necesario para enviar pedidos a proveedores |
+| `email_verification_token` / `_expires` | VARCHAR / TIMESTAMP | | Verificación de email (48 h) |
+| `password_reset_token` / `_expires` | VARCHAR / TIMESTAMP | | Recuperación de contraseña |
+| `last_login` | TIMESTAMP | | Último acceso |
 
 ### `suppliers`
 
-Proveedores de las empresas.
-
-| Campo          | Tipo         | Restricciones    | Descripción             |
-| -------------- | ------------ | ---------------- | ----------------------- |
-| `id`           | BIGINT       | PK               | Identificador interno   |
-| `uuid`         | VARCHAR(255) | UNIQUE, NOT NULL | Identificador universal |
-| `company_id`   | BIGINT       | FK, NOT NULL     | Referencia a COMPANIES  |
-| `name`         | VARCHAR(255) | NOT NULL         | Nombre del proveedor    |
-| `contact_name` | VARCHAR(255) |                  | Persona de contacto     |
-| `email`        | VARCHAR(255) |                  | Email                   |
-| `phone`        | VARCHAR(50)  |                  | Teléfono                |
-| `address`      | TEXT         |                  | Dirección               |
-| `notes`        | TEXT         |                  | Observaciones           |
-| `is_active`    | BOOLEAN      | DEFAULT TRUE     | Activo                  |
-| `created_at`   | TIMESTAMP    | NOT NULL         | Fecha creación          |
-| `updated_at`   | TIMESTAMP    | NOT NULL         | Última modificación     |
+| Campo | Tipo | Restricciones | Descripción |
+| --- | --- | --- | --- |
+| `company_id` | BIGINT | FK → `companies` | Empresa propietaria |
+| `name` | VARCHAR(255) | NOT NULL | Nombre del proveedor |
+| `contact_name` | VARCHAR(255) | | Persona de contacto |
+| `email` | VARCHAR(255) | | Email al que se envían los pedidos |
+| `phone` | VARCHAR(50) | | Teléfono |
+| `address` / `notes` | TEXT | | Dirección y observaciones |
+| `is_active` | BOOLEAN | DEFAULT TRUE | Baja lógica |
 
 ### `products`
 
-Catálogo de productos por proveedor.
+| Campo | Tipo | Restricciones | Descripción |
+| --- | --- | --- | --- |
+| `supplier_id` | BIGINT | FK → `suppliers` | Proveedor que lo vende |
+| `name` | VARCHAR(255) | NOT NULL | Nombre tal como aparece en el albarán |
+| `canonical_name` | VARCHAR(255) | INDEX | Nombre genérico para comparar el mismo producto entre proveedores |
+| `category` | VARCHAR(255) | | Categoría |
+| `description` | TEXT | | Descripción |
+| `price` | DECIMAL(10,2) | NOT NULL | Último precio conocido |
+| `volume` | DECIMAL(10,2) | | Volumen o peso por unidad |
+| `unit` | VARCHAR(50) | | Unidad (kg, L, ud., caja…) |
+| `image_url` | VARCHAR(500) | | Imagen subida |
+| `is_active` | BOOLEAN | DEFAULT TRUE | Baja lógica |
 
-| Campo         | Tipo           | Restricciones    | Descripción              |
-| ------------- | -------------- | ---------------- | ------------------------ |
-| `id`          | BIGINT         | PK               | Identificador interno    |
-| `uuid`        | VARCHAR(255)   | UNIQUE, NOT NULL | Identificador universal  |
-| `supplier_id` | BIGINT         | FK, NOT NULL     | Referencia a SUPPLIERS   |
-| `category`    | VARCHAR(255)   |                  | Categoría                |
-| `name`        | VARCHAR(255)   | NOT NULL         | Nombre del producto      |
-| `description` | TEXT           |                  | Descripción              |
-| `price`       | DECIMAL(10,2)  | NOT NULL         | Precio unitario          |
-| `volume`      | DECIMAL(10,2)  |                  | Volumen                  |
-| `unit`        | VARCHAR(50)    |                  | Unidad (kg, L, uds, ...) |
-| `image_url`   | VARCHAR(500)   |                  | URL de la imagen         |
-| `is_active`   | BOOLEAN        | DEFAULT TRUE     | Activo                   |
-| `created_at`  | TIMESTAMP      | NOT NULL         | Fecha creación           |
-| `updated_at`  | TIMESTAMP      | NOT NULL         | Última modificación      |
+### `price_history`
+
+Cada precio observado de un producto: la base de la comparativa entre proveedores y de los avisos de subidas.
+
+| Campo | Tipo | Restricciones | Descripción |
+| --- | --- | --- | --- |
+| `company_id` | BIGINT | FK → `companies`, ON DELETE CASCADE | Empresa |
+| `supplier_id` | BIGINT | FK → `suppliers`, ON DELETE CASCADE | Proveedor |
+| `product_id` | BIGINT | FK → `products`, ON DELETE CASCADE | Producto |
+| `unit_price` | DECIMAL(12,4) | NOT NULL | Precio unitario |
+| `unit` | VARCHAR(50) | | Unidad |
+| `quantity` | DECIMAL(12,3) | | Cantidad del albarán |
+| `document_date` | DATE | NOT NULL | Fecha del albarán o factura |
+| `source` | VARCHAR(20) | NOT NULL | `INVOICE` (albarán leído) o `MANUAL` |
+| `document_ref` | VARCHAR(100) | | Número del documento |
+| `created_at` | TIMESTAMP | | Fecha de registro |
+
+Índice principal: `(company_id, product_id, document_date)`.
 
 ### `orders`
 
-Pedidos de las empresas a sus proveedores.
-
-| Campo                 | Tipo           | Restricciones     | Descripción                                                            |
-| --------------------- | -------------- | ----------------- | ---------------------------------------------------------------------- |
-| `id`                  | BIGINT         | PK                | Identificador interno                                                  |
-| `uuid`                | VARCHAR(255)   | UNIQUE, NOT NULL  | Identificador universal                                                |
-| `company_id`          | BIGINT         | FK, NOT NULL      | Referencia a COMPANIES                                                 |
-| `supplier_id`         | BIGINT         | FK, NOT NULL      | Referencia a SUPPLIERS                                                 |
-| `user_id`             | BIGINT         | FK, NOT NULL      | Usuario que crea el pedido                                             |
-| `name`                | VARCHAR(255)   | NOT NULL          | Nombre del pedido                                                      |
-| `status`              | ENUM           | DEFAULT 'PENDING' | PENDING, SENT, CONFIRMED, REJECTED, COMPLETED, CANCELLED, DELETED             |
-| `total_amount`        | DECIMAL(10,2)  | DEFAULT 0         | Total del pedido                                                       |
-| `notes`               | TEXT           |                   | Observaciones                                                          |
-| `delivery_date`       | DATE           |                   | Fecha de entrega prevista                                              |
-| `notification_method` | ENUM           |                   | EMAIL \| WHATSAPP \| BOTH                                              |
-| `created_at`          | TIMESTAMP      | NOT NULL          | Fecha creación                                                         |
-| `updated_at`          | TIMESTAMP      | NOT NULL          | Última modificación                                                    |
+| Campo | Tipo | Restricciones | Descripción |
+| --- | --- | --- | --- |
+| `company_id` | BIGINT | FK → `companies` | Empresa |
+| `supplier_id` | BIGINT | FK → `suppliers` | Proveedor |
+| `user_id` | BIGINT | FK → `users` | Usuario que lo crea |
+| `name` | VARCHAR(255) | NOT NULL | Nombre del pedido |
+| `status` | ENUM | DEFAULT `PENDING` | `PENDING`, `SENT`, `CONFIRMED`, `REJECTED`, `COMPLETED`, `CANCELLED`, `DELETED` |
+| `total_amount` | DECIMAL(10,2) | DEFAULT 0 | Total |
+| `notes` | TEXT | | Observaciones para el proveedor |
+| `delivery_date` | DATE | | Fecha de entrega prevista |
 
 ### `order_items`
 
-Líneas de productos dentro de los pedidos.
-
-| Campo        | Tipo          | Restricciones    | Descripción                     |
-| ------------ | ------------- | ---------------- | ------------------------------- |
-| `id`         | BIGINT        | PK               | Identificador interno           |
-| `uuid`       | VARCHAR(255)  | UNIQUE, NOT NULL | Identificador universal         |
-| `order_id`   | BIGINT        | FK, NOT NULL     | Referencia a ORDERS             |
-| `product_id` | BIGINT        | FK, NOT NULL     | Referencia a PRODUCTS           |
-| `quantity`   | DECIMAL(10,2) | NOT NULL         | Cantidad                        |
-| `unit_price` | DECIMAL(10,2) | NOT NULL         | Precio unitario en el momento   |
-| `subtotal`   | DECIMAL(10,2) | NOT NULL         | Subtotal (quantity × unit_price)|
-| `notes`      | TEXT          |                  | Observaciones del ítem          |
-| `created_at` | TIMESTAMP     | NOT NULL         | Fecha creación                  |
+| Campo | Tipo | Restricciones | Descripción |
+| --- | --- | --- | --- |
+| `order_id` | BIGINT | FK → `orders` | Pedido |
+| `product_id` | BIGINT | FK → `products` | Producto |
+| `quantity` | DECIMAL(10,2) | NOT NULL | Cantidad |
+| `unit_price` | DECIMAL(10,2) | NOT NULL | Precio en el momento del pedido |
+| `subtotal` | DECIMAL(10,2) | NOT NULL | `quantity × unit_price` |
+| `notes` | TEXT | | Observaciones de la línea |
+| `created_at` | TIMESTAMP | | Fecha de creación |
 
 ---
 
-## Relaciones entre Tablas
+## Claves foráneas y borrado
 
-| Origen        | Destino       | Cardinalidad | Cascade                  |
-| ------------- | ------------- | ------------ | ------------------------ |
-| COMPANIES     | USERS         | 1:N          | DELETE CASCADE           |
-| COMPANIES     | SUPPLIERS     | 1:N          | —                        |
-| COMPANIES     | ORDERS        | 1:N          | —                        |
-| SUPPLIERS     | PRODUCTS      | 1:N          | —                        |
-| USERS         | ORDERS        | 1:N          | —                        |
-| ORDERS        | ORDER_ITEMS   | 1:N          | CASCADE + orphanRemoval  |
-| PRODUCTS      | ORDER_ITEMS   | N:1          | —                        |
+| Origen | Destino | Al borrar el destino |
+| --- | --- | --- |
+| `users.company_id` | `companies` | Restringido |
+| `suppliers.company_id` | `companies` | Restringido |
+| `products.supplier_id` | `suppliers` | Restringido |
+| `orders.company_id` / `supplier_id` / `user_id` | `companies` / `suppliers` / `users` | Restringido |
+| `order_items.order_id` / `product_id` | `orders` / `products` | Restringido |
+| `price_history.*` | `companies` / `suppliers` / `products` | CASCADE |
 
----
-
-## Convenciones
-
-- **ID numérico (BIGINT):** Clave primaria interna, no expuesta en la API.
-- **UUID (VARCHAR):** Identificador para uso externo (API/frontend).
-- **Timestamps de auditoría:** `created_at` y `updated_at` se gestionan automáticamente.
-- **Soft delete:** USERS con `is_deleted`, ORDERS con estado `DELETED`, PRODUCTS con `is_active`.
-- **Estrategia JPA:** `ddl-auto=none` — el esquema se crea y gestiona manualmente con este script.
+La aplicación no borra registros en el uso diario (bajas lógicas con `is_active`, `is_deleted` o el estado `DELETED`). El único borrado físico es el **borrado automático de conservación**: cada día a las 03:30 la API elimina las empresas cuya prueba terminó hace más de 30 días sin contratar, en el orden que exigen las claves (`price_history` → `order_items` → `orders` → `products` → `suppliers` → `users` → `companies`). Nunca borra clientes de pago ni la empresa del SUPER_ADMIN.
