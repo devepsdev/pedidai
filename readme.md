@@ -1,1045 +1,326 @@
-# DOCUMENTACIÓN TÉCNICA — PROYECTO PEDIDAI
+# PedidAI
 
-**Versión:** 1.2.0
-**Fecha:** 13 de abril de 2026
-**Autores:** Equipo de desarrollo Pedidai
+**Descubre cuánto pagas de más a tus proveedores.**
 
-## Enlaces del Proyecto
+PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) que hacen sus propias compras:
 
-- **Web App:** [pedidai.es](https://pedidai.es/)
-- **API Docs (Swagger):** [pedidai.es/swagger-ui.html](https://pedidai.es/swagger-ui.html)
-- **Repositorio GitHub:** [github.com/devepsdev/pedidai](https://github.com/devepsdev/pedidai)
+1. **Haces una foto a tus albaranes** y PedidAI lee productos, cantidades y precios.
+2. **Compara lo que te cobra cada proveedor** por el mismo producto y te avisa cuando te suben un precio.
+3. **Pides por chat** («10 kg de tomates y 5 garrafas de agua»): el asistente prepara el pedido al proveedor más barato y tú lo envías por email con un clic.
 
----
+- **Web:** [pedidai.es](https://pedidai.es/)
+- **API (Swagger):** [pedidai.es/swagger-ui.html](https://pedidai.es/swagger-ui.html)
+- **Repositorios:** [devepsdev/pedidai](https://github.com/devepsdev/pedidai) (web, API y base de datos) y [devepsdev/orderflow](https://github.com/devepsdev/orderflow) (asistente de pedidos por chat)
 
-## ÍNDICE
-
-1. [Descripción del Producto](#1-descripción-del-producto)
-2. [Tecnologías y Lenguajes](#2-tecnologías-y-lenguajes)
-3. [Diseño de Pantallas (UI)](#3-diseño-de-pantallas-ui)
-4. [Diseño de la Base de Datos](#4-diseño-de-la-base-de-datos)
-5. [Documentación del Código Fuente](#5-documentación-del-código-fuente)
-6. [Instalación y Configuración](#6-instalación-y-configuración)
+**Versión:** 2.0.0 · **Última actualización:** 27 de septiembre de 2026
 
 ---
 
-## 1. DESCRIPCIÓN DEL PRODUCTO
+## Índice
 
-### 1.1. Visión General
-
-**Pedidai** es una plataforma web de gestión empresarial B2B diseñada para que las pymes centralicen y optimicen sus operaciones de compra y gestión de proveedores. Proporciona una interfaz moderna e intuitiva para gestionar pedidos, productos, proveedores y usuarios, con soporte de inteligencia artificial para asistencia inteligente y automatización de tareas.
-
-### 1.2. Funcionalidades
-
-#### Autenticación y Usuarios
-
-- **Registro de empresas** con verificación por correo electrónico
-- **Autenticación JWT** con tokens de 1 hora (HS512)
-- **Recuperación de contraseña** mediante enlaces temporales
-- **Gestión de usuarios** con roles (ADMIN, USER)
-- **Multi-tenancy:** cada empresa gestiona sus propios recursos de forma aislada
-
-#### Gestión de Proveedores
-
-- Creación y edición de proveedores con información de contacto completa
-- Búsqueda avanzada con múltiples filtros y paginación
-- Activación/desactivación de proveedores
-- Asociación automática a la empresa autenticada
-
-#### Gestión de Productos
-
-- Catálogo de productos organizado por proveedor
-- Información detallada: nombre, categoría, precio, volumen, unidad
-- Carga de imágenes de productos (máx. 10 MB)
-- Búsqueda básica y avanzada con filtros por categoría, proveedor, precio
-- Desactivación de productos (soft delete)
-
-#### Gestión de Pedidos
-
-- Creación de pedidos con múltiples productos (ítems)
-- Seguimiento de estado: PENDING → SENT → CONFIRMED / REJECTED / COMPLETED / CANCELLED
-- Envío automático al proveedor por **email** o **WhatsApp** (o ambos)
-- Filtrado avanzado por estado, proveedor y fechas
-- Cálculo automático de totales y subtotales
-- Visualización responsive (tablas en escritorio, tarjetas en móvil)
-
-#### Dashboard e Informes
-
-- Panel de control con estadísticas clave del mes actual:
-  - Total de pedidos del mes
-  - Gasto total del mes (€)
-  - Pedidos pendientes
-- Últimos 5 pedidos del mes actual
-- Generación de informes globales por período con **exportación a PDF**
-- Visualización de datos con gráficos y tablas
-
-#### Inteligencia Artificial
-
-- **AI Chat:** asistente inteligente integrado para consultas y sugerencias
-- **AI Suggestions:** sugerencias automáticas de productos basadas en el historial
-- **Invoice Scan:** escaneo y extracción de datos de facturas mediante visión por computadora (DeepSeek Vision API)
-
-#### Funcionalidades Adicionales
-
-- **Internacionalización (i18n):** interfaz disponible en castellano y catalán
-- Paginación y ordenación en todos los listados
-- Modales de confirmación para acciones críticas
-- Alertas y notificaciones de éxito/error
-- Diseño responsive adaptado a todos los dispositivos
-- Breadcrumbs para navegación intuitiva
+1. [Arquitectura](#1-arquitectura)
+2. [Funcionalidades](#2-funcionalidades)
+3. [Tecnologías](#3-tecnologías)
+4. [Estructura del código](#4-estructura-del-código)
+5. [API REST](#5-api-rest)
+6. [Base de datos](#6-base-de-datos)
+7. [Seguridad y privacidad](#7-seguridad-y-privacidad)
+8. [Instalación en local](#8-instalación-en-local)
+9. [Despliegue en producción](#9-despliegue-en-producción)
+10. [Solución de problemas](#10-solución-de-problemas)
 
 ---
 
-## 2. TECNOLOGÍAS Y LENGUAJES
-
-### 2.1. Frontend (pedidai-app)
-
-#### Lenguaje
-
-- **TypeScript 5.9** — Superset de JavaScript con tipado estático
-- **HTML5 y CSS3** — Estructura y estilos web
-
-#### Framework y Librerías Principales
-
-- **Angular 21.2.6** — Framework principal para construcción de interfaces (componentes standalone)
-- **Angular Router** — Gestión de rutas y navegación con guards
-- **Angular Reactive Forms** — Gestión de formularios con validación reactiva
-- **Angular CDK 21** — Kit de desarrollo de componentes
-
-#### Estilos
-
-- **Tailwind CSS 4.2.2** — Framework CSS utility-first
-- **PostCSS 8.5** — Procesador de CSS
-
-#### Internacionalización
-
-- **@ngx-translate/core 17** — Soporte i18n: castellano (`es.json`) y catalán (`ca.json`)
-
-#### Reactividad
-
-- **RxJS 7.8** — Programación reactiva con Observables
-
-#### Herramientas de Calidad y Build
-
-- **Angular CLI 21.2.6** — Herramienta de construcción y generación de código
-- **Vitest 4** — Tests unitarios
-- **Prettier 3.8** — Formatador de código automático
-
-### 2.2. Backend (pedidai-api)
-
-#### Lenguaje del Backend
-
-- **Java 25** — Última versión LTS (Long Term Support)
-
-#### Framework Principal
-
-- **Spring Boot 3.5.6** — Framework para aplicaciones Java empresariales
-  - `spring-boot-starter-web` — API REST
-  - `spring-boot-starter-data-jpa` — Persistencia JPA/Hibernate
-  - `spring-boot-starter-security` — Seguridad y autenticación
-  - `spring-boot-starter-validation` — Validación de entrada
-  - `spring-boot-starter-mail` — Envío de correos electrónicos
-  - `spring-webflux` + `reactor-netty-http` — Llamadas reactivas a API de IA
-
-#### ORM y Base de Datos
-
-- **Hibernate** — Implementación JPA para mapeo objeto-relacional
-- **MySQL Connector/J** — Driver JDBC para MySQL
-
-#### Seguridad
-
-- **Spring Security** — Framework de seguridad
-- **JJWT 0.11.5** — Generación y validación de JWT (HS512)
-
-#### Generación de Documentos
-
-- **OpenPDF 1.3.30** — Generación de documentos PDF
-- **PDFBox 2.0.29** — Procesamiento de PDF
-
-#### Integración con IA
-
-- **DeepSeek Vision API** — Visión por computadora para escaneo de facturas y asistencia
-
-#### Documentación API
-
-- **SpringDoc OpenAPI 2.8.13** — Swagger UI interactivo
-
-#### Utilidades
-
-- **Lombok** — Generación automática de código (getters, setters, builders)
-
-#### Testing
-
-- **Spring Boot Starter Test** — JUnit, Mockito
-- **Spring Security Test** — Tests de seguridad
-- **H2 Database** — Base de datos en memoria para tests
-
-#### Build
-
-- **Maven 3.8+** — Gestión de dependencias y construcción
-
-### 2.3. Base de Datos (pedidai-db)
-
-- **MySQL 8.0+** — SGBD relacional
-- **Charset:** `utf8mb4` con collation `utf8mb4_unicode_ci`
-- **Motor:** InnoDB (transacciones ACID, integridad referencial)
-
-### 2.4. Infraestructura y Herramientas
-
-| Categoría              | Herramienta                                 |
-| ---------------------- | ------------------------------------------- |
-| Control de versiones   | Git + GitHub                                |
-| IDE Backend            | IntelliJ IDEA                               |
-| IDE Frontend           | Visual Studio Code                          |
-| Servidor de aplicación | Apache Tomcat (embebido en Spring Boot)     |
-| Servidor web           | Apache HTTP Server (proxy inverso)          |
-| Gestión de paquetes    | npm (frontend), Maven (backend)             |
-
----
-
-## 3. DISEÑO DE PANTALLAS (UI)
-
-### 3.1. Paleta de Colores
-
-Definida en los estilos globales de Tailwind:
-
-| Variable    | Color     | Uso                    |
-| ----------- | --------- | ---------------------- |
-| Primary     | `#1c2792` | Azul corporativo       |
-| Secondary   | `#8c00ff` | Violeta secundario     |
-| Success     | `#28a745` | Acciones exitosas      |
-| Warning     | `#ffc107` | Advertencias           |
-| Danger      | `#dc3545` | Errores                |
-
-### 3.2. Tipografía
-
-- **Fuente principal:** Poppins
-- **Fuente secundaria:** Inter
-- **Fallback:** system fonts (Segoe UI, Roboto, Arial)
-
-### 3.3. Estructura de Páginas
-
-#### Páginas Públicas (`PublicLayout`)
-
-Estructura: Navbar + Contenido + Footer
-
-| Ruta              | Componente         | Descripción                                         |
-| ----------------- | ------------------ | --------------------------------------------------- |
-| `/`               | Landing            | Página de inicio con hero, beneficios y CTA         |
-| `/login`          | Login              | Formulario de autenticación con validación          |
-| `/register`       | Register           | Registro de empresa + usuario administrador         |
-| `/recover`        | RecoverPassword    | Solicitud de restablecimiento de contraseña         |
-| `/reset-password` | ResetPassword      | Formulario para establecer nueva contraseña         |
-| `/verify-email`   | VerifyEmail        | Verificación automática con token por email         |
-
-#### Páginas Privadas (`PrivateLayout`)
-
-Estructura: Sidebar + Contenido principal
-
-| Ruta          | Componente           | Descripción                                      |
-| ------------- | -------------------- | ------------------------------------------------ |
-| `/dashboard`  | Dashboard            | Panel con estadísticas del mes y últimos pedidos |
-| `/suppliers`  | Supplier List/Form   | Listado y formulario de proveedores              |
-| `/products`   | Product List/Form    | Catálogo de productos con búsqueda avanzada      |
-| `/orders`     | Order List/Create    | Gestión completa de pedidos                      |
-| `/reports`    | Reports              | Informes globales con exportación a PDF          |
-| `/company`    | CompanyConfig        | Configuración de datos de la empresa             |
-| `/users`      | User List/Form       | Gestión de usuarios de la empresa                |
-| `/ai-chat`    | AiChat               | Asistente de IA para consultas y sugerencias     |
-| `/invoices`   | InvoiceScan          | Escaneo de facturas con IA                       |
-
-### 3.4. Componentes Compartidos (`shared/`)
-
-| Componente       | Descripción                                        |
-| ---------------- | -------------------------------------------------- |
-| `navbar`         | Barra de navegación superior (zona pública)        |
-| `sidebar`        | Menú lateral (zona privada), colapsable en móvil   |
-| `footer`         | Pie de página con enlaces legales                  |
-| `page-header`    | Cabecera de página con título y breadcrumbs        |
-| `alert`          | Notificaciones de éxito/error/advertencia          |
-| `confirm-modal`  | Modal de confirmación para acciones críticas       |
-| `pagination`     | Componente de paginación reutilizable              |
-
-### 3.5. Diseño Responsive
-
-| Breakpoint   | Layout                                    |
-| ------------ | ----------------------------------------- |
-| ≥ 1024px     | Sidebar visible, tablas, multicolomna     |
-| < 1024px     | Sidebar colapsable, tarjetas, monocolomna |
-
----
-
-## 4. DISEÑO DE LA BASE DE DATOS
-
-### 4.1. Información General
-
-- **SGBD:** MySQL 8.0+
-- **Nombre de la BD:** `pedidai_db`
-- **Charset:** `utf8mb4`
-- **Collation:** `utf8mb4_unicode_ci`
-- **Motor:** InnoDB
-- **Estrategia JPA:** `ddl-auto=none` (esquema gestionado manualmente)
-
-### 4.2. Diagrama Entidad-Relación
+## 1. Arquitectura
 
 ```text
-┌──────────────┐
-│   COMPANIES  │
-└──────┬───────┘
-       │ 1
-       ├──────────────────┬────────────────┐
-       │ N                │ N              │ N
-  ┌────┴───┐        ┌─────┴─────┐    ┌────┴───┐
-  │ USERS  │        │ SUPPLIERS │    │ ORDERS │
-  └────────┘        └─────┬─────┘    └────┬───┘
-                          │ 1             │ 1
-                          │ N             │ N
-                     ┌────┴─────┐  ┌─────┴──────┐
-                     │ PRODUCTS │  │ ORDER_ITEMS │
-                     └──────────┘  └────────────┘
+                        Navegador (Angular)
+                               │  https://pedidai.es
+                               ▼
+                    ┌─────────────────────┐
+                    │        nginx        │
+                    └──┬───────┬───────┬──┘
+          páginas web  │  /api │   /ai │
+                       ▼       ▼       ▼
+   /var/www/pedidai.es     Spring Boot      Asistente (Docker, Node.js)
+   (ficheros de Angular)   :8085            :3201 ──► DeepSeek
+                            │  ▲               │
+                            │  └───────────────┘  REST con el token
+                            ▼                     del propio usuario
+                          MySQL
+
+   n8n (Docker, :5678, /n8n/) ── instalado, sin flujos en uso
 ```
 
-### 4.3. Tablas Principales
+| Componente | Responsabilidad |
+| --- | --- |
+| `pedidai-app` (Angular) | Interfaz web. Se sirve como ficheros estáticos y consume la API; el interceptor añade el JWT y el idioma (`Accept-Language`). |
+| nginx | HTTPS y proxy inverso: `/` → Angular, `/api` → Spring Boot, `/ai/` → asistente, `/n8n/` → n8n. |
+| `pedidai-api` (Spring Boot) | Lógica de negocio, autenticación JWT, aislamiento por empresa, emails (SMTP), PDF y lectura de albaranes (Tesseract + DeepSeek). Único acceso a MySQL. |
+| MySQL | Persistencia (`pedidai_db`). |
+| `orderflow/mcp-server` | Asistente de pedidos por chat: Express + *function calling* de DeepSeek. Cada herramienta llama a la API con el token del usuario, por lo que tiene sus mismos permisos. Crea pedidos en estado `PENDING`; el envío siempre lo confirma el usuario desde la web. Sigue el enfoque de MCP, pero no usa el SDK oficial. |
+| Docker | Ejecuta el asistente y n8n (`docker compose` en `orderflow`). |
+| n8n | Automatización de flujos; desplegado pero sin flujos activos. |
 
-#### `companies`
+## 2. Funcionalidades
 
-| Campo         | Tipo          | Descripción                      |
-| ------------- | ------------- | -------------------------------- |
-| `id`          | BIGINT PK     | Identificador interno            |
-| `uuid`        | VARCHAR UNIQUE| Identificador externo            |
-| `name`        | VARCHAR       | Nombre de la empresa             |
-| `tax_id`      | VARCHAR UNIQUE| NIF/CIF                          |
-| `email`       | VARCHAR       | Email de contacto                |
-| `phone`       | VARCHAR       | Teléfono                         |
-| `address`     | TEXT          | Dirección física                 |
-| `city`        | VARCHAR       | Ciudad                           |
-| `postal_code` | VARCHAR       | Código postal                    |
-| `status`      | ENUM          | ACTIVE, INACTIVE, PENDING        |
-| `created_at`  | TIMESTAMP     | Fecha de creación                |
-| `updated_at`  | TIMESTAMP     | Última modificación              |
+### Para el cliente (bar o restaurante)
 
-#### `users`
+- **Registro en 1 minuto** (nombre del negocio, nombre, email y contraseña), sin tarjeta. Empieza una **prueba gratuita de 14 días**.
+- **Verificación de email** necesaria para enviar pedidos a proveedores.
+- **Lectura de albaranes y facturas** (foto o PDF) con OCR + IA, con revisión línea a línea antes de guardar.
+- **Mis precios:** comparativa del mismo producto entre proveedores, avisos de subidas (≥ 2 %) y estimación de lo pagado de más.
+- **Asistente IA por chat:** prepara pedidos al proveedor más barato y sugiere pedidos según el consumo.
+- **Pedidos:** creación manual o por chat, envío al proveedor **por email** (la respuesta del proveedor llega al email del cliente) y seguimiento de estado (`PENDING → SENT → CONFIRMED / REJECTED / COMPLETED / CANCELLED`).
+- **Proveedores, productos y usuarios** del equipo, con búsqueda y filtros.
+- **Informes** por periodo con exportación a PDF.
+- **Bilingüe castellano/catalán en todo:** pantallas, errores de la API, emails y PDF, según el idioma de cada usuario.
 
-| Campo                        | Tipo          | Descripción                   |
-| ---------------------------- | ------------- | ----------------------------- |
-| `id`                         | BIGINT PK     | Identificador interno         |
-| `uuid`                       | VARCHAR UNIQUE| Identificador externo         |
-| `company_id`                 | BIGINT FK     | Referencia a COMPANIES        |
-| `email`                      | VARCHAR UNIQUE| Email único                   |
-| `password`                   | VARCHAR       | Hash BCrypt                   |
-| `first_name` / `last_name`   | VARCHAR       | Nombre y apellidos            |
-| `role`                       | ENUM          | ADMIN, USER                   |
-| `is_active`                  | BOOLEAN       | Cuenta activa                 |
-| `is_deleted`                 | BOOLEAN       | Soft delete                   |
-| `email_verified`             | BOOLEAN       | Email verificado              |
-| `email_verification_token`   | VARCHAR       | Token de verificación (24h)   |
-| `password_reset_token`       | VARCHAR       | Token de reset (1h)           |
-| `last_login`                 | TIMESTAMP     | Último login                  |
+### Para la plataforma
 
-**FK:** `company_id` → `companies(id)` ON DELETE CASCADE
-
-#### `suppliers`
-
-| Campo          | Tipo          | Descripción                |
-| -------------- | ------------- | -------------------------- |
-| `id`           | BIGINT PK     | Identificador interno      |
-| `uuid`         | VARCHAR UNIQUE| Identificador externo      |
-| `company_id`   | BIGINT FK     | Referencia a COMPANIES     |
-| `name`         | VARCHAR       | Nombre del proveedor       |
-| `contact_name` | VARCHAR       | Persona de contacto        |
-| `email`        | VARCHAR       | Email                      |
-| `phone`        | VARCHAR       | Teléfono                   |
-| `address`      | TEXT          | Dirección                  |
-| `notes`        | TEXT          | Observaciones              |
-| `is_active`    | BOOLEAN       | Activo/inactivo            |
-
-#### `products`
-
-| Campo         | Tipo          | Descripción               |
-| ------------- | ------------- | ------------------------- |
-| `id`          | BIGINT PK     | Identificador interno     |
-| `uuid`        | VARCHAR UNIQUE| Identificador externo     |
-| `supplier_id` | BIGINT FK     | Referencia a SUPPLIERS    |
-| `category`    | VARCHAR       | Categoría                 |
-| `name`        | VARCHAR       | Nombre del producto       |
-| `description` | TEXT          | Descripción               |
-| `price`       | DECIMAL(10,2) | Precio unitario           |
-| `volume`      | DECIMAL(10,2) | Volumen                   |
-| `unit`        | VARCHAR       | Unidad (kg, L, uds, ...)  |
-| `image_url`   | VARCHAR       | URL de la imagen          |
-| `is_active`   | BOOLEAN       | Activo/inactivo           |
-
-#### `orders`
-
-| Campo                 | Tipo          | Descripción                                       |
-| --------------------- | ------------- | ------------------------------------------------- |
-| `id`                  | BIGINT PK     | Identificador interno                             |
-| `uuid`                | VARCHAR UNIQUE| Identificador externo                             |
-| `company_id`          | BIGINT FK     | Referencia a COMPANIES                            |
-| `supplier_id`         | BIGINT FK     | Referencia a SUPPLIERS                            |
-| `user_id`             | BIGINT FK     | Referencia a USERS                                |
-| `name`                | VARCHAR       | Nombre del pedido                                 |
-| `status`              | ENUM          | PENDING, SENT, CONFIRMED, REJECTED, COMPLETED, CANCELLED          |
-| `total_amount`        | DECIMAL(10,2) | Total del pedido                                  |
-| `notes`               | TEXT          | Observaciones                                     |
-| `delivery_date`       | DATE          | Fecha de entrega prevista                         |
-| `notification_method` | ENUM          | EMAIL, WHATSAPP, BOTH                             |
-
-#### `order_items`
-
-| Campo        | Tipo          | Descripción                      |
-| ------------ | ------------- | -------------------------------- |
-| `id`         | BIGINT PK     | Identificador interno            |
-| `uuid`       | VARCHAR UNIQUE| Identificador externo            |
-| `order_id`   | BIGINT FK     | Referencia a ORDERS              |
-| `product_id` | BIGINT FK     | Referencia a PRODUCTS            |
-| `quantity`   | DECIMAL(10,2) | Cantidad                         |
-| `unit_price` | DECIMAL(10,2) | Precio unitario en el momento    |
-| `subtotal`   | DECIMAL(10,2) | Subtotal (quantity × unit_price) |
-| `notes`      | TEXT          | Observaciones del ítem           |
-
-### 4.4. Relaciones
-
-| Origen    | Destino     | Cardinalidad | Cascade                 |
-| --------- | ----------- | ------------ | ----------------------- |
-| COMPANIES | USERS       | 1:N          | DELETE CASCADE          |
-| COMPANIES | SUPPLIERS   | 1:N          | —                       |
-| COMPANIES | ORDERS      | 1:N          | —                       |
-| SUPPLIERS | PRODUCTS    | 1:N          | —                       |
-| USERS     | ORDERS      | 1:N          | —                       |
-| ORDERS    | ORDER_ITEMS | 1:N          | CASCADE + orphanRemoval |
-| PRODUCTS  | ORDER_ITEMS | N:1          | —                       |
-
-### 4.5. Características Especiales
-
-- **Doble identificador:** `id` interno (BIGINT) + `uuid` externo (VARCHAR) para no exponer claves internas en la API.
-- **Timestamps de auditoría:** `created_at` y `updated_at` gestionados automáticamente por JPA.
-- **Soft delete:** `is_deleted` en usuarios, `is_active` en productos y proveedores, estado `DELETED` en pedidos.
+- **Panel SUPER_ADMIN:** empresas, usuarios, estadísticas; ampliar la prueba o activar el plan de pago.
+- **Fin de la prueba:** al acabar, la cuenta queda inactiva hasta que se contrata (no se cobra nada automáticamente).
+- **Borrado automático:** cada día a las 03:30 (hora de Madrid) se eliminan las empresas cuya prueba terminó hace **más de 30 días** sin contratar, con todos sus datos e imágenes. Nunca se borran clientes de pago ni la cuenta SUPER_ADMIN (`DataRetentionServiceImpl`).
+- **Landing para campañas:** precio visible (39 €/mes, lanzamiento 29 €/mes), calculadora de ahorro de ejemplo, FAQ y un único botón «Pruébalo gratis 14 días».
+- **Cookies con consentimiento** (Consent Mode v2 de Google): Analytics y Ads solo se cargan si el usuario acepta.
+- **Páginas legales** bilingües: privacidad, cookies, términos y aviso legal.
 
 ---
 
-## 5. DOCUMENTACIÓN DEL CÓDIGO FUENTE
+## 3. Tecnologías
 
-### 5.1. Estructura General del Proyecto
+| Capa | Tecnología |
+| --- | --- |
+| Frontend | Angular 21 (standalone, *signals*, sin zone.js), TypeScript 5.9, Tailwind CSS 4, ngx-translate 17, Vitest |
+| Backend | Java 25, Spring Boot 3.5 (Web, Data JPA, Security, Validation, Mail), JJWT, OpenPDF, SpringDoc (Swagger) |
+| Base de datos | MySQL 8 (InnoDB, `utf8mb4`); H2 en memoria para los tests |
+| IA | Tesseract OCR (castellano + catalán) en el servidor; DeepSeek para estructurar albaranes y para el chat |
+| Asistente | Node.js 20 + Express 5 (`orderflow/mcp-server`), en Docker |
+| Automatización | n8n en Docker (instalado, sin flujos en uso) |
+| Servidor | VPS Ubuntu, nginx (HTTPS con Let's Encrypt), systemd, ufw |
+
+---
+
+## 4. Estructura del código
 
 ```text
 pedidai/
-├── pedidai-api/    # Backend (Spring Boot + Java 21)
-├── pedidai-app/    # Frontend (Angular 21 + Tailwind CSS)
-└── pedidai-db/     # Scripts SQL de base de datos
+├── pedidai-app/          # Frontend Angular
+├── pedidai-api/          # Backend Spring Boot
+└── pedidai-db/           # Esquema SQL, migraciones y documentación de tablas
+
+orderflow/                # Repositorio aparte
+├── mcp-server/           # Asistente de chat (Express + DeepSeek + herramientas)
+├── n8n-workflows/        # Flujos de ejemplo para n8n (no importados en producción)
+└── docker-compose.yml    # Levanta el asistente y n8n
 ```
 
-### 5.2. Frontend (pedidai-app)
-
-#### 5.2.1. Estructura de Carpetas
+### 4.1. Frontend (`pedidai-app/src/app`)
 
 ```text
-pedidai-app/
-├── public/
-│   └── i18n/                      # Traducciones
-│       ├── ca.json                # Catalán
-│       └── es.json                # Castellano
-├── src/
-│   ├── app/
-│   │   ├── app.ts                 # Componente raíz
-│   │   ├── app.routes.ts          # Definición de rutas
-│   │   ├── app.config.ts          # Configuración Angular
-│   │   ├── components/            # Componentes funcionales
-│   │   │   ├── ai-chat/           # Chat IA + sugerencias IA
-│   │   │   │   ├── ai-chat/
-│   │   │   │   └── ai-suggestions/
-│   │   │   ├── auth/              # Autenticación
-│   │   │   │   ├── login/
-│   │   │   │   ├── register/
-│   │   │   │   ├── verify-email/
-│   │   │   │   ├── recover-password/
-│   │   │   │   └── reset-password/
-│   │   │   ├── company/           # Configuración empresa
-│   │   │   │   └── company-config/
-│   │   │   ├── dashboard/         # Panel de control
-│   │   │   │   └── dashboard/
-│   │   │   ├── invoices/          # Escaneo de facturas con IA
-│   │   │   │   └── invoice-scan/
-│   │   │   ├── orders/            # Gestión de pedidos
-│   │   │   │   ├── order-create/
-│   │   │   │   ├── order-detail/
-│   │   │   │   └── order-list/
-│   │   │   ├── products/          # Catálogo de productos
-│   │   │   │   ├── product-form/
-│   │   │   │   └── product-list/
-│   │   │   ├── reports/           # Informes y estadísticas
-│   │   │   │   └── reports/
-│   │   │   ├── suppliers/         # Gestión de proveedores
-│   │   │   │   ├── supplier-form/
-│   │   │   │   └── supplier-list/
-│   │   │   └── users/             # Gestión de usuarios
-│   │   │       ├── user-form/
-│   │   │       └── user-list/
-│   │   ├── guards/                # Guards de autenticación
-│   │   ├── interceptors/          # Interceptores HTTP (JWT)
-│   │   ├── layouts/               # Layouts de la app
-│   │   │   ├── public-layout/
-│   │   │   └── private-layout/
-│   │   ├── models/                # Interfaces TypeScript
-│   │   ├── pages/                 # Páginas estáticas
-│   │   │   └── landing/
-│   │   ├── services/              # Servicios HTTP
-│   │   └── shared/                # Componentes compartidos
-│   │       ├── alert/
-│   │       ├── confirm-modal/
-│   │       ├── footer/
-│   │       ├── navbar/
-│   │       ├── page-header/
-│   │       ├── pagination/
-│   │       └── sidebar/
-│   ├── assets/                    # Recursos estáticos
-│   ├── environments/              # Configuración de entornos
-│   └── styles.scss                # Estilos globales
-├── angular.json                   # Configuración Angular CLI
-├── package.json                   # Dependencias npm
-└── tsconfig.json                  # Configuración TypeScript
+app.routes.ts            # Rutas; cada página se carga bajo demanda (lazy loading)
+app.config.ts            # HttpClient, router, traducciones
+interceptors/            # jwt-interceptor: añade el token y el idioma (Accept-Language)
+guards/                  # Protegen la zona privada y el panel SUPER_ADMIN
+services/                # Llamadas HTTP a la API y al asistente; idioma; analítica
+layouts/                 # public-layout (web pública) y private-layout (aplicación)
+pages/                   # Landing, sobre nosotros, contacto, legales, superadmin
+components/              # Pantallas de la aplicación: dashboard, prices, invoices,
+                         # ai-chat, orders, suppliers, products, users, reports, company, auth
+shared/                  # Sidebar, alertas, modales, paginación, aviso de cookies,
+                         # pipe `lines` (una frase por línea en pantallas grandes)
+public/i18n/             # es.json y ca.json
 ```
 
-#### 5.2.2. Patrones y Arquitectura
+Rutas principales:
 
-**Componentes Standalone (Angular 17+):** No se usan NgModules; cada componente declara sus propias dependencias.
+| Zona | Rutas |
+| --- | --- |
+| Pública | `/`, `/login`, `/register`, `/verify-email`, `/recover-password`, `/reset-password`, `/sobre-nosotros`, `/contacto`, `/privacidad`, `/cookies`, `/terminos`, `/aviso-legal` |
+| Privada | `/dashboard`, `/prices`, `/invoices/scan`, `/ai`, `/ai/suggestions`, `/orders`, `/suppliers`, `/products`, `/users`, `/reports`, `/company` |
+| SUPER_ADMIN | `/superadmin`, `/superadmin/companies`, `/superadmin/users` |
 
-**Arquitectura en capas:**
+### 4.2. Backend (`pedidai-api/src/main/java/com/pedidai/api`)
 
 ```text
-Page/Component → Service → HttpClient (con interceptor JWT) → Backend API
-                    │
-               Observable (RxJS)
+controllers/    # Endpoints REST (ver sección 5)
+services/impl/  # Lógica de negocio; cada consulta se limita a la empresa del usuario
+repositories/   # Acceso a datos (Spring Data JPA)
+entities/       # Company, User, Supplier, Product, PriceHistory, Order, OrderItem
+dto/            # Objetos de entrada/salida de la API (con validaciones)
+security/       # JWT, filtro de autenticación, CurrentUser, límites de uso, política de contraseñas
+config/         # Idiomas (MessageSource), traducción de respuestas, Swagger, recursos web
+exceptions/     # Errores con clave de traducción y manejador global (sin detalles internos)
+resources/i18n/ # messages.properties (castellano) y messages_ca.properties (catalán)
 ```
 
-**Gestión de estado:**
-
-- `localStorage` para token JWT
-- Guards para protección de rutas privadas
-- Interceptor HTTP para inyección automática del token
-
-**Internacionalización:**
-
-- `@ngx-translate` con ficheros JSON por idioma en `public/i18n/`
-- Idiomas soportados: castellano (`es`) y catalán (`ca`)
-
-#### 5.2.3. Ficheros Clave
-
-| Fichero                 | Descripción                                        |
-| ----------------------- | -------------------------------------------------- |
-| `app.routes.ts`         | Definición de todas las rutas (públicas/privadas)  |
-| `app.config.ts`         | Proveedores Angular: HttpClient, i18n, router      |
-| `guards/`               | AuthGuard para proteger rutas privadas             |
-| `interceptors/`         | Inyección automática de token JWT en cada request  |
-| `environments/`         | URLs de la API según entorno (dev/prod)            |
-
-### 5.3. Backend (pedidai-api)
-
-#### 5.3.1. Estructura de Carpetas
-
-```text
-pedidai-api/
-└── src/main/java/com/pedidai/api/
-    ├── PedidaiApplication.java      # Punto de entrada Spring Boot
-    ├── config/
-    │   ├── SecurityConfig.java      # Configuración de seguridad y CORS
-    │   ├── SwaggerConfig.java       # Configuración Swagger/OpenAPI
-    │   └── WebConfig.java           # Configuración web general
-    ├── controllers/
-    │   ├── AuthController.java      # /api/auth — autenticación y cuentas
-    │   ├── CompanyController.java   # /api/companies — gestión de empresa
-    │   ├── UserController.java      # /api/users — CRUD de usuarios
-    │   ├── SupplierController.java  # /api/suppliers — CRUD de proveedores
-    │   ├── ProductController.java   # /api/products — CRUD + imágenes
-    │   ├── OrderController.java     # /api/orders — pedidos y notificaciones
-    │   └── ReportController.java    # /api/reports — dashboard y PDF
-    ├── dto/                         # Data Transfer Objects (request/response)
-    ├── entities/                    # Entidades JPA (Company, User, Supplier, Product, Order, OrderItem)
-    ├── exceptions/
-    │   ├── GlobalExceptionHandler.java
-    │   ├── ResourceNotFoundException.java
-    │   ├── DuplicateResourceException.java
-    │   └── BadRequestException.java
-    ├── repositories/                # Repositorios JPA + Specifications para filtros
-    ├── security/
-    │   ├── JwtUtil.java             # Generación y validación de JWT
-    │   ├── JwtAuthenticationFilter.java
-    │   └── SecurityConfig.java
-    └── services/
-        ├── AuthService.java
-        ├── CompanyService.java
-        ├── UserService.java
-        ├── SupplierService.java
-        ├── ProductService.java
-        ├── OrderService.java
-        ├── ReportService.java
-        ├── EmailService.java
-        ├── NotificationService.java # Email + WhatsApp
-        └── impl/                    # Implementaciones
-```
-
-#### 5.3.2. Patrones y Arquitectura
-
-**Arquitectura en capas:**
-
-```text
-HTTP Request → JwtAuthenticationFilter → Controller → Service → Repository → Database
-                      │                      │             │
-               SecurityContext           Validación   Lógica negocio
-```
-
-**Patrones implementados:**
-
-- **MVC REST:** separación Controller / Service / Repository
-- **DTO Pattern:** separación entre objetos de transferencia y entidades JPA
-- **Repository + Specification Pattern:** filtros dinámicos con JPA Criteria API
-- **Dependency Injection:** Spring IoC
-- **Builder:** Lombok `@Builder` para construcción de objetos
-
-#### 5.3.3. Endpoints Principales
-
-##### `AuthController` (`/api/auth`)
-
-| Endpoint               | Método | Descripción                          |
-| ---------------------- | ------ | ------------------------------------ |
-| `/login`               | POST   | Autenticación → devuelve token JWT   |
-| `/forgot-password`     | POST   | Solicitud de recuperación            |
-| `/reset-password`      | POST   | Restablecer contraseña con token     |
-| `/verify-email`        | POST   | Verificar email de registro          |
-| `/resend-verification` | POST   | Reenviar correo de verificación      |
-
-##### `CompanyController` (`/api/companies`)
-
-| Endpoint    | Método | Descripción                             |
-| ----------- | ------ | --------------------------------------- |
-| `/register` | POST   | Registrar empresa + admin (público)     |
-| `/`         | GET    | Obtener empresa del usuario autenticado |
-| `/`         | PUT    | Actualizar datos de la empresa          |
-
-##### `UserController` (`/api/users`)
-
-| Endpoint                  | Método | Descripción                      |
-| ------------------------- | ------ | -------------------------------- |
-| `/`                       | GET    | Listar usuarios (paginado)       |
-| `/{uuid}`                 | GET    | Obtener usuario por UUID         |
-| `/search`                 | GET    | Búsqueda por texto               |
-| `/filter`                 | GET    | Búsqueda avanzada con filtros    |
-| `/`                       | POST   | Crear usuario                    |
-| `/{uuid}`                 | PUT    | Actualizar usuario               |
-| `/{uuid}/status`          | PATCH  | Activar/desactivar               |
-| `/{uuid}/change-password` | PATCH  | Cambiar contraseña               |
-| `/{uuid}`                 | DELETE | Eliminar (soft delete)           |
-
-##### `SupplierController` (`/api/suppliers`)
-
-| Endpoint         | Método | Descripción                   |
-| ---------------- | ------ | ----------------------------- |
-| `/`              | GET    | Listar proveedores (paginado) |
-| `/{uuid}`        | GET    | Obtener proveedor por UUID    |
-| `/search`        | GET    | Búsqueda por texto            |
-| `/filter`        | GET    | Búsqueda avanzada             |
-| `/`              | POST   | Crear proveedor               |
-| `/{uuid}`        | PUT    | Actualizar proveedor          |
-| `/{uuid}/status` | PATCH  | Activar/desactivar            |
-
-##### `ProductController` (`/api/products`)
-
-| Endpoint               | Método | Descripción                          |
-| ---------------------- | ------ | ------------------------------------ |
-| `/`                    | GET    | Listar productos (paginado)          |
-| `/{uuid}`              | GET    | Obtener producto por UUID            |
-| `/search`              | GET    | Búsqueda por texto                   |
-| `/filter`              | GET    | Búsqueda avanzada                    |
-| `/create`              | POST   | Crear producto                       |
-| `/{uuid}`              | PUT    | Actualizar producto                  |
-| `/deactivate/{uuid}`   | PATCH  | Desactivar (soft delete)             |
-| `/upload/{productUuid}`| POST   | Subir imagen a producto existente    |
-| `/upload-temp`         | POST   | Subir imagen temporal                |
-
-##### `OrderController` (`/api/orders`)
-
-| Endpoint          | Método | Descripción                            |
-| ----------------- | ------ | -------------------------------------- |
-| `/filter`         | GET    | Listar/filtrar pedidos                 |
-| `/{uuid}`         | GET    | Obtener pedido por UUID                |
-| `/create`         | POST   | Crear pedido con ítems                 |
-| `/update/{uuid}`  | PUT    | Actualizar pedido                      |
-| `/{uuid}/send`    | POST   | Enviar al proveedor (email/WhatsApp)   |
-| `/delete/{uuid}`  | PATCH  | Cancelar pedido                        |
-
-##### `ReportController` (`/api/reports`)
-
-| Endpoint       | Método | Descripción                               |
-| -------------- | ------ | ----------------------------------------- |
-| `/dashboard`   | GET    | Datos del dashboard (último mes)          |
-| `/global`      | GET    | Informe global por período (JSON)         |
-| `/global/pdf`  | GET    | Informe global por período (PDF)          |
-
-#### 5.3.4. Ficheros Clave
-
-| Fichero                       | Descripción                                      |
-| ----------------------------- | ------------------------------------------------ |
-| `pom.xml`                     | Dependencias y configuración Maven               |
-| `PedidaiApplication.java`     | Punto de entrada de Spring Boot                  |
-| `SecurityConfig.java`         | Configuración de seguridad, JWT y CORS           |
-| `JwtUtil.java`                | Generación y validación de tokens JWT            |
-| `GlobalExceptionHandler.java` | Gestión centralizada de errores HTTP             |
-| `ApiResponseDTO.java`         | Formato estándar de respuesta de la API          |
-| `application.properties`      | Configuración de la aplicación y variables       |
-
-### 5.4. Base de Datos (pedidai-db)
-
-```text
-pedidai-db/
-├── pedidai_db_schema.sql    # Esquema completo de producción
-└── readme.md                # Documentación de tablas y relaciones
-```
+Capas: `Petición HTTP → JwtAuthenticationFilter → Controller → Service → Repository → MySQL`.
 
 ---
 
-## 6. INSTALACIÓN Y CONFIGURACIÓN
+## 5. API REST
 
-### 6.1. Requisitos Previos
+Todas las rutas empiezan por `/api` y, salvo las marcadas como públicas, necesitan la cabecera `Authorization: Bearer <token>`. Las respuestas siguen el formato `{ success, message, data }`, con el mensaje en el idioma de la cabecera `Accept-Language` (`es` o `ca`). Documentación interactiva en `/swagger-ui.html`.
 
-| Componente  | Versión mínima  | Propósito             |
-| ----------- | --------------- | --------------------- |
-| Java JDK    | 21 (LTS)        | Backend               |
-| Maven       | 3.8+            | Build backend         |
-| Node.js     | 22.x            | Frontend              |
-| npm         | 10.x            | Paquetes frontend     |
-| MySQL       | 8.0+            | Base de datos         |
-| Git         | Cualquiera      | Control de versiones  |
+| Recurso | Endpoints |
+| --- | --- |
+| `/auth` (públicos) | `POST /login`, `/forgot-password`, `/reset-password`, `/verify-email`, `/resend-verification` |
+| `/companies` | `POST /register` (público), `GET /`, `PUT /`, `GET /my-plan` |
+| `/users` | `GET /me`, `PATCH /me/language`, `POST /me/resend-verification`, CRUD (`GET`, `POST`, `PUT /{uuid}`, `PATCH /{uuid}/status`, `PATCH /{uuid}/change-password`, `DELETE /{uuid}`), `GET /search`, `GET /filter` |
+| `/suppliers` | CRUD, `GET /search`, `GET /filter`, `PATCH /{uuid}/status` |
+| `/products` | `POST /create`, `GET /{uuid}`, `PUT /{uuid}`, `PATCH /deactivate/{uuid}`, `GET /search`, `GET /filter`, `GET /compare-prices`, `POST /upload/{uuid}`, `POST /upload-temp` |
+| `/invoices` | `POST /scan` (imagen o PDF), `POST /confirm` |
+| `/prices` | `GET /overview?days=` — comparativa, alertas y estimación de ahorro |
+| `/orders` | `POST /create`, `GET /` (filtros), `GET /{uuid}`, `PUT /update/{uuid}`, `POST /{uuid}/send`, `PATCH /delete/{uuid}`, `GET /consumption-analysis` |
+| `/reports` | `GET /dashboard`, `GET /global`, `GET /global/pdf` |
+| `/superadmin` | `GET /dashboard`, `/companies`, `/companies/{uuid}`, `/users`, `/stats/monthly`; `PATCH /companies/{uuid}/status`, `/extend-trial`, `/activate` |
 
-### 6.2. Instalación de la Base de Datos
+Asistente (`/ai`, servido por `orderflow`): `GET /health`, `POST /process-order`, `POST /suggest-orders`. Todos menos `/health` exigen el token del usuario.
 
-#### Instalar MySQL
+---
 
-**Windows:** descargar desde <https://dev.mysql.com/downloads/installer/>
+## 6. Base de datos
 
-**Linux (Ubuntu/Debian):**
+Tablas: `companies`, `users`, `suppliers`, `products`, `price_history`, `orders`, `order_items`.
 
-```bash
-sudo apt update && sudo apt install mysql-server
-sudo mysql_secure_installation
+```text
+companies ─┬─< users
+           ├─< suppliers ─< products ─< price_history
+           ├─< price_history
+           └─< orders ─< order_items >─ products
 ```
 
-**macOS:**
+- Cada tabla tiene un `id` interno y un `uuid` público (la API nunca expone los `id`).
+- `companies.trial_ends_at`: fin de la prueba (`NULL` = cliente de pago).
+- `users.language`: idioma del usuario (`es`/`ca`) para emails y PDF.
+- `products.canonical_name`: nombre genérico para comparar el mismo producto entre proveedores.
+- `price_history`: cada precio leído de un albarán (o introducido a mano), con su fecha.
+- El esquema lo gestionan los scripts (`ddl-auto=none`): `pedidai-db/pedidai_db_schema.sql` y, en orden, las migraciones de `pedidai-db/migrations/`.
 
-```bash
-brew install mysql && brew services start mysql
-```
+Detalle de columnas en [`pedidai-db/readme.md`](pedidai-db/readme.md).
 
-#### Crear usuario y esquema
+---
 
-```bash
-mysql -u root -p
-```
+## 7. Seguridad y privacidad
+
+- **Aislamiento por empresa:** cada consulta se filtra por la empresa del usuario autenticado (`CurrentUser`); no se puede leer ni modificar nada de otra empresa.
+- **Roles:** `USER`, `ADMIN` (gestiona su empresa) y `SUPER_ADMIN` (plataforma). Nadie puede asignarse un rol superior al suyo.
+- **JWT de 1 hora**; en cada petición se vuelve a comprobar en la base de datos que el usuario y la empresa siguen activos.
+- **Límites de uso:** intentos de login, registros por IP, recuperación de contraseña y lecturas de albaranes por día.
+- **Contraseñas:** mínimo 8 caracteres con letras y números, guardadas con BCrypt.
+- **Errores sin detalles internos** y mensajes que no revelan si un email existe.
+- **Emails a proveedores** sin HTML inyectable; imágenes validadas por contenido y guardadas con nombre aleatorio.
+- **IA:** a DeepSeek solo se envía el texto necesario (el OCR se hace en nuestro servidor). Está explicado en la política de privacidad.
+- **Logs** en nivel INFO, sin consultas SQL y con los emails enmascarados.
+- **Conservación:** datos de pruebas no contratadas borrados automáticamente a los 30 días.
+
+---
+
+## 8. Instalación en local
+
+### Requisitos
+
+| Componente | Versión |
+| --- | --- |
+| Java JDK | 25 |
+| Node.js / npm | 22 / 10 |
+| MySQL | 8 (o Docker) |
+| Tesseract OCR | 5, con los idiomas `spa` y `cat` |
+| Docker | Opcional, para el asistente y n8n |
+
+### 8.1. Base de datos
 
 ```sql
 CREATE USER 'pedidai_user'@'localhost' IDENTIFIED BY 'password_seguro';
 CREATE DATABASE pedidai_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 GRANT ALL PRIVILEGES ON pedidai_db.* TO 'pedidai_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
 ```
 
 ```bash
-mysql -u pedidai_user -p < pedidai-db/pedidai_db_schema.sql
+mysql -u pedidai_user -p pedidai_db < pedidai-db/pedidai_db_schema.sql
+mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/001_lanzamiento.sql
 ```
 
-### 6.3. Instalación del Backend
+### 8.2. Backend
 
-#### Instalar Java 21
-
-**Windows:** descargar desde <https://www.oracle.com/java/technologies/downloads/#java21>
-
-**Linux:**
-
-```bash
-sudo apt install openjdk-21-jdk
-```
-
-**macOS:**
-
-```bash
-brew install openjdk@21
-```
-
-#### Configurar variables de entorno
-
-**Windows (PowerShell como administrador):**
-
-```powershell
-[System.Environment]::SetEnvironmentVariable('DB_USER_PEDIDAI', 'pedidai_user', 'Machine')
-[System.Environment]::SetEnvironmentVariable('DB_PASS_PEDIDAI', 'password_seguro', 'Machine')
-[System.Environment]::SetEnvironmentVariable('MAIL_USER_PEDIDAI', 'correo@gmail.com', 'Machine')
-[System.Environment]::SetEnvironmentVariable('MAIL_PASS_PEDIDAI', 'app_password', 'Machine')
-[System.Environment]::SetEnvironmentVariable('JWT_SECRET', 'secreto_jwt_largo_y_seguro', 'Machine')
-[System.Environment]::SetEnvironmentVariable('DEEPSEEK_API_KEY', 'tu_api_key', 'Machine')
-```
-
-**Linux/macOS** (añadir a `~/.bashrc` o `~/.zshrc`):
+Variables de entorno necesarias (nunca las subas al repositorio):
 
 ```bash
 export DB_USER_PEDIDAI=pedidai_user
 export DB_PASS_PEDIDAI=password_seguro
-export MAIL_USER_PEDIDAI=correo@gmail.com
-export MAIL_PASS_PEDIDAI=app_password
-export JWT_SECRET=secreto_jwt_largo_y_seguro
+export MAIL_USER_PEDIDAI=correo@ejemplo.com
+export MAIL_PASS_PEDIDAI=contraseña_de_aplicación
+export JWT_SECRET=un_secreto_largo_y_aleatorio
 export DEEPSEEK_API_KEY=tu_api_key
-source ~/.bashrc
 ```
-
-#### Compilar y ejecutar
 
 ```bash
 cd pedidai-api
-
-# Linux/macOS
-./mvnw clean install
-./mvnw spring-boot:run
-
-# Windows
-mvnw.cmd clean install
-mvnw.cmd spring-boot:run
+./mvnw spring-boot:run          # http://localhost:8085  (Swagger en /swagger-ui.html)
+./mvnw test                     # tests (usan H2, no necesitan MySQL)
 ```
 
-El backend estará disponible en: **<http://localhost:8085>**
+Opciones útiles al arrancar: `--app.frontend.url=http://localhost:4200`, `--app.ocr.tesseract-command=/ruta/a/tesseract` y, para depurar, `--logging.level.com.pedidai.api=DEBUG --spring.jpa.show-sql=true`.
 
-Swagger UI: **<http://localhost:8085/swagger-ui.html>**
-
-### 6.4. Instalación del Frontend
-
-#### Instalar Node.js
-
-**Windows/macOS:** descargar desde <https://nodejs.org/> (versión LTS 22.x)
-
-**Linux:**
-
-```bash
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt-get install -y nodejs
-```
-
-#### Instalar dependencias y configurar entorno
+### 8.3. Frontend
 
 ```bash
 cd pedidai-app
 npm install
+npx ng serve                    # http://localhost:4200
+npx ng test --watch=false       # tests
+npx ng build                    # producción → dist/pedidai-app/browser
 ```
 
-Editar `src/environments/environment.ts` para desarrollo:
+`src/environments/environment.ts` apunta a `http://localhost:8085/api`. `proxy.conf.json` redirige `/ai` al asistente en `127.0.0.1:3201`.
 
-```typescript
-export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:8085/api'
-};
-```
-
-#### Ejecutar en desarrollo
+### 8.4. Asistente (opcional)
 
 ```bash
-ng serve
+cd orderflow/mcp-server
+cp .env.example .env            # PEDIDAI_API_URL=http://localhost:8085/api y DEEPSEEK_API_KEY
+npm install && npm start        # http://127.0.0.1:3201/health
 ```
-
-El frontend estará disponible en: **<http://localhost:4200>**
-
-#### Compilar para producción
-
-```bash
-ng build
-```
-
-Los ficheros compilados se generan en `dist/`.
-
-### 6.5. Configuración de Correo (Gmail)
-
-1. Acceder a <https://myaccount.google.com/security>
-2. Activar **Verificación en 2 pasos**
-3. Ir a <https://myaccount.google.com/apppasswords>
-4. Crear una contraseña de aplicación (16 caracteres)
-5. Usarla como valor de la variable `MAIL_PASS_PEDIDAI`
-
-### 6.6. Scripts Disponibles
-
-#### Frontend
-
-| Acción       | Comando                               | Descripción                            |
-| ------------ | ------------------------------------- | -------------------------------------- |
-| Desarrollo   | `ng serve`                            | Servidor de desarrollo con hot reload  |
-| Build prod   | `ng build`                            | Compilación optimizada para producción |
-| Tests        | `ng test`                             | Tests unitarios con Vitest             |
-| Lint         | `npm run lint`                        | Análisis de código con ESLint          |
-| Format       | `npm run format`                      | Formateo con Prettier                  |
-
-#### Backend
-
-| Acción      | Comando                              | Descripción                      |
-| ----------- | ------------------------------------ | -------------------------------- |
-| Compilar    | `./mvnw clean install`               | Compila el proyecto              |
-| Ejecutar    | `./mvnw spring-boot:run`             | Ejecuta la aplicación            |
-| Tests       | `./mvnw test`                        | Ejecuta los tests                |
-| Empaquetar  | `./mvnw clean package -DskipTests`   | Genera el JAR ejecutable         |
-
-### 6.7. Despliegue en Producción
-
-#### Backend — Ejecutar como servicio (Linux)
-
-```bash
-cd pedidai-api
-./mvnw clean package -DskipTests
-```
-
-El jar y los secretos viven juntos en `/opt/apps/pedidai/`. Los secretos van en
-`/opt/apps/pedidai/.env`, con permisos `600` (solo el usuario propietario puede
-leerlo) — **nunca** como `Environment=` directamente en el `.service`, porque
-los ficheros de `/etc/systemd/system/` son legibles por cualquier usuario del
-sistema (permisos `644` por defecto), lo que expondría los secretos en claro
-a todo el que tenga acceso por shell a la máquina.
-
-Crear `/opt/apps/pedidai/.env`:
-
-```dotenv
-DB_USER_PEDIDAI=pedidai_user
-DB_PASS_PEDIDAI=password_seguro
-MAIL_USER_PEDIDAI=correo@gmail.com
-MAIL_PASS_PEDIDAI=app_password
-JWT_SECRET=secreto_jwt
-DEEPSEEK_API_KEY=api_key
-```
-
-```bash
-chmod 600 /opt/apps/pedidai/.env
-```
-
-Crear `/etc/systemd/system/pedidai-api.service`:
-
-```ini
-[Unit]
-Description=Pedidai API
-After=syslog.target
-
-[Service]
-User=pedidai
-EnvironmentFile=/opt/apps/pedidai/.env
-ExecStart=/usr/bin/java -jar /opt/apps/pedidai/pedidai-api.jar
-SuccessExitStatus=143
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo systemctl enable pedidai-api
-sudo systemctl start pedidai-api
-```
-
-#### Frontend — Apache con proxy inverso
-
-Compilar:
-
-```bash
-cd pedidai-app
-ng build
-sudo cp -r dist/pedidai-app/browser/* /var/www/pedidai/
-```
-
-Configuración Apache (`/etc/apache2/sites-available/pedidai.conf`):
-
-```apache
-<VirtualHost *:80>
-    ServerName pedidai.cat
-    DocumentRoot /var/www/pedidai
-
-    <Directory /var/www/pedidai>
-        Options -Indexes +FollowSymLinks
-        AllowOverride All
-        Require all granted
-        FallbackResource /index.html
-    </Directory>
-
-    ProxyPass /api http://localhost:8085/api
-    ProxyPassReverse /api http://localhost:8085/api
-</VirtualHost>
-```
-
-```bash
-sudo a2ensite pedidai
-sudo systemctl reload apache2
-```
-
-### 6.8. Verificación de la Instalación
-
-#### Backend
-
-```bash
-# Comprobar que el servidor responde
-curl http://localhost:8085/v3/api-docs
-
-# Acceder a Swagger UI
-# http://localhost:8085/swagger-ui.html
-```
-
-#### Frontend
-
-Abrir en el navegador: <http://localhost:4200>
-
-Verificar que se cargan la página de inicio, el formulario de login y el formulario de registro.
-
-#### Base de Datos
-
-```bash
-mysql -u pedidai_user -p pedidai_db -e "SHOW TABLES;"
-```
-
-Resultado esperado: `companies`, `users`, `suppliers`, `products`, `orders`, `order_items`
-
-### 6.9. Solución de Problemas Comunes
-
-**Backend no arranca — `Access denied for user`:**
-Verificar credenciales MySQL y variables de entorno `DB_USER_PEDIDAI` / `DB_PASS_PEDIDAI`.
-
-**Backend no arranca — `Port 8085 is already in use`:**
-Cambiar el puerto en `application.properties` o detener el proceso que ocupa el puerto.
-
-**Frontend no conecta con el backend — errores CORS:**
-Verificar que `environment.ts` apunta a `http://localhost:8085/api` y que el backend tiene CORS configurado para `http://localhost:4200`.
-
-**Frontend — `Module not found`:**
-Ejecutar `npm install` de nuevo.
-
-**Errores de TypeScript:**
-Verificar que las versiones de TypeScript y Angular son compatibles con `ng version`.
-
-### 6.10. Recomendaciones de IDE
-
-**Visual Studio Code** (frontend):
-
-- Angular Language Service
-- Tailwind CSS IntelliSense
-- ESLint
-- Prettier
-
-**IntelliJ IDEA** (backend):
-
-- Lombok Plugin
-- Spring Boot Plugin
-- Database Navigator
 
 ---
 
-## APÉNDICE
+## 9. Despliegue en producción
 
-### A. Contacto y Soporte
+Todo corre en un VPS Ubuntu:
 
-- **Email:** <devepsdev@gmail.com>
-- **Issue Tracker:** [GitHub Issues](https://github.com/devepsdev/pedidai/issues)
+| Pieza | Dónde |
+| --- | --- |
+| Web (Angular) | `/var/www/pedidai.es`, servida por nginx |
+| API (Spring Boot) | `/opt/apps/pedidai/pedidai-api/target/*.jar`, servicio `pedidai-api.service` (puerto 8085, solo local) |
+| Secretos de la API | `/opt/apps/pedidai/.env` (permisos `600`, cargado con `EnvironmentFile=`) |
+| Imágenes de productos | `/opt/apps/pedidai/pedidai-api/img/productes/` |
+| Asistente y n8n | `/opt/apps/orderflow`, con `docker compose` (asistente en `127.0.0.1:3201`) |
+| Base de datos | MySQL local, `pedidai_db` |
 
-### B. Licencia
+nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` → `localhost:8085`, `/ai/` → `localhost:3201/` y `/n8n/` → `localhost:5678/`. El cortafuegos (`ufw`) solo deja pasar HTTP/HTTPS y SSH.
 
-Este proyecto es propiedad de DevEps. Todos los derechos reservados.
+### Pasos de una actualización
+
+1. **Copia de seguridad** de la base de datos (`mysqldump`), del jar y de la web.
+2. **Migraciones nuevas** de `pedidai-db/migrations/`, si las hay.
+3. **API:** `./mvnw -DskipTests package`, copiar el jar a `target/` y `sudo systemctl restart pedidai-api`.
+4. **Web:** `npx ng build` y copiar `dist/pedidai-app/browser/` a `/var/www/pedidai.es` (sin borrar `.well-known/`).
+5. **Asistente:** en `/opt/apps/orderflow`, `git fetch && git merge --ff-only origin/main` y `sudo docker compose up -d --build mcp-bridge`.
+6. **Comprobar:** `https://pedidai.es/api/users/me` debe responder 401 sin token y `https://pedidai.es/ai/health` `{"status":"ok"}`.
 
 ---
 
-Última actualización: 13 de abril de 2026
+## 10. Solución de problemas
+
+| Síntoma | Causa probable |
+| --- | --- |
+| La API no arranca: `Access denied for user` | Credenciales de MySQL o variables `DB_*` incorrectas. |
+| `Port 8085 is already in use` | Ya hay otra instancia de la API en marcha. |
+| La lectura de albaranes falla | Tesseract no instalado o sin los idiomas `spa`/`cat`; revisa `app.ocr.tesseract-command`. |
+| El chat responde 401 | Sesión caducada (el token dura 1 hora): vuelve a entrar. |
+| Tras desplegar se ven textos antiguos | Caché del navegador: recarga forzando (Ctrl+F5). En producción `index.html` e `/i18n/` ya se sirven con `no-cache`. |
+| No llegan los emails | Revisa `MAIL_USER_PEDIDAI` / `MAIL_PASS_PEDIDAI` (contraseña de aplicación) y los logs: `journalctl -u pedidai-api`. |
+
+---
+
+Proyecto de DevEps. Todos los derechos reservados. Contacto: [hola@pedidai.es](mailto:hola@pedidai.es) · [GitHub Issues](https://github.com/devepsdev/pedidai/issues)
