@@ -1,13 +1,11 @@
 package com.pedidai.api.services;
 
-import com.pedidai.api.dto.CompanyRegistrationDTO;
-import com.pedidai.api.dto.CompanyRequestDTO;
-import com.pedidai.api.dto.CompanyResponseDTO;
-import com.pedidai.api.dto.MyPlanDTO;
+import com.pedidai.api.dto.*;
 
 public interface CompanyService {
 
-    CompanyResponseDTO registerCompanyWithAdmin(CompanyRegistrationDTO registrationDTO);
+    /** Crea l'empresa i el seu administrador, inicia la prova gratuïta i retorna la sessió ja iniciada. */
+    LoginResponseDTO registerCompanyWithAdmin(CompanyRegistrationDTO registrationDTO, String clientIp);
 
     CompanyResponseDTO getCompanyByUuid();
 

@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class EmailVerificationDTO {
 
-    @NotBlank(message = "El token és obligatori")
+    @NotBlank(message = "{validation.token.required}")
     private String token;
 }

@@ -17,6 +17,7 @@ public class InvoiceScanResultDTO {
     private String message;
     private String detectedSupplierName;
     private String detectedSupplierCif;
+    private String detectedSupplierPhone;
     private String invoiceNumber;
     private String invoiceDate;
     private List<InvoiceProductDTO> products;
@@ -25,6 +26,8 @@ public class InvoiceScanResultDTO {
     private int productsCreated;
     private int productsUpdated;
     private int productsSkipped;
+    private int pricesRecorded;
+    private int priceIncreases;
     private String matchedSupplierUuid;
     private boolean supplierAutoMatched;
 }

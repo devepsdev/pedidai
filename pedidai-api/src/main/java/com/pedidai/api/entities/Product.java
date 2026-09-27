@@ -33,6 +33,10 @@ public class Product {
     @Column(name = "name", nullable = false, length = 255)
     private String name;
 
+    /** Nom genèric normalitzat ("tomate pera") per comparar el mateix producte entre proveïdors. */
+    @Column(name = "canonical_name", length = 255)
+    private String canonicalName;
+
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 

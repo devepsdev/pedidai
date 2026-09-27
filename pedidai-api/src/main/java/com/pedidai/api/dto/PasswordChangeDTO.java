@@ -14,12 +14,12 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PasswordChangeDTO {
 
-    @NotBlank(message = "La contrasenya actual és obligatòria")
+    @NotBlank(message = "{validation.password.currentRequired}")
     private String currentPassword;
 
-    @NotBlank(message = "La nova contrasenya és obligatòria")
-    @Size(min = 8, message = "La contrasenya ha de tenir un mínim de 8 caràcters")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\\s]).*$",
-            message = "La contrasenya ha de contenir un mínim d'una majúscula, una minúscula, un número i un caràcter especial")
+    @NotBlank(message = "{validation.password.required}")
+    @Size(min = 8, message = "{validation.password.weak}")
+    @Pattern(regexp = com.pedidai.api.security.PasswordPolicy.REGEX,
+            message = "{validation.password.weak}")
     private String newPassword;
 }

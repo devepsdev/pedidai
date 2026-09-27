@@ -1,5 +1,7 @@
 package com.pedidai.api.repositories;
 
+import org.springframework.test.context.ActiveProfiles;
+
 import com.pedidai.api.entities.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test")
 @DisplayName("OrderRepository Tests")
 class OrderRepositoryTest {
 

@@ -13,12 +13,17 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class InvoiceProductDTO {
     private String name;
+    private String genericName;
     private BigDecimal quantity;
     private String unit;
     private BigDecimal unitPrice;
     private BigDecimal ivaPercent;
     private BigDecimal subtotal;
-    private String action; // CREATED, UPDATED, SKIPPED
+    /** NEW (producte nou), CHANGED (preu diferent de l'últim conegut) o SAME (mateix preu). */
+    private String status;
+    /** Compatibilitat: CREATED, UPDATED o SKIPPED. */
+    private String action;
     private String matchedProductUuid;
     private BigDecimal previousPrice;
+    private BigDecimal priceChangePercent;
 }

@@ -3,26 +3,24 @@ package com.pedidai.api.services.impl;
 import com.pedidai.api.dto.*;
 import com.pedidai.api.entities.*;
 import com.pedidai.api.exceptions.BadRequestException;
+import com.pedidai.api.exceptions.ForbiddenException;
 import com.pedidai.api.exceptions.ResourceNotFoundException;
+import com.pedidai.api.exceptions.TooManyRequestsException;
 import com.pedidai.api.repositories.*;
+import com.pedidai.api.security.CurrentUser;
 import com.pedidai.api.services.NotificationService;
 import com.pedidai.api.services.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,314 +28,206 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OrderServiceImpl implements OrderService {
 
+    /** Màxim de comandes enviades per empresa i dia (evita l'ús de PedidAI per enviar correu massiu). */
+    static final int MAX_SENT_PER_DAY = 30;
+
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final SupplierRepository supplierRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final NotificationService notificationService;
+    private final CurrentUser currentUser;
 
     @Override
     @Transactional
-    public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) {
+    public OrderResponseDTO createOrder(OrderRequestDTO dto) {
+        User user = currentUser.get();
+        Company company = CurrentUser.companyOf(user);
+        Supplier supplier = findOwnedSupplier(dto.getSupplierUuid(), company.getId());
 
-        // Crear la instància de l'entitat Order
         Order order = new Order();
         order.setUuid(UUID.randomUUID().toString());
-        order.setName(orderRequestDTO.getName());
-        order.setNotes(orderRequestDTO.getNotes());
-        order.setDeliveryDate(orderRequestDTO.getDeliveryDate());
+        order.setName(dto.getName().trim());
+        order.setNotes(dto.getNotes());
+        order.setDeliveryDate(dto.getDeliveryDate());
         order.setStatus(Order.OrderStatus.PENDING);
-
-        // Assignar company i usuari
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
-
         order.setUser(user);
-        order.setCompany(user.getCompany());
-
-        // Buscar el proveïdor pel UUID
-        Supplier supplier = supplierRepository.findByUuid(orderRequestDTO.getSupplierUuid())
-                .orElseThrow(() -> new ResourceNotFoundException("Proveïdor no trobat"));
+        order.setCompany(company);
         order.setSupplier(supplier);
 
-        // Crear els items associats a la comanda
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        List<OrderItem> orderItems = new ArrayList<>();
-
-        for (OrderItemRequestDTO itemDTO : orderRequestDTO.getItems()) {
+        List<OrderItem> items = new ArrayList<>();
+        for (OrderItemRequestDTO itemDTO : dto.getItems()) {
             OrderItem item = new OrderItem();
             item.setUuid(UUID.randomUUID().toString());
             item.setOrder(order);
-
-            Product product = productRepository.findByUuid(itemDTO.getProductUuid())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Producte no trobat: " + itemDTO.getProductUuid()));
-
-            item.setProduct(product);
-            item.setQuantity(itemDTO.getQuantity());
-            item.setUnitPrice(product.getPrice());
-            item.setSubtotal(item.getQuantity().multiply(item.getUnitPrice()));
-            item.setNotes(itemDTO.getNotes());
-
-            totalAmount = totalAmount.add(item.getSubtotal());
-            orderItems.add(item);
+            fillItem(item, itemDTO, supplier);
+            items.add(item);
         }
-
-        // Assignar el total i guardar
-        order.setTotalAmount(totalAmount);
-        order.setItems(orderItems);
+        order.setItems(items);
+        order.setTotalAmount(total(items));
 
         orderRepository.save(order);
-        orderItemRepository.saveAll(orderItems);
-
-        log.info("Comanda {} creada correctament per l'usuari {} amb estat PENDING",
-                order.getUuid(), username);
-
-        return buildOrderResponseDTO(order);
+        orderItemRepository.saveAll(items);
+        log.info("Comanda {} creada per {} (empresa {})", order.getUuid(), user.getEmail(), company.getId());
+        return mapToResponseDTO(order);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<OrderResponseDTO> filterOrders(OrderFilterDTO dto, Pageable pageable){
-
-        // Usuari autenticat
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(username).orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
-        Long companyId = user.getCompany().getId();
-        Long userId = null;
-        Long supplierId = null;
+    public Page<OrderResponseDTO> filterOrders(OrderFilterDTO dto, Pageable pageable) {
+        Long companyId = currentUser.companyId();
         Long orderId = null;
+        Long supplierId = null;
+        Long userId = null;
 
-        // Si rebem comanda
         if (dto.getOrderUuid() != null && !dto.getOrderUuid().isBlank()) {
-            Order order = orderRepository.findByUuid(dto.getOrderUuid()).orElseThrow(() -> new ResourceNotFoundException("Comanda no trobada"));
-            orderId = order.getId();
+            orderId = findOwned(dto.getOrderUuid(), companyId).getId();
         }
-
-        // Si rebem proveïdor
         if (dto.getSupplierUuid() != null && !dto.getSupplierUuid().isBlank()) {
-            Supplier supplier = supplierRepository.findByUuid(dto.getSupplierUuid()).orElseThrow(() -> new ResourceNotFoundException("Proveïdor no trobat"));
-            supplierId = supplier.getId();
+            supplierId = findOwnedSupplier(dto.getSupplierUuid(), companyId).getId();
         }
-
-        // Si rebem usuari
         if (dto.getUserUuid() != null && !dto.getUserUuid().isBlank()) {
-            user = userRepository.findByUuid(dto.getUserUuid()).orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat"));
-            userId = user.getId();
+            userId = userRepository.findByUuidAndCompany_Id(dto.getUserUuid(), companyId)
+                    .orElseThrow(() -> new ResourceNotFoundException("error.user.notFound")).getId();
         }
 
-        // Convertir estat (string → enum)
-        Order.OrderStatus orderStatus = null;
+        Order.OrderStatus status = null;
         if (dto.getStatus() != null && !dto.getStatus().isBlank()) {
             try {
-                orderStatus = Order.OrderStatus.valueOf(dto.getStatus().toUpperCase());
+                status = Order.OrderStatus.valueOf(dto.getStatus().toUpperCase(Locale.ROOT));
             } catch (IllegalArgumentException e) {
-                throw new ResourceNotFoundException("Estat no vàlid: " + dto.getStatus());
+                throw new BadRequestException("error.order.invalidStatus");
             }
         }
 
-        // Crear la Specification
         var spec = OrderSpecifications.filterOrders(
-                orderId,
-                companyId,
-                supplierId,
-                userId,
-                dto.getSearchText(),
-                dto.getName(),
-                dto.getNotes(),
-                orderStatus,
-                dto.getMinAmount(),
-                dto.getMaxAmount(),
-                dto.getDeliveryDateFrom(),
-                dto.getDeliveryDateTo(),
-                dto.getCreatedAtFrom(),
-                dto.getCreatedAtTo(),
-                dto.getUpdatedAtFrom(),
-                dto.getUpdatedAtTo()
+                orderId, companyId, supplierId, userId,
+                dto.getSearchText(), dto.getName(), dto.getNotes(), status,
+                dto.getMinAmount(), dto.getMaxAmount(),
+                dto.getDeliveryDateFrom(), dto.getDeliveryDateTo(),
+                dto.getCreatedAtFrom(), dto.getCreatedAtTo(),
+                dto.getUpdatedAtFrom(), dto.getUpdatedAtTo()
         );
-
-        // llistat des de orderRepository
-        Page<Order> orders = orderRepository.findAll(spec, pageable);
-
-        // Retorn
-        return orders.map(this::mapToResponseDTO);
+        return orderRepository.findAll(spec, pageable).map(this::mapToResponseDTO);
     }
 
     @Override
     @Transactional
     public OrderResponseDTO sendOrder(String orderUuid) {
-        log.info("Intentant enviar la comanda {}", orderUuid);
+        User user = currentUser.get();
+        Order order = findOwned(orderUuid, CurrentUser.companyOf(user).getId());
 
-        // Buscar la comanda
-        Order order = orderRepository.findByUuid(orderUuid)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Comanda no trobada: " + orderUuid));
-
-        // Validar que està en estat PENDING
         if (order.getStatus() != Order.OrderStatus.PENDING) {
-            throw new IllegalStateException(
-                    "La comanda " + orderUuid + " no es pot enviar. Estat actual: " + order.getStatus());
+            throw new BadRequestException("error.order.notPending");
+        }
+        // Els correus als proveïdors surten de PedidAI: cal haver verificat l'email del compte
+        if (!Boolean.TRUE.equals(user.getEmailVerified())) {
+            throw new ForbiddenException("error.order.emailNotVerified");
+        }
+        long sentToday = orderRepository.countByCompany_IdAndStatusAndUpdatedAtAfter(
+                order.getCompany().getId(), Order.OrderStatus.SENT, LocalDateTime.now().minusDays(1));
+        if (sentToday >= MAX_SENT_PER_DAY) {
+            throw new TooManyRequestsException("error.order.dailyLimit");
         }
 
-        // Enviar notificació per email
-        // Si falla, la transacció fa rollback i l'estat no canvia
+        // Si l'enviament falla, la transacció es desfà i la comanda continua pendent
         notificationService.sendOrderNotification(order);
-
-        // Actualitzar estat (ja es fa dins de notificationService, però per seguretat)
         order.setStatus(Order.OrderStatus.SENT);
         orderRepository.save(order);
+        return mapToResponseDTO(order);
+    }
 
-        log.info("Comanda {} enviada correctament a {}",
-                orderUuid, order.getSupplier().getEmail());
-
-        return buildOrderResponseDTO(order);
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponseDTO getOrderByUuid(String uuid) {
+        return mapToResponseDTO(findOwned(uuid, currentUser.companyId()));
     }
 
     @Override
     @Transactional
-    public OrderResponseDTO getOrderByUuid(String uuid){
-
-        // Buscar la comanda
-        Order order = orderRepository.findByUuid(uuid).orElseThrow(() -> new ResourceNotFoundException("No s'ha trobat cap comanda amb el UUID: " + uuid));
-
-        // Retornar DTO
-        return buildOrderResponseDTO(order);
-    }
-
-    @Override
-    @Transactional
-    public OrderResponseDTO deleteOrder(String orderUuid){
-        // Buscar la comanda
-        Order order = orderRepository.findByUuid(orderUuid).orElseThrow(() -> new ResourceNotFoundException("No s'ha trobat cap comanda amb el UUID: " + orderUuid));
-
-        // Marcar com a inactiu
+    public OrderResponseDTO deleteOrder(String orderUuid) {
+        Order order = findOwned(orderUuid, currentUser.companyId());
         order.setStatus(Order.OrderStatus.DELETED);
-
-        // Guardar canvis
-        order = orderRepository.save(order);
-
-        // Retornar DTO
-        return buildOrderResponseDTO(order);
+        return mapToResponseDTO(orderRepository.save(order));
     }
 
     @Override
     @Transactional
     public OrderResponseDTO updateOrder(String uuid, OrderRequestDTO dto) {
+        User user = currentUser.get();
+        Long companyId = CurrentUser.companyOf(user).getId();
+        Order order = findOwned(uuid, companyId);
 
-        // Buscar la comanda pel UUID
-        Order order = orderRepository.findByUuid(uuid)
-                .orElseThrow(() -> new BadRequestException("La comanda no existeix"));
-
-        // Comprovar que no estigui esborrada
-        if (order.getStatus() == Order.OrderStatus.DELETED) {
-            throw new BadRequestException("No es pot modificar una comanda eliminada");
+        // Una comanda ja enviada no es pot canviar sense que el proveïdor se n'assabenti
+        if (order.getStatus() != Order.OrderStatus.PENDING) {
+            throw new BadRequestException("error.order.notEditable");
         }
 
-        // Actualitzar camps simples
-        order.setName(dto.getName());
+        order.setName(dto.getName().trim());
         order.setNotes(dto.getNotes());
         order.setDeliveryDate(dto.getDeliveryDate());
-
-        // Comprovar proveïdor
         if (dto.getSupplierUuid() != null) {
-            Supplier supplier = supplierRepository.findByUuid(dto.getSupplierUuid())
-                    .orElseThrow(() -> new BadRequestException("Proveïdor no trobat"));
-            order.setSupplier(supplier);
+            order.setSupplier(findOwnedSupplier(dto.getSupplierUuid(), companyId));
         }
-
-        // Assignar company i usuari
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
         order.setUser(user);
-        order.setCompany(user.getCompany());
 
-        // Gestionar items
-        Map<String, OrderItem> currentItemsMap = order.getItems().stream()
+        Map<String, OrderItem> currentItems = order.getItems().stream()
                 .collect(Collectors.toMap(OrderItem::getUuid, i -> i));
-
         List<OrderItem> updatedItems = new ArrayList<>();
-
         for (OrderItemRequestDTO itemDTO : dto.getItems()) {
+            OrderItem item;
             if (itemDTO.getOrderItemUuid() != null) {
-                // ITEM EXISTENT → UPDATE
-                OrderItem existing = currentItemsMap.get(itemDTO.getOrderItemUuid());
-                if (existing == null) {
-                    throw new BadRequestException("Item amb UUID " + itemDTO.getOrderItemUuid() + " no existeix en aquesta comanda");
+                item = currentItems.remove(itemDTO.getOrderItemUuid());
+                if (item == null) {
+                    throw new BadRequestException("error.order.itemNotInOrder");
                 }
-
-                Product product = productRepository.findByUuid(itemDTO.getProductUuid())
-                        .orElseThrow(() -> new ResourceNotFoundException("Producte no trobat: " + itemDTO.getProductUuid()));
-
-                existing.setProduct(product);
-                existing.setQuantity(itemDTO.getQuantity());
-                existing.setUnitPrice(product.getPrice());
-                existing.setSubtotal(product.getPrice().multiply(itemDTO.getQuantity()));
-                existing.setNotes(itemDTO.getNotes());
-
-                updatedItems.add(existing);
-                currentItemsMap.remove(itemDTO.getOrderItemUuid()); // Traiem del map perquè ja està tractat
-
             } else {
-                // ITEM NOU → CREATE
-                Product product = productRepository.findByUuid(itemDTO.getProductUuid())
-                        .orElseThrow(() -> new ResourceNotFoundException("Producte no trobat: " + itemDTO.getProductUuid()));
-
-                OrderItem newItem = new OrderItem();
-                newItem.setUuid(UUID.randomUUID().toString());
-                newItem.setOrder(order);
-                newItem.setProduct(product);
-                newItem.setQuantity(itemDTO.getQuantity());
-                newItem.setUnitPrice(product.getPrice());
-                newItem.setSubtotal(product.getPrice().multiply(itemDTO.getQuantity()));
-                newItem.setNotes(itemDTO.getNotes());
-
-                updatedItems.add(newItem);
+                item = new OrderItem();
+                item.setUuid(UUID.randomUUID().toString());
+                item.setOrder(order);
             }
+            fillItem(item, itemDTO, order.getSupplier());
+            updatedItems.add(item);
         }
 
-        // Assignar items actualitzats a la llista gestionada per JPA i recalcular total
-        List<OrderItem> items = order.getItems(); // llista gestionada per JPA
-        items.clear();                             // elimina els orphans
-        items.addAll(updatedItems);                // afegeix els items finals
-
-        // Recalcular total
-        BigDecimal totalAmount = updatedItems.stream()
-                .map(OrderItem::getSubtotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        order.setTotalAmount(totalAmount);
-
-        // Guardar comanda
+        List<OrderItem> items = order.getItems();
+        items.clear();
+        items.addAll(updatedItems);
+        order.setTotalAmount(total(updatedItems));
         orderRepository.save(order);
-
-        return buildOrderResponseDTO(order);
+        return mapToResponseDTO(order);
     }
 
-    private OrderResponseDTO buildOrderResponseDTO(Order order) {
-        return OrderResponseDTO.builder()
-                .uuid(order.getUuid())
-                .name(order.getName())
-                .status(order.getStatus().name())
-                .totalAmount(order.getTotalAmount())
-                .notes(order.getNotes())
-                .deliveryDate(order.getDeliveryDate())
-                .createdAt(order.getCreatedAt())
-                .updatedAt(order.getUpdatedAt())
-                .supplierUuid(order.getSupplier().getUuid())
-                .items(order.getItems().stream()
-                        .map(item -> OrderItemResponseDTO.builder()
-                                .uuid(item.getUuid())
-                                .productUuid(item.getProduct() != null ? item.getProduct().getUuid() : null)
-                                .productName(item.getProduct() != null ? item.getProduct().getName() : null)
-                                .quantity(item.getQuantity())
-                                .unitPrice(item.getUnitPrice())
-                                .subtotal(item.getSubtotal())
-                                .notes(item.getNotes())
-                                .build())
-                        .toList())
-                .build();
+    // ───────────────────────── Utilitats ─────────────────────────
+
+    /** Omple una línia amb el producte (que ha de ser del proveïdor de la comanda) i el seu preu vigent. */
+    private void fillItem(OrderItem item, OrderItemRequestDTO dto, Supplier supplier) {
+        Product product = productRepository.findByUuidAndSupplier_Company_Id(dto.getProductUuid(), supplier.getCompany().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("error.product.notFound"));
+        if (!product.getSupplier().getId().equals(supplier.getId())) {
+            throw new BadRequestException("error.order.productFromOtherSupplier", product.getName(), supplier.getName());
+        }
+        item.setProduct(product);
+        item.setQuantity(dto.getQuantity());
+        item.setUnitPrice(product.getPrice());
+        item.setSubtotal(dto.getQuantity().multiply(product.getPrice()).setScale(2, RoundingMode.HALF_UP));
+        item.setNotes(dto.getNotes());
+    }
+
+    private static BigDecimal total(List<OrderItem> items) {
+        return items.stream().map(OrderItem::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private Order findOwned(String uuid, Long companyId) {
+        return orderRepository.findByUuidAndCompany_Id(uuid, companyId)
+                .filter(o -> o.getStatus() != Order.OrderStatus.DELETED)
+                .orElseThrow(() -> new ResourceNotFoundException("error.order.notFound"));
+    }
+
+    private Supplier findOwnedSupplier(String uuid, Long companyId) {
+        return supplierRepository.findByUuidAndCompany_Id(uuid, companyId)
+                .orElseThrow(() -> new ResourceNotFoundException("error.supplier.notFound"));
     }
 
     private OrderResponseDTO mapToResponseDTO(Order order) {
@@ -351,6 +241,7 @@ public class OrderServiceImpl implements OrderService {
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .supplierUuid(order.getSupplier().getUuid())
+                .supplierName(order.getSupplier().getName())
                 .items(order.getItems().stream().map(this::mapItemToDTO).toList())
                 .build();
     }
@@ -358,8 +249,8 @@ public class OrderServiceImpl implements OrderService {
     private OrderItemResponseDTO mapItemToDTO(OrderItem item) {
         return OrderItemResponseDTO.builder()
                 .uuid(item.getUuid())
-                .productUuid(item.getProduct().getUuid())
-                .productName(item.getProduct().getName())
+                .productUuid(item.getProduct() != null ? item.getProduct().getUuid() : null)
+                .productName(item.getProduct() != null ? item.getProduct().getName() : null)
                 .quantity(item.getQuantity())
                 .unitPrice(item.getUnitPrice())
                 .subtotal(item.getSubtotal())
@@ -370,10 +261,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public ConsumptionAnalysisDTO getConsumptionAnalysis(int days) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
-        Long companyId = user.getCompany().getId();
+        Long companyId = currentUser.companyId();
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startDate = now.minusDays(days);

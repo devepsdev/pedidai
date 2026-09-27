@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ExtendTrialDTO {
 
-    @NotNull(message = "El número de mesos és obligatori")
-    @Min(value = 1, message = "El mínim és 1 mes")
-    @Max(value = 24, message = "El màxim és 24 mesos")
+    @NotNull(message = "{validation.months.required}")
+    @Min(value = 1, message = "{validation.months.min}")
+    @Max(value = 24, message = "{validation.months.max}")
     private Integer months;
 }

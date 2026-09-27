@@ -41,7 +41,7 @@ class AuthControllerTest {
                         .build())
                 .build();
 
-        Mockito.when(userService.login(Mockito.any()))
+        Mockito.when(userService.login(Mockito.any(), Mockito.any()))
                 .thenReturn(loginResponse);
 
         mockMvc.perform(post("/api/auth/login")
@@ -49,7 +49,7 @@ class AuthControllerTest {
                         .content("{\"email\":\"user@test.com\",\"password\":\"Password1@\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Inici de sessió correcte"))
+                .andExpect(jsonPath("$.message").value("success.login"))
                 .andExpect(jsonPath("$.data.token").value("jwt.token.aqui"))
                 .andExpect(jsonPath("$.data.user.email").value("user@test.com"));
     }
@@ -59,14 +59,14 @@ class AuthControllerTest {
     // -------------------
     @Test
     void forgotPassword_shouldReturnOk() throws Exception {
-        Mockito.doNothing().when(userService).requestPasswordReset("user@test.com");
+        Mockito.doNothing().when(userService).requestPasswordReset(Mockito.eq("user@test.com"), Mockito.any());
 
         mockMvc.perform(post("/api/auth/forgot-password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"user@test.com\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Correu de recuperació enviat correctament"));
+                .andExpect(jsonPath("$.message").value("success.password.resetRequested"));
     }
 
     // -------------------
@@ -82,7 +82,7 @@ class AuthControllerTest {
                         .content("{\"token\":\"abc123\",\"newPassword\":\"NovaPass1@\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Contrasenya restablerta correctament"));
+                .andExpect(jsonPath("$.message").value("success.password.reset"));
     }
 
     // -------------------
@@ -98,7 +98,7 @@ class AuthControllerTest {
                         .content("{\"token\":\"token123\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Correu electrònic verificat correctament. Ja pots iniciar sessió."));
+                .andExpect(jsonPath("$.message").value("success.verification.done"));
     }
 
     // -------------------
@@ -107,13 +107,13 @@ class AuthControllerTest {
     @Test
     void resendVerification_shouldReturnOk() throws Exception {
         PasswordResetRequestDTO dto = new PasswordResetRequestDTO("user@test.com");
-        Mockito.doNothing().when(userService).resendVerificationEmail("user@test.com");
+        Mockito.doNothing().when(userService).resendVerificationEmail(Mockito.eq("user@test.com"), Mockito.any());
 
         mockMvc.perform(post("/api/auth/resend-verification")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"user@test.com\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Correu de verificació reenviat correctament"));
+                .andExpect(jsonPath("$.message").value("success.verification.resent"));
     }
 }

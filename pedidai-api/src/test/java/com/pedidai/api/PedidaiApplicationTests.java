@@ -23,7 +23,9 @@ class PedidaiApplicationTests {
     @DisplayName("Mètode main hauria d'executar-se sense errors")
     void main_ShouldRunWithoutErrors() {
         // Given & When & Then
-        assertThatCode(() -> PedidaiApplication.main(new String[]{}))
+        // Amb el perfil de test (H2) i sense servidor web, per no dependre de la base de dades real
+        assertThatCode(() -> PedidaiApplication.main(new String[]{
+                "--spring.profiles.active=test", "--spring.main.web-application-type=none"}))
                 .doesNotThrowAnyException();
     }
 }

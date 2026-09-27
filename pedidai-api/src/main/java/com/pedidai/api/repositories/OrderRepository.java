@@ -17,6 +17,11 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
     Optional<Order> findByUuid(String uuid);
 
+    /** Comanda només si pertany a l'empresa indicada. */
+    Optional<Order> findByUuidAndCompany_Id(String uuid, Long companyId);
+
+    long countByCompany_IdAndStatusAndUpdatedAtAfter(Long companyId, Order.OrderStatus status, java.time.LocalDateTime after);
+
     @Query("""
         SELECT DISTINCT o 
         FROM Order o 

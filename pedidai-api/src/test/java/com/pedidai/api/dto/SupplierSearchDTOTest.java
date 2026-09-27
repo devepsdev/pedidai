@@ -170,7 +170,7 @@ class SupplierSearchDTOTest {
             // Then
             assertThat(violations).hasSize(1);
             assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("page");
-            assertThat(violations.iterator().next().getMessage()).contains("El número de pàgina ha de ser 0 o superior");
+            assertThat(violations.iterator().next().getMessage()).contains("{validation.page.number}");
         }
 
         @Test
@@ -187,7 +187,7 @@ class SupplierSearchDTOTest {
             // Then
             assertThat(violations).hasSize(1);
             assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("size");
-            assertThat(violations.iterator().next().getMessage()).contains("La mida de pàgina ha de ser 1 o superior");
+            assertThat(violations.iterator().next().getMessage()).contains("{validation.page.size}");
         }
 
         @Test
@@ -221,7 +221,7 @@ class SupplierSearchDTOTest {
             // Then
             assertThat(violations).hasSize(1);
             assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("sortDir");
-            assertThat(violations.iterator().next().getMessage()).contains("La direcció d'ordenació ha de ser 'asc' o 'desc'");
+            assertThat(violations.iterator().next().getMessage()).contains("{validation.sort.direction}");
         }
 
         @ParameterizedTest

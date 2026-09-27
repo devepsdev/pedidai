@@ -34,7 +34,7 @@ public class UserController {
         PagedResponseDTO<UserResponseDTO> pagedResponse = PagedResponseDTO.of(users);
 
         return ResponseEntity.ok(
-                ApiResponseDTO.success(pagedResponse, "Usuaris de l'empresa obtinguts correctament"));
+                ApiResponseDTO.success(pagedResponse, "success.ok"));
     }
 
     @GetMapping("/search")
@@ -54,7 +54,7 @@ public class UserController {
         PagedResponseDTO<UserResponseDTO> pagedResponse = PagedResponseDTO.of(users);
 
         return ResponseEntity.ok(
-                ApiResponseDTO.success(pagedResponse, "Cerca bàsica d'usuaris completada"));
+                ApiResponseDTO.success(pagedResponse, "success.search.done"));
     }
 
     @GetMapping("/filter")
@@ -73,18 +73,34 @@ public class UserController {
         // Convertir Page a PagedResponseDTO per evitar warning de serialització
         PagedResponseDTO<UserResponseDTO> pagedResponse = PagedResponseDTO.of(users);
 
-        String message = String.format("Cerca avançada completada. Filtres aplicats: text=%s",
-                filterDTO.hasTextFilters());
+        String message = "success.search.done";
 
         return ResponseEntity.ok(
                 ApiResponseDTO.success(pagedResponse, message));
     }
 
+    /** Dades de l'usuari autenticat (inclou si ha verificat l'email i el seu idioma). */
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponseDTO<UserResponseDTO>> getMe() {
+        return ResponseEntity.ok(ApiResponseDTO.success(userService.getMe(), "success.ok"));
+    }
+
+    @PatchMapping("/me/language")
+    public ResponseEntity<ApiResponseDTO<UserResponseDTO>> updateMyLanguage(@RequestParam String language) {
+        return ResponseEntity.ok(ApiResponseDTO.success(userService.updateMyLanguage(language), "success.ok"));
+    }
+
+    @PostMapping("/me/resend-verification")
+    public ResponseEntity<ApiResponseDTO<Void>> resendMyVerification() {
+        userService.resendMyVerificationEmail();
+        return ResponseEntity.ok(ApiResponseDTO.success(null, "success.verification.resent"));
+    }
+
     @GetMapping("/{uuid}")
     public ResponseEntity<ApiResponseDTO<UserResponseDTO>> getUserByUuid(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid) {
         UserResponseDTO user = userService.getUserByUuid(uuid);
-        return ResponseEntity.ok(ApiResponseDTO.success(user, "Usuari obtingut correctament"));
+        return ResponseEntity.ok(ApiResponseDTO.success(user, "success.ok"));
     }
 
     @PostMapping()
@@ -93,37 +109,37 @@ public class UserController {
         UserResponseDTO created = userService.registerUser(registrationDTO);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponseDTO.success(created, "Usuari registrat correctament"));
+                .body(ApiResponseDTO.success(created, "success.user.created"));
     }
 
     @PutMapping("/{uuid}")
     public ResponseEntity<ApiResponseDTO<UserResponseDTO>> updateUser(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid,
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid,
             @Valid @RequestBody UserRequestDTO userRequestDTO) {
         UserResponseDTO updated = userService.updateUser(uuid, userRequestDTO);
-        return ResponseEntity.ok(ApiResponseDTO.success(updated, "Usuari actualitzat correctament"));
+        return ResponseEntity.ok(ApiResponseDTO.success(updated, "success.user.updated"));
     }
 
     @PatchMapping("/{uuid}/status")
     public ResponseEntity<ApiResponseDTO<UserResponseDTO>> changeUserStatus(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid,
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid,
             @RequestParam Boolean isActive) {
         UserResponseDTO updated = userService.changeUserStatus(uuid, isActive);
-        return ResponseEntity.ok(ApiResponseDTO.success(updated, "Estat de l'usuari actualitzat correctament"));
+        return ResponseEntity.ok(ApiResponseDTO.success(updated, "success.user.statusUpdated"));
     }
 
     @PatchMapping("/{uuid}/change-password")
     public ResponseEntity<ApiResponseDTO<Void>> changePassword(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid,
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid,
             @Valid @RequestBody PasswordChangeDTO passwordChangeDTO) {
         userService.changePassword(uuid, passwordChangeDTO);
-        return ResponseEntity.ok(ApiResponseDTO.success(null, "Contrasenya canviada correctament"));
+        return ResponseEntity.ok(ApiResponseDTO.success(null, "success.password.changed"));
     }
 
     @DeleteMapping("/{uuid}")
     public ResponseEntity<ApiResponseDTO<Void>> deleteUser(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid) {
         userService.deleteUser(uuid);
-        return ResponseEntity.ok(ApiResponseDTO.success(null, "Usuari eliminat correctament"));
+        return ResponseEntity.ok(ApiResponseDTO.success(null, "success.user.deleted"));
     }
 }

@@ -260,7 +260,7 @@ class SupplierRequestDTOTest {
             assertThat(violations).hasSizeGreaterThanOrEqualTo(1);
             assertThat(violations).anyMatch(v ->
                     v.getPropertyPath().toString().equals("email") &&
-                            v.getMessage().contains("format vàlid")
+                            v.getMessage().contains("email.invalid")
             );
         }
 
@@ -281,7 +281,7 @@ class SupplierRequestDTOTest {
             assertThat(violations).hasSizeGreaterThanOrEqualTo(1);
             assertThat(violations).anyMatch(v ->
                     v.getPropertyPath().toString().equals("email") &&
-                            v.getMessage().contains("255 caràcters")
+                            v.getMessage().contains("email.tooLong")
             );
         }
     }

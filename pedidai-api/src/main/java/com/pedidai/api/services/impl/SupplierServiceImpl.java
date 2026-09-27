@@ -5,19 +5,16 @@ import com.pedidai.api.dto.SupplierRequestDTO;
 import com.pedidai.api.dto.SupplierResponseDTO;
 import com.pedidai.api.entities.Company;
 import com.pedidai.api.entities.Supplier;
-import com.pedidai.api.entities.User;
 import com.pedidai.api.exceptions.DuplicateResourceException;
 import com.pedidai.api.exceptions.ResourceNotFoundException;
-import com.pedidai.api.repositories.CompanyRepository;
 import com.pedidai.api.repositories.SupplierRepository;
-import com.pedidai.api.repositories.UserRepository;
+import com.pedidai.api.security.CurrentUser;
 import com.pedidai.api.services.SupplierService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 @RequiredArgsConstructor
@@ -25,162 +22,102 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class SupplierServiceImpl implements SupplierService {
 
     private final SupplierRepository supplierRepository;
-    private final CompanyRepository companyRepository;
-    private final UserRepository userRepository;
+    private final CurrentUser currentUser;
 
     @Override
-    public SupplierResponseDTO createSupplier(SupplierRequestDTO supplierRequestDTO) {
-        String companyUuid = getCompanyUuidFromAuthenticatedUser();
-        // Verificar que l'empresa existeix
-        Company company = companyRepository.findByUuid(companyUuid)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Empresa no trobada amb UUID: " + companyUuid));
+    public SupplierResponseDTO createSupplier(SupplierRequestDTO dto) {
+        Company company = currentUser.company();
 
-        // Verificar que no existeix un proveïdor amb el mateix nom a l'empresa
-        if (supplierRepository.existsByCompanyUuidAndNameIgnoreCase(
-                companyUuid, supplierRequestDTO.getName())) {
-            throw new DuplicateResourceException(
-                    "Ja existeix un proveïdor amb el nom '" + supplierRequestDTO.getName() +
-                            "' a l'empresa especificada");
+        if (supplierRepository.existsByCompanyUuidAndNameIgnoreCase(company.getUuid(), dto.getName())) {
+            throw new DuplicateResourceException("error.supplier.nameExists", dto.getName());
         }
 
-        // Crear el proveïdor
         Supplier supplier = Supplier.builder()
                 .company(company)
-                .name(supplierRequestDTO.getName())
-                .contactName(supplierRequestDTO.getContactName())
-                .email(supplierRequestDTO.getEmail())
-                .phone(supplierRequestDTO.getPhone())
-                .address(supplierRequestDTO.getAddress())
-                .notes(supplierRequestDTO.getNotes())
-                .isActive(supplierRequestDTO.getIsActive())
+                .name(dto.getName().trim())
+                .contactName(dto.getContactName())
+                .email(blankToNull(dto.getEmail()))
+                .phone(dto.getPhone())
+                .address(dto.getAddress())
+                .notes(dto.getNotes())
+                .isActive(dto.getIsActive() == null || dto.getIsActive())
                 .build();
 
-        Supplier savedSupplier = supplierRepository.save(supplier);
-
-        return mapToResponseDTO(savedSupplier);
+        return mapToResponseDTO(supplierRepository.save(supplier));
     }
 
     @Override
     @Transactional(readOnly = true)
     public SupplierResponseDTO getSupplierByUuid(String uuid) {
-        Supplier supplier = supplierRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Proveïdor no trobat amb UUID: " + uuid));
-        return mapToResponseDTO(supplier);
+        return mapToResponseDTO(findOwned(uuid));
     }
 
     @Override
-    public SupplierResponseDTO updateSupplier(String uuid, SupplierRequestDTO supplierRequestDTO) {
-        Supplier existingSupplier = supplierRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Proveïdor no trobat amb UUID: " + uuid));
-        String companyUuid = getCompanyUuidFromAuthenticatedUser();
-        // Verificar que l'empresa existeix si s'ha canviat
-        if (!existingSupplier.getCompany().getUuid().equals(companyUuid)) {
-            Company company = companyRepository.findByUuid(companyUuid)
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Empresa no trobada amb UUID: " + companyUuid));
-            existingSupplier.setCompany(company);
+    public SupplierResponseDTO updateSupplier(String uuid, SupplierRequestDTO dto) {
+        Supplier supplier = findOwned(uuid);
+        String companyUuid = supplier.getCompany().getUuid();
+
+        if (!supplier.getName().equalsIgnoreCase(dto.getName())
+                && supplierRepository.existsByCompanyUuidAndNameIgnoreCaseAndUuidNot(companyUuid, dto.getName(), uuid)) {
+            throw new DuplicateResourceException("error.supplier.nameExists", dto.getName());
         }
 
-        // Verificar duplicats de nom si s'ha canviat el nom
-        if (!existingSupplier.getName().equalsIgnoreCase(supplierRequestDTO.getName())) {
-            if (supplierRepository.existsByCompanyUuidAndNameIgnoreCaseAndUuidNot(
-                    companyUuid, supplierRequestDTO.getName(), uuid)) {
-                throw new DuplicateResourceException(
-                        "Ja existeix un proveïdor amb el nom '" + supplierRequestDTO.getName() +
-                                "' a l'empresa especificada");
-            }
+        supplier.setName(dto.getName().trim());
+        supplier.setContactName(dto.getContactName());
+        supplier.setEmail(blankToNull(dto.getEmail()));
+        supplier.setPhone(dto.getPhone());
+        supplier.setAddress(dto.getAddress());
+        supplier.setNotes(dto.getNotes());
+        if (dto.getIsActive() != null) {
+            supplier.setIsActive(dto.getIsActive());
         }
 
-        // Actualitzar les dades
-        existingSupplier.setName(supplierRequestDTO.getName());
-        existingSupplier.setContactName(supplierRequestDTO.getContactName());
-        existingSupplier.setEmail(supplierRequestDTO.getEmail());
-        existingSupplier.setPhone(supplierRequestDTO.getPhone());
-        existingSupplier.setAddress(supplierRequestDTO.getAddress());
-        existingSupplier.setNotes(supplierRequestDTO.getNotes());
-        existingSupplier.setIsActive(supplierRequestDTO.getIsActive());
-
-        Supplier updatedSupplier = supplierRepository.save(existingSupplier);
-
-        return mapToResponseDTO(updatedSupplier);
+        return mapToResponseDTO(supplierRepository.save(supplier));
     }
 
     @Override
     public SupplierResponseDTO toggleSupplierStatus(String uuid, Boolean isActive) {
-        Supplier supplier = supplierRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Proveïdor no trobat amb UUID: " + uuid));
-
+        Supplier supplier = findOwned(uuid);
         supplier.setIsActive(isActive);
-        Supplier updatedSupplier = supplierRepository.save(supplier);
-
-        return mapToResponseDTO(updatedSupplier);
+        return mapToResponseDTO(supplierRepository.save(supplier));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<SupplierResponseDTO> getAllSuppliersPaginated(Pageable pageable) {
-        String companyUuid = getCompanyUuidFromAuthenticatedUser();
-
-        // Mètode automàtic de Spring Data
-        Page<Supplier> suppliersPage = supplierRepository.findByCompanyUuidAndIsActiveTrue(
-                companyUuid, pageable);
-
-        return suppliersPage.map(this::mapToResponseDTO);
+        return supplierRepository.findByCompanyUuidAndIsActiveTrue(currentUser.company().getUuid(), pageable)
+                .map(this::mapToResponseDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<SupplierResponseDTO> searchSuppliersByText(String searchText, Pageable pageable) {
-        String companyUuid = getCompanyUuidFromAuthenticatedUser();
-
-        // Verificar que l'empresa existeix
-        Company company = companyRepository.findByUuid(companyUuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
-
-        // Mètode de cerca en múltiples camps que filtra només actius
-        Page<Supplier> suppliers = supplierRepository.findByCompanyIdAndMultipleFieldsContainingActive(
-                company.getId(), searchText, pageable);
-
-        return suppliers.map(this::mapToResponseDTO);
+        return supplierRepository.findByCompanyIdAndMultipleFieldsContainingActive(
+                currentUser.companyId(), searchText, pageable).map(this::mapToResponseDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<SupplierResponseDTO> searchSuppliersWithFilters(SupplierFilterDTO filterDTO, Pageable pageable) {
-        String companyUuid = getCompanyUuidFromAuthenticatedUser();
-
-        // Verificar que l'empresa existeix
-        Company company = companyRepository.findByUuid(companyUuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
-
-        // Usar el mètode del repositori amb tots els filtres expandits
-        Page<Supplier> suppliers = supplierRepository.findByCompanyIdAndCriteriaActive(
-                company.getId(),
+        return supplierRepository.findByCompanyIdAndCriteriaActive(
+                currentUser.companyId(),
                 filterDTO.getName(),
                 filterDTO.getContactName(),
                 filterDTO.getEmail(),
                 filterDTO.getPhone(),
                 filterDTO.getAddress(),
                 pageable
-        );
-
-        return suppliers.map(this::mapToResponseDTO);
+        ).map(this::mapToResponseDTO);
     }
 
-    private String getCompanyUuidFromAuthenticatedUser() {
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
+    /** Proveïdor de l'empresa de l'usuari; si és d'una altra empresa es tracta com a inexistent. */
+    private Supplier findOwned(String uuid) {
+        return supplierRepository.findByUuidAndCompany_Id(uuid, currentUser.companyId())
+                .orElseThrow(() -> new ResourceNotFoundException("error.supplier.notFound"));
+    }
 
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
-
-        if (user.getCompany() == null || user.getCompany().getUuid() == null) {
-            throw new ResourceNotFoundException("L'usuari no té empresa assignada");
-        }
-
-        return user.getCompany().getUuid();
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private SupplierResponseDTO mapToResponseDTO(Supplier supplier) {
@@ -199,5 +136,4 @@ public class SupplierServiceImpl implements SupplierService {
                 .updatedAt(supplier.getUpdatedAt())
                 .build();
     }
-
 }

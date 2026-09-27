@@ -13,21 +13,21 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserRegistrationDTO {
 
-    @NotBlank(message = "L'email és obligatori")
-    @Email(message = "L'email ha de ser vàlid")
+    @NotBlank(message = "{validation.email.required}")
+    @Email(message = "{validation.email.invalid}")
     private String email;
 
-    @NotBlank(message = "La contrasenya és obligatòria")
-    @Size(min = 8, message = "La contrasenya ha de tenir almenys 8 caràcters")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\\s]).*$",
-            message = "La contrasenya ha de contenir un mínim d'una majúscula, una minúscula, un número i un caràcter especial")
+    @NotBlank(message = "{validation.password.required}")
+    @Size(min = 8, message = "{validation.password.weak}")
+    @Pattern(regexp = com.pedidai.api.security.PasswordPolicy.REGEX,
+            message = "{validation.password.weak}")
     private String password;
 
-    @NotBlank(message = "El nom és obligatori")
+    @NotBlank(message = "{validation.name.required}")
     @Size(max = 100)
     private String firstName;
 
-    @NotBlank(message = "Els cognoms són obligatoris")
+    @NotBlank(message = "{validation.lastName.required}")
     @Size(max = 100)
     private String lastName;
 

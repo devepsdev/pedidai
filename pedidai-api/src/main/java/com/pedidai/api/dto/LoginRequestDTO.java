@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class LoginRequestDTO {
 
-    @NotBlank(message = "El correu electrònic és obligatori")
-    @Email(message = "El correu electrònic ha de tenir un format vàlid")
+    @NotBlank(message = "{validation.email.required}")
+    @Email(message = "{validation.email.invalid}")
     private String email;
 
-    @NotBlank(message = "La contrasenya és obligatòria")
+    @NotBlank(message = "{validation.password.required}")
     private String password;
 }

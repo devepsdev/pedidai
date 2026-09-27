@@ -1,7 +1,7 @@
 package com.pedidai.api.exceptions;
 
-public class ResourceNotFoundException extends RuntimeException {
-    public ResourceNotFoundException(String message) {
-        super(message);
+public class ResourceNotFoundException extends LocalizedException {
+    public ResourceNotFoundException(String key, Object... args) {
+        super(key, args);
     }
 }

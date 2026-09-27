@@ -13,13 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/products")
@@ -34,32 +28,32 @@ public class ProductController {
         ProductResponseDTO createdProduct = productService.createProduct(productRequestDTO);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponseDTO.success(createdProduct, "Producte creat correctament"));
+                .body(ApiResponseDTO.success(createdProduct, "success.product.created"));
     }
 
     @GetMapping("/{uuid}")
     public ResponseEntity<ApiResponseDTO<ProductResponseDTO>> getProductByUuid(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid) {
         ProductResponseDTO product = productService.getProductByUuid(uuid);
         return ResponseEntity.ok(
-                ApiResponseDTO.success(product, "Producte obtingut correctament"));
+                ApiResponseDTO.success(product, "success.ok"));
     }
 
     @PutMapping("/{uuid}")
     public ResponseEntity<ApiResponseDTO<ProductResponseDTO>> updateProduct(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid,
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid,
             @Valid @RequestBody ProductRequestDTO productRequestDTO) {
         ProductResponseDTO updatedProduct = productService.updateProduct(uuid, productRequestDTO);
         return ResponseEntity.ok(
-                ApiResponseDTO.success(updatedProduct, "Producte actualitzat correctament"));
+                ApiResponseDTO.success(updatedProduct, "success.product.updated"));
     }
 
     @PatchMapping("/deactivate/{uuid}")
     public ResponseEntity<ApiResponseDTO<ProductResponseDTO>> deactivateProduct(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid) {
         ProductResponseDTO deactivatedProduct = productService.deactivateProduct(uuid);
         return ResponseEntity.ok(
-                ApiResponseDTO.success(deactivatedProduct, "Producte eliminat correctament"));
+                ApiResponseDTO.success(deactivatedProduct, "success.product.deleted"));
     }
 
     @GetMapping
@@ -84,7 +78,7 @@ public class ProductController {
         PagedResponseDTO<ProductResponseDTO> pagedResponse = PagedResponseDTO.of(products);
 
         return ResponseEntity.ok(
-                ApiResponseDTO.success(pagedResponse, "Llistat de productes de la companyia completat"));
+                ApiResponseDTO.success(pagedResponse, "success.ok"));
     }
 
     @GetMapping("/search")
@@ -101,7 +95,7 @@ public class ProductController {
         // Convertir Page a PagedResponseDTO per evitar warning de serialització
         PagedResponseDTO<ProductResponseDTO> pagedResponse = PagedResponseDTO.of(products);
 
-        return ResponseEntity.ok(ApiResponseDTO.success(pagedResponse, "Cerca bàsica de productes completada"));
+        return ResponseEntity.ok(ApiResponseDTO.success(pagedResponse, "success.search.done"));
     }
 
     @GetMapping("/filter")
@@ -118,7 +112,7 @@ public class ProductController {
         // Convertir Page a PagedResponseDTO per evitar warning de serialització
         PagedResponseDTO<ProductResponseDTO> pagedResponse = PagedResponseDTO.of(products);
 
-        String message = String.format("Cerca avançada completada. Filtres aplicats: text=%s", filterDTO.hasTextFilters());
+        String message = "success.search.done";
         return ResponseEntity.ok(ApiResponseDTO.success(pagedResponse, message));
     }
 
@@ -128,42 +122,20 @@ public class ProductController {
         String imageUrl = productService.saveProductImage(productUuid, file);
 
         return ResponseEntity.ok(
-                ApiResponseDTO.success(imageUrl, "Imatge pujada correctament")
+                ApiResponseDTO.success(imageUrl, "success.image.uploaded")
         );
     }
 
+    /** Comparativa de preus entre proveïdors (a partir dels albarans) dels productes que coincideixen amb el nom. */
     @GetMapping("/compare-prices")
-    public ResponseEntity<ApiResponseDTO<List<PriceComparisonDTO>>> comparePrices(
+    public ResponseEntity<ApiResponseDTO<List<PriceGroupDTO>>> comparePrices(
             @RequestParam String productName,
             @RequestParam(defaultValue = "90") int days) {
-
-        List<PriceComparisonDTO> result = productService.comparePrices(productName, days);
-        String message = result.isEmpty()
-                ? "No s'han trobat productes actius amb el nom '" + productName + "'"
-                : "Comparativa de preus completada";
-        return ResponseEntity.ok(ApiResponseDTO.success(result, message));
+        return ResponseEntity.ok(ApiResponseDTO.success(productService.comparePrices(productName, days), "success.ok"));
     }
 
     @PostMapping("/upload-temp")
     public ResponseEntity<ApiResponseDTO<String>> uploadTempImage(@RequestParam("image") MultipartFile file) {
-
-        try {
-            String uploadDir = "img/productes/";
-            Files.createDirectories(Paths.get(uploadDir));
-
-            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path filepath = Paths.get(uploadDir, filename);
-
-            Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
-
-            String url = "/img/productes/" + filename;
-
-            return ResponseEntity.ok(ApiResponseDTO.success(url, "Imatge pujada correctament"));
-
-        } catch (IOException e) {
-            throw new RuntimeException("Error al pujar la imatge: " + e.getMessage(), e);
-        }
+        return ResponseEntity.ok(ApiResponseDTO.success(productService.storeImage(file), "success.image.uploaded"));
     }
-
 }
-

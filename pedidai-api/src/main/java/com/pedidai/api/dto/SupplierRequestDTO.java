@@ -14,18 +14,18 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class SupplierRequestDTO {
 
-    @NotBlank(message = "El nom del proveïdor és obligatori")
-    @Size(max = 255, message = "El nom no pot superar els 255 caràcters")
+    @NotBlank(message = "{validation.supplierName.required}")
+    @Size(max = 255, message = "{validation.name.tooLong}")
     private String name;
 
-    @Size(max = 255, message = "El nom de contacte no pot superar els 255 caràcters")
+    @Size(max = 255, message = "{validation.contactName.tooLong}")
     private String contactName;
 
-    @Email(message = "L'adreça de correu electrònic ha de tenir un format vàlid")
-    @Size(max = 255, message = "L'email no pot superar els 255 caràcters")
+    @Email(message = "{validation.email.invalid}")
+    @Size(max = 255, message = "{validation.email.tooLong}")
     private String email;
 
-    @Size(max = 50, message = "El telèfon no pot superar els 50 caràcters")
+    @Size(max = 50, message = "{validation.phone.tooLong}")
     private String phone;
 
     private String address;

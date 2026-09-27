@@ -17,18 +17,18 @@ public class OrderSearchDTO {
 
     private String searchText;
 
-    @Min(value = 0, message = "El número de pàgina ha de ser 0 o superior")
+    @Min(value = 0, message = "{validation.page.number}")
     @Builder.Default
     private int page = 0;
 
-    @Min(value = 1, message = "La mida de pàgina ha de ser 1 o superior")
+    @Min(value = 1, message = "{validation.page.size}")
     @Builder.Default
     private int size = 10;
 
     @Builder.Default
     private String sortBy = "name";
 
-    @Pattern(regexp = "asc|desc", message = "La direcció d'ordenació ha de ser 'asc' o 'desc'")
+    @Pattern(regexp = "asc|desc", message = "{validation.sort.direction}")
     @Builder.Default
     private String sortDir = "asc";
 }

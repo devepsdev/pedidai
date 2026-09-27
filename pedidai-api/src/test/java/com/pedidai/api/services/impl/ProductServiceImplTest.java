@@ -1,247 +1,114 @@
 package com.pedidai.api.services.impl;
 
-import com.pedidai.api.dto.ProductFilterDTO;
 import com.pedidai.api.dto.ProductRequestDTO;
-import com.pedidai.api.dto.ProductResponseDTO;
-import com.pedidai.api.dto.ProductSearchDTO;
+import com.pedidai.api.entities.Company;
+import com.pedidai.api.entities.PriceHistory;
 import com.pedidai.api.entities.Product;
 import com.pedidai.api.entities.Supplier;
+import com.pedidai.api.exceptions.BadRequestException;
+import com.pedidai.api.exceptions.ResourceNotFoundException;
 import com.pedidai.api.repositories.ProductRepository;
 import com.pedidai.api.repositories.SupplierRepository;
+import com.pedidai.api.security.CurrentUser;
+import com.pedidai.api.services.PriceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-public class ProductServiceImplTest {
+@ExtendWith(MockitoExtension.class)
+@DisplayName("ProductServiceImpl: productes de l'empresa, historial de preus i imatges segures")
+class ProductServiceImplTest {
 
-    @Mock
-    private ProductRepository productRepository;
-
-    @Mock
-    private SupplierRepository supplierRepository;
-
-    @InjectMocks
-    private ProductServiceImpl productService;
+    @Mock private ProductRepository productRepository;
+    @Mock private SupplierRepository supplierRepository;
+    @Mock private CurrentUser currentUser;
+    @Mock private PriceService priceService;
+    @InjectMocks private ProductServiceImpl service;
 
     private Supplier supplier;
-    private Product product;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-
-        supplier = Supplier.builder()
-                .uuid("supplier-uuid")
-                .name("Proveïdor Test")
-                .isActive(true)
-                .build();
-
-        product = Product.builder()
-                .uuid("product-uuid")
-                .supplier(supplier)
-                .name("Aigua Mineral")
-                .description("1L")
-                .price(BigDecimal.valueOf(1.5))
-                .unit("l")
-                .isActive(true)
-                .build();
+        Company company = Company.builder().id(1L).uuid("c1").build();
+        supplier = Supplier.builder().id(2L).uuid("s1").name("Fruites").company(company).build();
+        lenient().when(currentUser.companyId()).thenReturn(1L);
     }
 
     @Test
-    @DisplayName("Comrpova creació de producte")
-    void testCrearProducte() {
-        when(supplierRepository.findByUuid("supplier-uuid")).thenReturn(Optional.of(supplier));
-        when(productRepository.save(any(Product.class))).thenReturn(product);
+    @DisplayName("crear un producte desa el nom genèric i el primer preu a l'historial")
+    void createRecordsPrice() {
+        when(supplierRepository.findByUuidAndCompany_Id("s1", 1L)).thenReturn(Optional.of(supplier));
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        ProductRequestDTO request = ProductRequestDTO.builder()
-                .supplierUuid("supplier-uuid")
-                .name("Aigua Mineral")
-                .description("1L")
-                .price(BigDecimal.valueOf(1.5))
-                .unit("l")
-                .build();
+        var dto = service.createProduct(ProductRequestDTO.builder().supplierUuid("s1").name("Tomàquet Pera")
+                .price(new BigDecimal("1.55")).unit("kg").build());
 
-        ProductResponseDTO response = productService.createProduct(request);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getName()).isEqualTo("Aigua Mineral");
-        assertThat(response.getSupplier().getUuid()).isEqualTo("supplier-uuid");
+        assertThat(dto.getCanonicalName()).isEqualTo("tomàquet pera");
+        verify(priceService).recordObservation(any(), eq(new BigDecimal("1.55")), eq("kg"), isNull(), any(),
+                eq(PriceHistory.Source.MANUAL), isNull());
     }
 
     @Test
-    @DisplayName("Comprova recuperació producte per uuid")
-    void testObtenirProductePerUuid() {
-        when(productRepository.findByUuid("product-uuid")).thenReturn(Optional.of(product));
+    @DisplayName("canviar el preu a mà queda a l'historial; si no canvia, no")
+    void updateRecordsOnlyPriceChanges() {
+        Product product = Product.builder().id(3L).uuid("p1").name("Tomàquet").price(new BigDecimal("1.55")).supplier(supplier).build();
+        when(productRepository.findByUuidAndSupplier_Company_Id("p1", 1L)).thenReturn(Optional.of(product));
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        ProductResponseDTO response = productService.getProductByUuid("product-uuid");
+        service.updateProduct("p1", ProductRequestDTO.builder().supplierUuid("s1").name("Tomàquet").price(new BigDecimal("1.55")).build());
+        verify(priceService, never()).recordObservation(any(), any(), any(), any(), any(), any(), any());
 
-        assertThat(response).isNotNull();
-        assertThat(response.getUuid()).isEqualTo("product-uuid");
-        assertThat(response.getName()).isEqualTo("Aigua Mineral");
+        service.updateProduct("p1", ProductRequestDTO.builder().supplierUuid("s1").name("Tomàquet").price(new BigDecimal("1.70")).build());
+        verify(priceService).recordObservation(eq(product), eq(new BigDecimal("1.70")), any(), any(), any(), eq(PriceHistory.Source.MANUAL), any());
     }
 
     @Test
-    @DisplayName("Comprova llistat de productes amb searchText i paginació")
-    void testLlistatProductesAmbSearch() {
+    @DisplayName("els productes d'una altra empresa són invisibles")
+    void otherCompanyProduct() {
+        when(productRepository.findByUuidAndSupplier_Company_Id("p-altre", 1L)).thenReturn(Optional.empty());
 
-        // Inicializar el supplier con ID
-        Supplier supplier = Supplier.builder()
-                .uuid("supplier-uuid")
-                .name("Proveidor Exemple")
-                .build();
-        supplier.setId(1L); // Clave para que el mock coincida
-
-        // Crear productos de prueba
-        Product product1 = Product.builder()
-                .uuid("product-uuid-1")
-                .supplier(supplier)
-                .name("Aigua Mineral")
-                .description("1L")
-                .category("Bebida")
-                .price(BigDecimal.valueOf(1.5))
-                .volume(BigDecimal.valueOf(1.0))
-                .unit("l")
-                .isActive(true)
-                .build();
-
-        Product product2 = Product.builder()
-                .uuid("product-uuid-2")
-                .supplier(supplier)
-                .name("Suc de taronja")
-                .description("1L")
-                .category("Bebida")
-                .price(BigDecimal.valueOf(2.0))
-                .volume(BigDecimal.valueOf(1.0))
-                .unit("l")
-                .isActive(true)
-                .build();
-
-        List<Product> products = Arrays.asList(product1, product2);
-        Page<Product> productPage = new PageImpl<>(products, PageRequest.of(0, 10), products.size());
-
-        // Mocks del repositorio
-        when(supplierRepository.findByUuid("supplier-uuid")).thenReturn(Optional.of(supplier));
-
-        // Usar anyLong(), anyString() y any(Pageable.class) para evitar problemas de coincidencia
-        when(productRepository.searchProductsBySupplierId(anyLong(), anyString(), any(Pageable.class)))
-                .thenReturn(productPage);
-
-        // DTO con searchText vacío para simular búsqueda
-        ProductSearchDTO search = ProductSearchDTO.builder()
-                .supplierUuid("supplier-uuid")
-                .searchText("") // importante no dejar null
-                .page(0)
-                .size(10)
-                .sortBy("name")
-                .sortDir("asc")
-                .build();
-
-        // Llamada al service
-        Page<ProductResponseDTO> responsePage = productService.searchProducts(
-                search, PageRequest.of(search.getPage(), search.getSize()));
-
-        // Assertions
-        assertThat(responsePage).isNotNull();
-        assertThat(responsePage.getContent()).hasSize(2);
-        assertThat(responsePage.getContent().get(0).getName()).isEqualTo("Aigua Mineral");
-        assertThat(responsePage.getContent().get(1).getName()).isEqualTo("Suc de taronja");
-
+        assertThatThrownBy(() -> service.getProductByUuid("p-altre")).isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> service.deactivateProduct("p-altre")).isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    @DisplayName("Comprova llistat de productes amb filtres i paginació")
-    void testLlistatProductesAmbFilter() {
+    @DisplayName("no es pot crear un producte en un proveïdor d'una altra empresa")
+    void cannotCreateInForeignSupplier() {
+        when(supplierRepository.findByUuidAndCompany_Id("s-altre", 1L)).thenReturn(Optional.empty());
 
-        // Iniciar supplier amb id
-        Supplier supplier = Supplier.builder()
-                .uuid("supplier-uuid")
-                .name("Proveidor Exemple")
-                .build();
-        supplier.setId(1L); // Clave para que el mock coincida
-
-        // Crear productes de prova
-        Product product1 = Product.builder()
-                .uuid("product-uuid-1")
-                .supplier(supplier)
-                .name("Aigua Mineral")
-                .description("1L")
-                .category("Bebida")
-                .price(BigDecimal.valueOf(1.5))
-                .volume(BigDecimal.valueOf(1.0))
-                .unit("l")
-                .isActive(true)
-                .build();
-
-        Product product2 = Product.builder()
-                .uuid("product-uuid-2")
-                .supplier(supplier)
-                .name("Suc de taronja")
-                .description("1L")
-                .category("Bebida")
-                .price(BigDecimal.valueOf(2.0))
-                .volume(BigDecimal.valueOf(1.0))
-                .unit("l")
-                .isActive(true)
-                .build();
-
-        List<Product> products = Arrays.asList(product1, product2);
-        Page<Product> productPage = new PageImpl<>(products, PageRequest.of(0, 10), products.size());
-
-        // Mocks del repositori
-        when(supplierRepository.findByUuid("supplier-uuid")).thenReturn(Optional.of(supplier));
-        when(productRepository.filterProductsBySupplierId(
-                anyLong(),
-                nullable(String.class),
-                nullable(String.class),
-                nullable(String.class),
-                nullable(BigDecimal.class),
-                nullable(String.class),
-                nullable(BigDecimal.class),
-                nullable(BigDecimal.class),
-                anyBoolean(),
-                any(Pageable.class)
-        )).thenReturn(productPage);
-
-        // DTO amb camps buits per cerca
-        ProductFilterDTO filter = ProductFilterDTO.builder()
-                .supplierUuid("supplier-uuid")
-                .name(null)
-                .description(null)
-                .category(null)
-                .minPrice(null)
-                .maxPrice(null)
-                .volume(null)
-                .unit(null)
-                .isActive(true)
-                .page(0)
-                .size(10)
-                .sortBy("name")
-                .sortDir("asc")
-                .build();
-
-        // Crida al service
-        Page<ProductResponseDTO> responsePage = productService.filterProducts(
-                filter, PageRequest.of(filter.getPage(), filter.getSize()));
-
-        // Assertions
-        assertThat(responsePage).isNotNull();
-        assertThat(responsePage.getContent()).hasSize(2);
-        assertThat(responsePage.getContent().get(0).getName()).isEqualTo("Aigua Mineral");
-        assertThat(responsePage.getContent().get(1).getName()).isEqualTo("Suc de taronja");
-
+        assertThatThrownBy(() -> service.createProduct(ProductRequestDTO.builder().supplierUuid("s-altre").name("X").price(BigDecimal.ONE).build()))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
+    @Test
+    @DisplayName("només s'accepten imatges reals JPG/PNG/WebP (no SVG ni fitxers disfressats)")
+    void rejectsUnsafeImages() {
+        var svg = new MockMultipartFile("image", "../../evil.svg", "image/svg+xml", "<svg onload=alert(1)>".getBytes());
+        var fakePng = new MockMultipartFile("image", "x.png", "image/png", "<html>no soc una imatge</html>".getBytes());
+
+        assertThatThrownBy(() -> service.storeImage(svg)).isInstanceOf(BadRequestException.class).hasMessage("error.image.invalidType");
+        assertThatThrownBy(() -> service.storeImage(fakePng)).isInstanceOf(BadRequestException.class).hasMessage("error.image.invalidType");
+    }
+
+    @Test
+    @DisplayName("la URL d'imatge només pot ser una de pròpia o https")
+    void rejectsArbitraryImageUrl() {
+        when(supplierRepository.findByUuidAndCompany_Id("s1", 1L)).thenReturn(Optional.of(supplier));
+
+        assertThatThrownBy(() -> service.createProduct(ProductRequestDTO.builder().supplierUuid("s1").name("X")
+                .price(BigDecimal.ONE).imageUrl("javascript:alert(1)").build()))
+                .isInstanceOf(BadRequestException.class).hasMessage("error.image.invalidUrl");
+    }
 }

@@ -26,7 +26,7 @@ public class Company {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "tax_id", nullable = false, unique = true, length = 50)
+    @Column(name = "tax_id", unique = true, length = 50)
     private String taxId;
 
     @Column(nullable = false)

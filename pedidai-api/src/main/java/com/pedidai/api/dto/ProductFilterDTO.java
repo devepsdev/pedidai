@@ -23,11 +23,11 @@ public class ProductFilterDTO {
     private String category; // Categoria del producte
 
     // Preu mínim del producte (opcional)
-    @Min(value = 0, message = "El preu mínim no pot ser negatiu")
+    @Min(value = 0, message = "{validation.price.negative}")
     private BigDecimal minPrice;
 
     // Preu màxim del producte (opcional)
-    @Min(value = 0, message = "El preu màxim no pot ser negatiu")
+    @Min(value = 0, message = "{validation.price.negative}")
     private BigDecimal maxPrice;
 
     // Volum del producte (ex: 1, 2, 3)
@@ -40,11 +40,11 @@ public class ProductFilterDTO {
     private Boolean isActive;   // Estat actiu (true/false/null per tots)
 
     // Paginació
-    @Min(value = 0, message = "El número de pàgina ha de ser 0 o superior")
+    @Min(value = 0, message = "{validation.page.number}")
     @Builder.Default
     private int page = 0;
 
-    @Min(value = 1, message = "La mida de pàgina ha de ser 1 o superior")
+    @Min(value = 1, message = "{validation.page.size}")
     @Builder.Default
     private int size = 10;
 
@@ -52,7 +52,7 @@ public class ProductFilterDTO {
     @Builder.Default
     private String sortBy = "name";
 
-    @Pattern(regexp = "asc|desc", message = "La direcció d'ordenació ha de ser 'asc' o 'desc'")
+    @Pattern(regexp = "asc|desc", message = "{validation.sort.direction}")
     @Builder.Default
     private String sortDir = "asc";
 

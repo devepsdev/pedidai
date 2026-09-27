@@ -20,6 +20,7 @@ public class ProductResponseDTO {
     private String category;
 
     private String name;
+    private String canonicalName;
 
     private String description;
 

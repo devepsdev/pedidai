@@ -13,19 +13,19 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserRequestDTO {
 
-    @NotBlank(message = "L'email és obligatori")
-    @Email(message = "L'email ha de ser vàlid")
+    @NotBlank(message = "{validation.email.required}")
+    @Email(message = "{validation.email.invalid}")
     private String email;
 
-    @Size(max = 100, message = "El nom no pot excedir 100 caràcters")
+    @Size(max = 100, message = "{validation.name.tooLong}")
     private String firstName;
 
-    @Size(max = 100, message = "El cognom no pot excedir 100 caràcters")
+    @Size(max = 100, message = "{validation.lastName.tooLong}")
     private String lastName;
 
     private User.UserRole role;
 
-    @Size(max = 50, message = "El telèfon no pot excedir 50 caràcters")
+    @Size(max = 50, message = "{validation.phone.tooLong}")
     private String phone;
 
     private Boolean isActive;

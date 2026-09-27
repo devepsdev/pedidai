@@ -7,10 +7,12 @@ import com.pedidai.api.exceptions.ResourceNotFoundException;
 import com.pedidai.api.repositories.OrderRepository;
 import com.pedidai.api.repositories.ProductRepository;
 import com.pedidai.api.repositories.UserRepository;
+import com.pedidai.api.config.Messages;
+import com.pedidai.api.security.CurrentUser;
+import lombok.extern.slf4j.Slf4j;
 import com.pedidai.api.services.ReportService;
 import com.lowagie.text.Font;
 import com.lowagie.text.Image;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,15 +35,18 @@ import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 
+@Slf4j
 @Service
 public class ReportServiceImpl implements ReportService {
 
     private final OrderRepository orderRepository;
-    private final UserRepository userRepository;
+    private final CurrentUser currentUser;
+    private final Messages messages;
 
-    public ReportServiceImpl(ProductRepository productRepository, OrderRepository orderRepository, UserRepository userRepository) {
+    public ReportServiceImpl(OrderRepository orderRepository, CurrentUser currentUser, Messages messages) {
         this.orderRepository = orderRepository;
-        this.userRepository = userRepository;
+        this.currentUser = currentUser;
+        this.messages = messages;
     }
 
     @Override
@@ -49,9 +54,7 @@ public class ReportServiceImpl implements ReportService {
     public DashboardResponseDTO dashboardInfo() {
 
         // Recuperem informació de l'usuari i la companyia
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(username).orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
-        Long companyId = user.getCompany().getId();
+        Long companyId = currentUser.companyId();
 
         // Calculem el període (últim mes)
         LocalDateTime currentDate = LocalDateTime.now();
@@ -83,9 +86,7 @@ public class ReportServiceImpl implements ReportService {
     public ReportGlobalResponseDTO globalInfo(PeriodRequestDTO dto) {
 
         // Recuperem informació de l'usuari i la companyia
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(username).orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
-        Long companyId = user.getCompany().getId();
+        Long companyId = currentUser.companyId();
 
         // Recuperar llistat de comandes
         List<Order> orders = orderRepository.getOrdersByCompanyIdAndPeriodWithOrderItems(companyId, dto.getDataInicial(), dto.getDataFinal());
@@ -211,36 +212,36 @@ public class ReportServiceImpl implements ReportService {
             Font subtitleFont = new Font(Font.HELVETICA, 16, Font.BOLD, Color.BLACK);
 
             // Títol
-            Paragraph title = new Paragraph("Report Global", titleFont);
+            Paragraph title = new Paragraph(messages.get("pdf.title"), titleFont);
             document.add(title);
 
             // Periode
             document.add(new Paragraph("\n"));
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            document.add(new Paragraph("Període: de " + report.getDataInicial().format(formatter) + " a " + report.getDataFinal().format(formatter) ));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            document.add(new Paragraph(messages.get("pdf.period", report.getDataInicial().format(formatter), report.getDataFinal().format(formatter))));
 
             // Informació general
             document.add(new Paragraph("\n"));
-            Paragraph subtitleGlobal = new Paragraph("Resum global", subtitleFont);
+            Paragraph subtitleGlobal = new Paragraph(messages.get("pdf.summary"), subtitleFont);
             document.add(subtitleGlobal);
             document.add(new Paragraph("\n"));
-            document.add(new Paragraph("Total comandes: " + report.getTotalComandes()));
+            document.add(new Paragraph(messages.get("pdf.totalOrders") + ": " + report.getTotalComandes()));
             DecimalFormat df = new DecimalFormat("#0.00");
             String despesaTotalFormatada = df.format(report.getDespesaTotal());
-            document.add(new Paragraph("Despesa total: " + despesaTotalFormatada));
-            document.add(new Paragraph("Comanda mitjana: " + report.getComandaMitjana()));
+            document.add(new Paragraph(messages.get("pdf.totalSpend") + ": " + despesaTotalFormatada + " €"));
+            document.add(new Paragraph(messages.get("pdf.averageOrder") + ": " + df.format(report.getComandaMitjana()) + " €"));
             document.add(new Paragraph("\n"));
 
             // Tabla de proveïdors
             document.add(new Paragraph("\n"));
-            Paragraph subtitle2 = new Paragraph("Despesa proveïdors", subtitleFont);
+            Paragraph subtitle2 = new Paragraph(messages.get("pdf.spendBySupplier"), subtitleFont);
             document.add(subtitle2);
             document.add(new Paragraph("\n"));
             PdfPTable table = new PdfPTable(4);
-            table.addCell("Proveïdor");
-            table.addCell("Num Comandes");
-            table.addCell("Despesa Total");
-            table.addCell("% del total");
+            table.addCell(messages.get("pdf.colSupplier"));
+            table.addCell(messages.get("pdf.colOrders"));
+            table.addCell(messages.get("pdf.colSpend"));
+            table.addCell(messages.get("pdf.colShare"));
             for (var p : report.getDespesaProveidors()) {
                 table.addCell(p.getProveidor());
                 table.addCell(String.valueOf(p.getNumComandes()));
@@ -252,13 +253,13 @@ public class ReportServiceImpl implements ReportService {
             // Taula de productes top
             document.add(new Paragraph("\n"));
             document.add(new Paragraph("\n"));
-            Paragraph subtitle1 = new Paragraph("Top Productes", subtitleFont);
+            Paragraph subtitle1 = new Paragraph(messages.get("pdf.topProducts"), subtitleFont);
             document.add(subtitle1);
             document.add(new Paragraph("\n"));
             PdfPTable prodTable = new PdfPTable(3);
-            prodTable.addCell("Nom Producte");
-            prodTable.addCell("Quantitat Total");
-            prodTable.addCell("Despesa Total");
+            prodTable.addCell(messages.get("pdf.colProduct"));
+            prodTable.addCell(messages.get("pdf.colQuantity"));
+            prodTable.addCell(messages.get("pdf.colSpend"));
             for (var p : report.getTopProductes()) {
                 prodTable.addCell(p.getNomProducte());
                 prodTable.addCell(p.getQuantitatTotal().toString());
@@ -269,7 +270,8 @@ public class ReportServiceImpl implements ReportService {
             document.close();
             return out.toByteArray();
         } catch (Exception e) {
-            throw new BadRequestException("Error generant PDF" + e.getMessage());
+            log.error("Error generant el PDF", e);
+            throw new BadRequestException("error.pdf.failed");
         }
     }
 

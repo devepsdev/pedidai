@@ -1,7 +1,7 @@
 package com.pedidai.api.exceptions;
 
-public class BadRequestException extends RuntimeException {
-    public BadRequestException(String message) {
-        super(message);
+public class BadRequestException extends LocalizedException {
+    public BadRequestException(String key, Object... args) {
+        super(key, args);
     }
 }

@@ -49,7 +49,7 @@ class ReportControllerTest {
 
                 // Comprovar estructura d'ApiResponseDTO
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Informació per dashboard correcta."))
+                .andExpect(jsonPath("$.message").value("success.ok"))
 
                 // Comprovar dades internes
                 .andExpect(jsonPath("$.data.totalComandes").value(5))
@@ -77,7 +77,7 @@ class ReportControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
 
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Informació per el report correcta."))
+                .andExpect(jsonPath("$.message").value("success.ok"))
                 .andExpect(jsonPath("$.data.totalComandes").value(10))
                 .andExpect(jsonPath("$.data.despesaTotal").value(250));
 

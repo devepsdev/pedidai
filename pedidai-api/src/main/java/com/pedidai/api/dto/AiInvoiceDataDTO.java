@@ -45,6 +45,8 @@ public class AiInvoiceDataDTO {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ProductData {
         private String name;
+        /** Nom genèric en castellà, en minúscules i singular ("tomate pera"). */
+        private String genericName;
         private BigDecimal quantity;
         private String unit;
         private BigDecimal unitPrice;

@@ -1,353 +1,236 @@
 package com.pedidai.api.services.impl;
 
 import com.pedidai.api.dto.*;
-import com.pedidai.api.entities.Order;
-import com.pedidai.api.entities.OrderItem;
+import com.pedidai.api.entities.PriceHistory;
 import com.pedidai.api.entities.Product;
 import com.pedidai.api.entities.Supplier;
-import com.pedidai.api.entities.User;
+import com.pedidai.api.exceptions.BadRequestException;
 import com.pedidai.api.exceptions.ResourceNotFoundException;
-import com.pedidai.api.repositories.*;
+import com.pedidai.api.repositories.ProductRepository;
+import com.pedidai.api.repositories.SupplierRepository;
+import com.pedidai.api.security.CurrentUser;
+import com.pedidai.api.services.PriceService;
 import com.pedidai.api.services.ProductService;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
-import java.util.Comparator;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 @Service
+@RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
+
+    /** Carpeta on es desen les imatges i URL pública (servida per WebConfig, accessible via nginx a /api). */
+    public static final String IMAGE_DIR = "img/productes/";
+    public static final String IMAGE_URL_PREFIX = "/api/img/productes/";
+    private static final long MAX_IMAGE_BYTES = 5_000_000;
+    private static final Map<String, String> IMAGE_TYPES = Map.of(
+            "image/jpeg", "jpg", "image/png", "png", "image/webp", "webp");
+    private static final Pattern ALLOWED_IMAGE_URL =
+            Pattern.compile("^(" + Pattern.quote(IMAGE_URL_PREFIX) + "[a-f0-9-]{36}\\.(jpg|png|webp)|https://\\S{1,480})$");
 
     private final ProductRepository productRepository;
     private final SupplierRepository supplierRepository;
-    private final UserRepository userRepository;
-    private final OrderItemRepository orderItemRepository;
-
-    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository,
-                              UserRepository userRepository, OrderItemRepository orderItemRepository) {
-        this.productRepository = productRepository;
-        this.supplierRepository = supplierRepository;
-        this.userRepository = userRepository;
-        this.orderItemRepository = orderItemRepository;
-    }
+    private final CurrentUser currentUser;
+    private final PriceService priceService;
 
     @Override
     @Transactional
-    public ProductResponseDTO createProduct(ProductRequestDTO productRequestDTO) {
+    public ProductResponseDTO createProduct(ProductRequestDTO dto) {
+        Supplier supplier = findOwnedSupplier(dto.getSupplierUuid());
 
-        // Validar que el proveïdor existeix
-        Supplier supplier = supplierRepository.findByUuid(productRequestDTO.getSupplierUuid())
-                .orElseThrow(() -> new IllegalArgumentException("El proveïdor especificat no existeix."));
-
-        // Crear entitat Product a partir del DTO
-        Product product = Product.builder()
+        Product product = productRepository.save(Product.builder()
                 .uuid(UUID.randomUUID().toString())
                 .supplier(supplier)
-                .category(productRequestDTO.getCategory())
-                .name(productRequestDTO.getName())
-                .description(productRequestDTO.getDescription())
-                .volume(productRequestDTO.getVolume())
-                .price(productRequestDTO.getPrice())
-                .unit(productRequestDTO.getUnit())
-                .imageUrl(productRequestDTO.getImageUrl())
+                .category(dto.getCategory())
+                .name(dto.getName().trim())
+                .canonicalName(canonicalOf(dto))
+                .description(dto.getDescription())
+                .volume(dto.getVolume())
+                .price(dto.getPrice())
+                .unit(dto.getUnit())
+                .imageUrl(validImageUrl(dto.getImageUrl()))
                 .isActive(true)
-                .build();
+                .build());
 
-        // Guardar el producte
-        product = productRepository.save(product);
-
-        // Retornar el resultat com a DTO
+        priceService.recordObservation(product, dto.getPrice(), dto.getUnit(), null, LocalDate.now(),
+                PriceHistory.Source.MANUAL, null);
         return mapToResponseDTO(product);
     }
 
     @Override
     @Transactional(readOnly = true)
     public ProductResponseDTO getProductByUuid(String uuid) {
-        Product product = productRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("No s'ha trobat cap producte amb el UUID: " + uuid));
-        return mapToResponseDTO(product);
+        return mapToResponseDTO(findOwned(uuid));
     }
 
     @Override
     @Transactional
-    public ProductResponseDTO updateProduct(String uuid, ProductRequestDTO productRequestDTO) {
+    public ProductResponseDTO updateProduct(String uuid, ProductRequestDTO dto) {
+        Product product = findOwned(uuid);
+        boolean priceChanged = dto.getPrice() != null
+                && (product.getPrice() == null || product.getPrice().compareTo(dto.getPrice()) != 0);
 
-        // Comprovar que el producte existeix
-        Product product = productRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("No s'ha trobat cap producte amb el UUID: " + uuid));
-
-        // Actualitzar camps (només els que vénen del DTO)
-        product.setCategory(productRequestDTO.getCategory());
-        product.setName(productRequestDTO.getName());
-        product.setDescription(productRequestDTO.getDescription());
-        product.setPrice(productRequestDTO.getPrice());
-        product.setVolume(productRequestDTO.getVolume());
-        product.setUnit(productRequestDTO.getUnit());
-        product.setImageUrl(productRequestDTO.getImageUrl());
-
-        // Guardar canvis
+        product.setCategory(dto.getCategory());
+        product.setName(dto.getName().trim());
+        product.setCanonicalName(canonicalOf(dto));
+        product.setDescription(dto.getDescription());
+        product.setVolume(dto.getVolume());
+        product.setUnit(dto.getUnit());
+        product.setImageUrl(validImageUrl(dto.getImageUrl()));
         product = productRepository.save(product);
 
-        // Retornar el DTO de resposta
+        // Un canvi manual de preu també queda a l'historial i passa a ser el preu vigent
+        if (priceChanged) {
+            priceService.recordObservation(product, dto.getPrice(), dto.getUnit(), null, LocalDate.now(),
+                    PriceHistory.Source.MANUAL, null);
+        }
         return mapToResponseDTO(product);
     }
 
     @Override
     @Transactional
     public ProductResponseDTO deactivateProduct(String uuid) {
-
-        // Buscar el producte
-        Product product = productRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("No s'ha trobat cap producte amb el UUID: " + uuid));
-
-        // Marcar com a inactiu
+        Product product = findOwned(uuid);
         product.setIsActive(false);
-
-        // Guardar canvis
-        product = productRepository.save(product);
-
-        // Retornar DTO
-        return mapToResponseDTO(product);
-    }
-
-    @Override
-    @Transactional
-    public Page<ProductResponseDTO> listProductsByCompany(Pageable pageable){
-
-        // Assignar company i usuari
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
-        Long companyId = user.getCompany().getId();
-
-        Page<Product> products = productRepository.findProductsByCompanyId(companyId, pageable);
-
-        return products.map(this::mapToResponseDTO);
-
-
+        return mapToResponseDTO(productRepository.save(product));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductResponseDTO> searchProducts(ProductSearchDTO dto, Pageable pageable){
+    public Page<ProductResponseDTO> listProductsByCompany(Pageable pageable) {
+        return productRepository.findProductsByCompanyId(currentUser.companyId(), pageable).map(this::mapToResponseDTO);
+    }
 
-        Page<Product> products = null;
-
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductResponseDTO> searchProducts(ProductSearchDTO dto, Pageable pageable) {
+        Page<Product> products;
         if (dto.getSupplierUuid() != null && !dto.getSupplierUuid().isBlank()) {
-            // Proveïdor especificat - Validar que el proveïdor existeix
-            Supplier supplier = supplierRepository.findByUuid(dto.getSupplierUuid())
-                    .orElseThrow(() -> new IllegalArgumentException("El proveïdor especificat no existeix."));
-            Long supplierId = supplier.getId();
-            products = productRepository.searchProductsBySupplierId(supplierId, dto.getSearchText(), pageable);
-        }else{
-            // Proveïdor no especificat - cercar company de l'usuari.
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            User user = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
-            Long companyId = user.getCompany().getId();
-            products = productRepository.searchProductsByCompanyId(companyId, dto.getSearchText(), pageable);
+            Supplier supplier = findOwnedSupplier(dto.getSupplierUuid());
+            products = productRepository.searchProductsBySupplierId(supplier.getId(), dto.getSearchText(), pageable);
+        } else {
+            products = productRepository.searchProductsByCompanyId(currentUser.companyId(), dto.getSearchText(), pageable);
         }
         return products.map(this::mapToResponseDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductResponseDTO> filterProducts(ProductFilterDTO dto, Pageable pageable){
-
-        Page<Product> products = null;
-
-        // Si isActive ve nul o buit per defecte mostrem només els actius
-        Boolean isActive = dto.getIsActive();
-        if (isActive == null) { isActive = true; }
-
+    public Page<ProductResponseDTO> filterProducts(ProductFilterDTO dto, Pageable pageable) {
+        Boolean isActive = dto.getIsActive() != null ? dto.getIsActive() : Boolean.TRUE;
+        Page<Product> products;
         if (dto.getSupplierUuid() != null && !dto.getSupplierUuid().isBlank()) {
-            // Proveïdor especificat - Validar que el proveïdor existeix
-            Supplier supplier = supplierRepository.findByUuid(dto.getSupplierUuid())
-                    .orElseThrow(() -> new IllegalArgumentException("El proveïdor especificat no existeix."));
-            Long supplierId = supplier.getId();
-            products = productRepository.filterProductsBySupplierId(supplierId,
-                    dto.getName(),
-                    dto.getDescription(),
-                    dto.getCategory(),
-                    dto.getVolume(),
-                    dto.getUnit(),
-                    dto.getMinPrice(),
-                    dto.getMaxPrice(),
-                    isActive, pageable);
-        }else{
-            // Proveïdor no especificat - cercar company de l'usuari.
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            User user = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
-            Long companyId = user.getCompany().getId();
-            products = productRepository.filterProductsByCompanyId(companyId,
-                    dto.getName(),
-                    dto.getDescription(),
-                    dto.getCategory(),
-                    dto.getVolume(),
-                    dto.getUnit(),
-                    dto.getMinPrice(),
-                    dto.getMaxPrice(),
-                    isActive, pageable);
+            Supplier supplier = findOwnedSupplier(dto.getSupplierUuid());
+            products = productRepository.filterProductsBySupplierId(supplier.getId(),
+                    dto.getName(), dto.getDescription(), dto.getCategory(), dto.getVolume(), dto.getUnit(),
+                    dto.getMinPrice(), dto.getMaxPrice(), isActive, pageable);
+        } else {
+            products = productRepository.filterProductsByCompanyId(currentUser.companyId(),
+                    dto.getName(), dto.getDescription(), dto.getCategory(), dto.getVolume(), dto.getUnit(),
+                    dto.getMinPrice(), dto.getMaxPrice(), isActive, pageable);
         }
         return products.map(this::mapToResponseDTO);
-
     }
 
     @Override
     @Transactional
     public String saveProductImage(String productUuid, MultipartFile file) {
+        Product product = findOwned(productUuid);
+        String url = storeImage(file);
+        product.setImageUrl(url);
+        productRepository.save(product);
+        return url;
+    }
 
-        // Validacions bàsiques de l'arxiu
+    @Override
+    public String storeImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("No s'ha rebut cap imatge.");
+            throw new BadRequestException("error.image.missing");
         }
-        if (!file.getContentType().startsWith("image/")) {
-            throw new IllegalArgumentException("Només es permeten fitxers d’imatge.");
+        if (file.getSize() > MAX_IMAGE_BYTES) {
+            throw new BadRequestException("error.image.tooLarge");
         }
-        if (file.getSize() > 5_000_000) { // 5 MB
-            throw new IllegalArgumentException("La imatge no pot superar els 5 MB.");
+        String extension = IMAGE_TYPES.get(file.getContentType());
+        if (extension == null || !hasImageSignature(file)) {
+            throw new BadRequestException("error.image.invalidType");
         }
-
-        // Cercar el producte per UUid
-        Product product = productRepository.findByUuid(productUuid)
-                .orElseThrow(() -> new IllegalArgumentException("El producte especificat no existeix."));
-
+        // El nom el decideix el servidor: mai s'usa el nom original del client
+        String filename = UUID.randomUUID() + "." + extension;
         try {
-            // Crear directori si no existeix
-            String uploadDir = "img/productes/";
-            Files.createDirectories(Paths.get(uploadDir));
-
-            // Nom únic
-            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path filepath = Paths.get(uploadDir, filename);
-
-            // Guardar imatge
-            Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
-
-            // Guardar ruta en la BD
-            String url = "/img/productes/" + filename;
-            product.setImageUrl(url);
-            productRepository.save(product);
-
-            return url;
-
+            Path dir = Paths.get(IMAGE_DIR).toAbsolutePath().normalize();
+            Files.createDirectories(dir);
+            try (InputStream in = file.getInputStream()) {
+                Files.copy(in, dir.resolve(filename));
+            }
         } catch (IOException e) {
-            throw new RuntimeException("Error al pujar la imatge: " + e.getMessage(), e);
+            throw new IllegalStateException("No s'ha pogut desar la imatge", e);
         }
+        return IMAGE_URL_PREFIX + filename;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PriceComparisonDTO> comparePrices(String productName, int days) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
-        Long companyId = user.getCompany().getId();
+    public List<PriceGroupDTO> comparePrices(String productName, int days) {
+        return priceService.compareByName(productName, days);
+    }
 
-        List<Product> products = productRepository.findActiveByCompanyIdAndNameContaining(companyId, productName);
-        if (products.isEmpty()) {
-            return List.of();
+    // ───────────────────────── Utilitats ─────────────────────────
+
+    private Product findOwned(String uuid) {
+        return productRepository.findByUuidAndSupplier_Company_Id(uuid, currentUser.companyId())
+                .orElseThrow(() -> new ResourceNotFoundException("error.product.notFound"));
+    }
+
+    private Supplier findOwnedSupplier(String uuid) {
+        return supplierRepository.findByUuidAndCompany_Id(uuid, currentUser.companyId())
+                .orElseThrow(() -> new ResourceNotFoundException("error.supplier.notFound"));
+    }
+
+    private static String canonicalOf(ProductRequestDTO dto) {
+        String source = dto.getCanonicalName() != null && !dto.getCanonicalName().isBlank()
+                ? dto.getCanonicalName() : dto.getName();
+        return ProductNames.generic(source);
+    }
+
+    private static String validImageUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return null;
         }
+        if (!ALLOWED_IMAGE_URL.matcher(url.trim()).matches()) {
+            throw new BadRequestException("error.image.invalidUrl");
+        }
+        return url.trim();
+    }
 
-        LocalDateTime since = LocalDateTime.now().minusDays(days);
-        List<Order.OrderStatus> activeStatuses = List.of(
-                Order.OrderStatus.PENDING,
-                Order.OrderStatus.SENT,
-                Order.OrderStatus.CONFIRMED,
-                Order.OrderStatus.COMPLETED
-        );
-
-        List<PriceComparisonDTO> results = products.stream()
-                .map(product -> {
-                    List<OrderItem> items = orderItemRepository
-                            .findByProductIdAndOrderCreatedAfterAndActiveStatus(product.getId(), since, activeStatuses);
-
-                    BigDecimal avgOrderPrice = BigDecimal.ZERO;
-                    BigDecimal minOrderPrice = null;
-                    BigDecimal maxOrderPrice = null;
-                    int orderCount = 0;
-                    BigDecimal priceChangePercent = BigDecimal.ZERO;
-                    String trend = "STABLE";
-
-                    if (!items.isEmpty()) {
-                        orderCount = (int) items.stream()
-                                .map(i -> i.getOrder().getId())
-                                .distinct()
-                                .count();
-
-                        BigDecimal sum = items.stream()
-                                .map(OrderItem::getUnitPrice)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
-                        avgOrderPrice = sum.divide(BigDecimal.valueOf(items.size()), 2, RoundingMode.HALF_UP);
-
-                        minOrderPrice = items.stream()
-                                .map(OrderItem::getUnitPrice)
-                                .min(Comparator.naturalOrder())
-                                .orElse(BigDecimal.ZERO);
-
-                        maxOrderPrice = items.stream()
-                                .map(OrderItem::getUnitPrice)
-                                .max(Comparator.naturalOrder())
-                                .orElse(BigDecimal.ZERO);
-
-                        BigDecimal oldestPrice = items.get(0).getUnitPrice();
-                        BigDecimal latestPrice = items.get(items.size() - 1).getUnitPrice();
-
-                        if (oldestPrice.compareTo(BigDecimal.ZERO) > 0) {
-                            priceChangePercent = latestPrice.subtract(oldestPrice)
-                                    .divide(oldestPrice, 4, RoundingMode.HALF_UP)
-                                    .multiply(BigDecimal.valueOf(100))
-                                    .setScale(2, RoundingMode.HALF_UP);
-
-                            if (priceChangePercent.compareTo(new BigDecimal("2")) > 0) {
-                                trend = "UP";
-                            } else if (priceChangePercent.compareTo(new BigDecimal("-2")) < 0) {
-                                trend = "DOWN";
-                            }
-                        }
-                    }
-
-                    Supplier supplier = product.getSupplier();
-
-                    return PriceComparisonDTO.builder()
-                            .productUuid(product.getUuid())
-                            .productName(product.getName())
-                            .category(product.getCategory())
-                            .unit(product.getUnit())
-                            .volume(product.getVolume())
-                            .supplierUuid(supplier != null ? supplier.getUuid() : null)
-                            .supplierName(supplier != null ? supplier.getName() : null)
-                            .supplierEmail(supplier != null ? supplier.getEmail() : null)
-                            .supplierPhone(supplier != null ? supplier.getPhone() : null)
-                            .currentPrice(product.getPrice())
-                            .avgOrderPrice(avgOrderPrice)
-                            .minOrderPrice(minOrderPrice)
-                            .maxOrderPrice(maxOrderPrice)
-                            .orderCount(orderCount)
-                            .priceChangePercent(priceChangePercent)
-                            .trend(trend)
-                            .build();
-                })
-                .sorted(Comparator.comparing(PriceComparisonDTO::getCurrentPrice))
-                .collect(Collectors.toList());
-
-        results.get(0).setIsCheapest(true);
-
-        return results;
+    /** Comprova els primers bytes del fitxer (JPEG, PNG o WebP) i no només el tipus declarat. */
+    private static boolean hasImageSignature(MultipartFile file) {
+        try (InputStream in = file.getInputStream()) {
+            byte[] h = in.readNBytes(12);
+            if (h.length < 12) {
+                return false;
+            }
+            boolean jpeg = (h[0] & 0xFF) == 0xFF && (h[1] & 0xFF) == 0xD8 && (h[2] & 0xFF) == 0xFF;
+            boolean png = (h[0] & 0xFF) == 0x89 && h[1] == 'P' && h[2] == 'N' && h[3] == 'G';
+            boolean webp = h[0] == 'R' && h[1] == 'I' && h[2] == 'F' && h[3] == 'F'
+                    && h[8] == 'W' && h[9] == 'E' && h[10] == 'B' && h[11] == 'P';
+            return jpeg || png || webp;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private ProductResponseDTO mapToResponseDTO(Product product) {
@@ -358,6 +241,7 @@ public class ProductServiceImpl implements ProductService {
                         .name(product.getSupplier().getName())
                         .build())
                 .name(product.getName())
+                .canonicalName(product.getCanonicalName())
                 .category(product.getCategory())
                 .description(product.getDescription())
                 .price(product.getPrice())
@@ -369,5 +253,4 @@ public class ProductServiceImpl implements ProductService {
                 .updatedAt(product.getUpdatedAt())
                 .build();
     }
-
 }

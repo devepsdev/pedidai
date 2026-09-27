@@ -34,6 +34,8 @@ public class UserResponseDTO {
 
     private Boolean isDeleted;
 
+    private String language;
+
     private Boolean emailVerified;
 
     private LocalDateTime lastLogin;

@@ -1,9 +1,12 @@
 package com.pedidai.api.security;
 
+import com.pedidai.api.entities.Company;
+import com.pedidai.api.entities.User;
+import com.pedidai.api.repositories.UserRepository;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,143 +14,119 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.context.ActiveProfiles;
 
-import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
-@DisplayName("JwtAuthenticationFilter Tests")
+@DisplayName("JwtAuthenticationFilter: el rol i l'estat es llegeixen de la base de dades")
 class JwtAuthenticationFilterTest {
 
-    @Mock
-    private JwtUtil jwtUtil;
+    @Mock private JwtUtil jwtUtil;
+    @Mock private UserRepository userRepository;
+    @Mock private HttpServletRequest request;
+    @Mock private HttpServletResponse response;
+    @Mock private FilterChain filterChain;
+    @InjectMocks private JwtAuthenticationFilter filter;
 
-    @Mock
-    private HttpServletRequest request;
-
-    @Mock
-    private HttpServletResponse response;
-
-    @Mock
-    private FilterChain filterChain;
-
-    @InjectMocks
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    private String validToken;
-    private String testUsername;
+    private User user;
+    private Company company;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         SecurityContextHolder.clearContext();
-        validToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
-        testUsername = "test@pedidai.com";
+        company = Company.builder().id(1L).status(Company.CompanyStatus.ACTIVE)
+                .trialEndsAt(LocalDateTime.now().plusDays(5)).build();
+        user = User.builder().email("u@bar.test").role(User.UserRole.ADMIN).isActive(true).isDeleted(false)
+                .company(company).build();
+    }
+
+    @AfterEach
+    void clear() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private void withValidToken() {
+        when(request.getHeader("Authorization")).thenReturn("Bearer tok");
+        when(jwtUtil.getUsernameFromToken("tok")).thenReturn("u@bar.test");
+        when(jwtUtil.validateToken("tok", "u@bar.test")).thenReturn(true);
+        when(userRepository.findWithCompanyByEmail("u@bar.test")).thenReturn(Optional.of(user));
+    }
+
+    private boolean authenticated() {
+        return SecurityContextHolder.getContext().getAuthentication() != null;
     }
 
     @Test
-    @DisplayName("Hauria de processar petició sense token correctament")
-    void doFilterInternal_ShouldContinueFilter_WhenNoToken() throws ServletException, IOException {
-        // Given
+    @DisplayName("sense token la petició continua sense autenticar")
+    void noToken() throws Exception {
         when(request.getHeader("Authorization")).thenReturn(null);
 
-        // When
-        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+        filter.doFilterInternal(request, response, filterChain);
 
-        // Then
+        assertThat(authenticated()).isFalse();
         verify(filterChain).doFilter(request, response);
-        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 
     @Test
-    @DisplayName("Hauria de processar petició amb token vàlid")
-    void doFilterInternal_ShouldSetAuthentication_WhenTokenIsValid() throws ServletException, IOException {
-        // Given
-        String authHeader = "Bearer " + validToken;
-        when(request.getHeader("Authorization")).thenReturn(authHeader);
-        when(jwtUtil.getUsernameFromToken(validToken)).thenReturn(testUsername);
-        when(jwtUtil.validateToken(validToken, testUsername)).thenReturn(true);
+    @DisplayName("token vàlid: autentica amb el rol de la base de dades")
+    void validToken() throws Exception {
+        withValidToken();
 
-        // When
-        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+        filter.doFilterInternal(request, response, filterChain);
 
-        // Then
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getAuthorities())
+                .extracting(GrantedAuthority::getAuthority).containsExactly("ROLE_ADMIN");
         verify(filterChain).doFilter(request, response);
-        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
-        assertThat(SecurityContextHolder.getContext().getAuthentication().getName()).isEqualTo(testUsername);
     }
 
     @Test
-    @DisplayName("Hauria de rebutjar token invàlid")
-    void doFilterInternal_ShouldNotSetAuthentication_WhenTokenIsInvalid() throws ServletException, IOException {
-        // Given
-        String authHeader = "Bearer " + validToken;
-        when(request.getHeader("Authorization")).thenReturn(authHeader);
-        when(jwtUtil.getUsernameFromToken(validToken)).thenReturn(testUsername);
-        when(jwtUtil.validateToken(validToken, testUsername)).thenReturn(false);
+    @DisplayName("usuari desactivat: el token deixa de servir immediatament")
+    void inactiveUser() throws Exception {
+        user.setIsActive(false);
+        withValidToken();
 
-        // When
-        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+        filter.doFilterInternal(request, response, filterChain);
 
-        // Then
-        verify(filterChain).doFilter(request, response);
-        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        assertThat(authenticated()).isFalse();
     }
 
     @Test
-    @DisplayName("Hauria de gestionar header Authorization malformat")
-    void doFilterInternal_ShouldIgnoreMalformedHeader() throws ServletException, IOException {
-        // Given
-        when(request.getHeader("Authorization")).thenReturn("InvalidHeader");
+    @DisplayName("prova acabada: el token deixa de servir")
+    void trialEnded() throws Exception {
+        company.setTrialEndsAt(LocalDateTime.now().minusMinutes(1));
+        withValidToken();
 
-        // When
-        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+        filter.doFilterInternal(request, response, filterChain);
 
-        // Then
-        verify(filterChain).doFilter(request, response);
-        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        verify(jwtUtil, never()).getUsernameFromToken(any());
+        assertThat(authenticated()).isFalse();
     }
 
     @Test
-    @DisplayName("Hauria de gestionar excepció en l'extracció del username")
-    void doFilterInternal_ShouldHandleException_WhenExtractingUsername() throws ServletException, IOException {
-        // Given
-        String authHeader = "Bearer " + validToken;
-        when(request.getHeader("Authorization")).thenReturn(authHeader);
-        when(jwtUtil.getUsernameFromToken(validToken)).thenThrow(new RuntimeException("Token malformat"));
+    @DisplayName("empresa de pagament (sense data de fi de prova) continua tenint accés")
+    void paidCompany() throws Exception {
+        company.setTrialEndsAt(null);
+        withValidToken();
 
-        // When
-        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+        filter.doFilterInternal(request, response, filterChain);
 
-        // Then
-        verify(filterChain).doFilter(request, response);
-        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        assertThat(authenticated()).isTrue();
     }
 
     @Test
-    @DisplayName("No hauria de sobreescriure autenticació existent")
-    void doFilterInternal_ShouldNotOverrideExistingAuthentication() throws ServletException, IOException {
-        // Given
-        String authHeader = "Bearer " + validToken;
-        when(request.getHeader("Authorization")).thenReturn(authHeader);
-        when(jwtUtil.getUsernameFromToken(validToken)).thenReturn(testUsername);
+    @DisplayName("token manipulat: no autentica")
+    void invalidToken() throws Exception {
+        when(request.getHeader("Authorization")).thenReturn("Bearer dolent");
+        when(jwtUtil.getUsernameFromToken("dolent")).thenThrow(new RuntimeException("signatura"));
 
-        // Simular que ja hi ha una autenticació
-        SecurityContextHolder.getContext().setAuthentication(
-                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                        "existing@pedidai.com", null, java.util.Collections.emptyList()));
+        filter.doFilterInternal(request, response, filterChain);
 
-        // When
-        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
-
-        // Then
+        assertThat(authenticated()).isFalse();
         verify(filterChain).doFilter(request, response);
-        verify(jwtUtil, never()).validateToken(any(), any());
-        assertThat(SecurityContextHolder.getContext().getAuthentication().getName()).isEqualTo("existing@pedidai.com");
     }
 }

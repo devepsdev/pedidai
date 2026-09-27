@@ -17,6 +17,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Optional<Product> findByUuid(String uuid);
 
+    /** Producte només si el seu proveïdor pertany a l'empresa indicada. */
+    Optional<Product> findByUuidAndSupplier_Company_Id(String uuid, Long companyId);
+
+    List<Product> findBySupplier_Company_IdAndIsActiveTrue(Long companyId);
+
+    List<Product> findBySupplier_IdAndIsActiveTrue(Long supplierId);
+
     @Query("SELECT p FROM Product p " +
             "JOIN p.supplier s " +
             "WHERE s.company.id = :companyId AND p.isActive = true")

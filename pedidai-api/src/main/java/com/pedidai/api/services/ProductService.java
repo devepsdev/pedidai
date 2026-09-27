@@ -7,7 +7,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-
 public interface ProductService {
 
     ProductResponseDTO createProduct(ProductRequestDTO productRequestDTO);
@@ -26,6 +25,9 @@ public interface ProductService {
 
     String saveProductImage(String productUuid, MultipartFile file);
 
-    List<PriceComparisonDTO> comparePrices(String productName, int days);
+    /** Valida i desa una imatge (JPEG, PNG o WebP, màx. 5 MB) i en retorna la URL pública. */
+    String storeImage(MultipartFile file);
 
+    /** Comparativa de preus entre proveïdors d'un producte, a partir de l'historial d'albarans. */
+    List<PriceGroupDTO> comparePrices(String productName, int days);
 }

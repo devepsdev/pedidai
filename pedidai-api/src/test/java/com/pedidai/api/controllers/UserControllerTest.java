@@ -65,7 +65,7 @@ class UserControllerTest {
                         .param("sortDir", "asc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Usuaris de l'empresa obtinguts correctament"))
+                .andExpect(jsonPath("$.message").value("success.ok"))
                 .andExpect(jsonPath("$.data.content[0].email").value("test1@pedidai.com"))
                 .andExpect(jsonPath("$.data.content[1].email").value("test2@pedidai.com"))
                 .andExpect(jsonPath("$.data.pageable.totalElements").value(2));
@@ -109,7 +109,7 @@ class UserControllerTest {
         mockMvc.perform(get("/api/users/{uuid}", uuid))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Usuari obtingut correctament"))
+                .andExpect(jsonPath("$.message").value("success.ok"))
                 .andExpect(jsonPath("$.data.uuid").value(uuid))
                 .andExpect(jsonPath("$.data.email").value("test@pedidai.com"))
                 .andExpect(jsonPath("$.data.firstName").value("Joan"));
@@ -139,7 +139,7 @@ class UserControllerTest {
                         .param("sortDir", "asc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Cerca bàsica d'usuaris completada"))
+                .andExpect(jsonPath("$.message").value("success.search.done"))
                 .andExpect(jsonPath("$.data.content[0].firstName").value("Joan"))
                 .andExpect(jsonPath("$.data.pageable.totalElements").value(1));
     }
@@ -267,7 +267,7 @@ class UserControllerTest {
                         .content(requestBody))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Usuari registrat correctament"))
+                .andExpect(jsonPath("$.message").value("success.user.created"))
                 .andExpect(jsonPath("$.data.email").value("nou@pedidai.com"))
                 .andExpect(jsonPath("$.data.firstName").value("Maria"));
     }
@@ -321,7 +321,7 @@ class UserControllerTest {
                         .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Usuari actualitzat correctament"))
+                .andExpect(jsonPath("$.message").value("success.user.updated"))
                 .andExpect(jsonPath("$.data.email").value("updated@pedidai.com"))
                 .andExpect(jsonPath("$.data.lastName").value("Garcia Updated"));
     }
@@ -362,7 +362,7 @@ class UserControllerTest {
                         .param("isActive", "false"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Estat de l'usuari actualitzat correctament"));
+                .andExpect(jsonPath("$.message").value("success.user.statusUpdated"));
     }
 
     @Test
@@ -380,7 +380,7 @@ class UserControllerTest {
                         .param("isActive", "true"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Estat de l'usuari actualitzat correctament"));
+                .andExpect(jsonPath("$.message").value("success.user.statusUpdated"));
     }
 
     // ==================== Tests de PATCH /api/users/{uuid}/change-password ====================
@@ -405,7 +405,7 @@ class UserControllerTest {
                         .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Contrasenya canviada correctament"));
+                .andExpect(jsonPath("$.message").value("success.password.changed"));
     }
 
     @Test
@@ -439,7 +439,7 @@ class UserControllerTest {
         mockMvc.perform(delete("/api/users/{uuid}", uuid))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Usuari eliminat correctament"));
+                .andExpect(jsonPath("$.message").value("success.user.deleted"));
     }
 
     // ==================== Mètodes auxiliars ====================

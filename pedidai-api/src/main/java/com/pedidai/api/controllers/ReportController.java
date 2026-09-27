@@ -31,7 +31,7 @@ public class ReportController {
         DashboardResponseDTO dashboard = reportService.dashboardInfo();
 
         // Retorn
-        return ResponseEntity.ok(ApiResponseDTO.success(dashboard, "Informació per dashboard correcta."));
+        return ResponseEntity.ok(ApiResponseDTO.success(dashboard, "success.ok"));
     }
 
     @GetMapping("global")
@@ -47,7 +47,7 @@ public class ReportController {
         ReportGlobalResponseDTO report = reportService.globalInfo(dto);
 
         // Retorn
-        return ResponseEntity.ok(ApiResponseDTO.success(report, "Informació per el report correcta."));
+        return ResponseEntity.ok(ApiResponseDTO.success(report, "success.ok"));
     }
 
     @GetMapping("global/pdf")
@@ -79,7 +79,7 @@ public class ReportController {
 
     private LocalDateTime parseDate(String dateStr, boolean endOfDay) {
         if (dateStr == null || dateStr.isBlank()) {
-            throw new ResourceNotFoundException("Format de data no vàlid");
+            throw new com.pedidai.api.exceptions.BadRequestException("error.invalidDate");
         }
 
         List<DateTimeFormatter> formatters = List.of(
@@ -101,7 +101,7 @@ public class ReportController {
         }
 
         // Si cap parser ha funcionat
-        throw new ResourceNotFoundException("Format de data no vàlid");
+        throw new com.pedidai.api.exceptions.BadRequestException("error.invalidDate");
     }
 
 }

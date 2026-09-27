@@ -1,184 +1,136 @@
 package com.pedidai.api.services.impl;
 
-import com.pedidai.api.dto.CompanyRegistrationDTO;
-import com.pedidai.api.dto.CompanyRequestDTO;
-import com.pedidai.api.dto.CompanyResponseDTO;
-import com.pedidai.api.dto.MyPlanDTO;
+import com.pedidai.api.config.I18nConfig;
+import com.pedidai.api.dto.*;
 import com.pedidai.api.entities.Company;
 import com.pedidai.api.entities.User;
-import com.pedidai.api.exceptions.BadRequestException;
 import com.pedidai.api.exceptions.DuplicateResourceException;
-import com.pedidai.api.exceptions.ResourceNotFoundException;
 import com.pedidai.api.repositories.CompanyRepository;
 import com.pedidai.api.repositories.UserRepository;
+import com.pedidai.api.security.CurrentUser;
+import com.pedidai.api.security.RateLimiter;
 import com.pedidai.api.services.CompanyService;
 import com.pedidai.api.services.EmailService;
+import com.pedidai.api.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.UUID;
-
-import static com.pedidai.api.entities.User.UserRole.ADMIN;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class CompanyServiceImpl implements CompanyService {
+
+    /** Durada de la prova gratuïta. */
+    public static final int TRIAL_DAYS = 14;
 
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final UserService userService;
+    private final CurrentUser currentUser;
+    private final RateLimiter rateLimiter;
 
     @Override
     @Transactional
-    public CompanyResponseDTO registerCompanyWithAdmin(CompanyRegistrationDTO registrationDTO) {
+    public LoginResponseDTO registerCompanyWithAdmin(CompanyRegistrationDTO dto, String clientIp) {
+        rateLimiter.check("register-ip:" + clientIp, 5, Duration.ofHours(1), "error.tooManyRequests");
 
-        // Validar que el taxId no existeixi
-        if (companyRepository.existsByTaxId(registrationDTO.getTaxId())) {
-            throw new DuplicateResourceException("El CIF/NIF ja està registrat");
+        String email = dto.getAdminEmail().trim().toLowerCase(Locale.ROOT);
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicateResourceException("error.register.emailExists");
+        }
+        String taxId = blankToNull(dto.getTaxId());
+        if (taxId != null && companyRepository.existsByTaxId(taxId)) {
+            throw new DuplicateResourceException("error.company.taxIdExists");
         }
 
-        // Validar que l'email del admin no existeixi
-        if (userRepository.existsByEmail(registrationDTO.getAdminEmail())) {
-            throw new DuplicateResourceException("L'email de l'administrador ja està registrat");
-        }
+        // La prova comença en el moment del registre i l'empresa ja és operativa
+        Company company = companyRepository.save(Company.builder()
+                .name(dto.getCompanyName().trim())
+                .taxId(taxId)
+                .email(email)
+                .phone(blankToNull(dto.getCompanyPhone()))
+                .address(blankToNull(dto.getCompanyAddress()))
+                .city(blankToNull(dto.getCompanyCity()))
+                .postalCode(blankToNull(dto.getCompanyPostalCode()))
+                .status(Company.CompanyStatus.ACTIVE)
+                .trialEndsAt(LocalDateTime.now().plusDays(TRIAL_DAYS))
+                .build());
 
-        // 1. Crear l'empresa (el trial comença des del registre, s'activa quan es verifica l'email)
-        Company company = Company.builder()
-                .name(registrationDTO.getCompanyName())
-                .taxId(registrationDTO.getTaxId())
-                .email(registrationDTO.getCompanyEmail())
-                .phone(registrationDTO.getCompanyPhone())
-                .address(registrationDTO.getCompanyAddress())
-                .city(registrationDTO.getCompanyCity())
-                .postalCode(registrationDTO.getCompanyPostalCode())
-                .status(Company.CompanyStatus.PENDING)
-                .trialEndsAt(LocalDateTime.now().plusMonths(3))
-                .build();
-
-        company = companyRepository.save(company);
-
-        // 2. Crear l'usuari administrador
+        // L'email es verifica després; fins llavors pot fer-ho tot excepte enviar comandes als proveïdors
         String verificationToken = UUID.randomUUID().toString();
-
-        User admin = User.builder()
+        String language = I18nConfig.languageCode(LocaleContextHolder.getLocale());
+        User admin = userRepository.save(User.builder()
+                .uuid(UUID.randomUUID().toString())
                 .company(company)
-                .email(registrationDTO.getAdminEmail())
-                .password(passwordEncoder.encode(registrationDTO.getAdminPassword()))
-                .firstName(registrationDTO.getAdminFirstName())
-                .lastName(registrationDTO.getAdminLastName())
-                .phone(registrationDTO.getAdminPhone())
+                .email(email)
+                .password(passwordEncoder.encode(dto.getAdminPassword()))
+                .firstName(dto.getAdminFirstName().trim())
+                .lastName(dto.getAdminLastName() != null ? dto.getAdminLastName().trim() : "")
                 .role(User.UserRole.ADMIN)
+                .language(language)
                 .isActive(true)
+                .isDeleted(false)
                 .emailVerified(false)
                 .emailVerificationToken(verificationToken)
-                .emailVerificationExpires(LocalDateTime.now().plusHours(24))
-                .build();
+                .emailVerificationExpires(LocalDateTime.now().plusHours(48))
+                .lastLogin(LocalDateTime.now())
+                .build());
 
-        admin = userRepository.save(admin);
+        emailService.sendWelcomeVerification(admin.getEmail(), verificationToken, admin.getFirstName(),
+                company.getName(), I18nConfig.localeOf(language));
 
-        // 3. Enviar email de verificació
-        emailService.sendCompanyAdminVerification(
-                admin.getEmail(),
-                verificationToken,
-                admin.getFirstName(),
-                company.getName()
-        );
-
-        // 4. Retornar la empresa creada
-        return mapToResponseDTO(company);
+        return userService.issueSession(admin);
     }
 
     @Override
     @Transactional(readOnly = true)
     public CompanyResponseDTO getCompanyByUuid() {
-        //Validar que el rol sigui administrador
-        if (!isAdminUser()) {
-            throw new BadRequestException("L'usuari ha de ser Administrador");
-        }
-        String companyUuid = getCompanyUuidFromAuthenticatedUser();
-
-        // Verificar que l'empresa existeix
-        Company company = companyRepository.findByUuid(companyUuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
-        return mapToResponseDTO(company);
+        return mapToResponseDTO(CurrentUser.companyOf(currentUser.requireAdmin()));
     }
 
     @Override
     @Transactional
-    public CompanyResponseDTO updateCompany(CompanyRequestDTO companyRequestDTO) {
-        //Validar que el rol sigui administrador
-        if (!isAdminUser()) {
-            throw new BadRequestException("L'usuari ha de ser Administrador");
-        }
-        String companyUuid = getCompanyUuidFromAuthenticatedUser();
+    public CompanyResponseDTO updateCompany(CompanyRequestDTO dto) {
+        Company company = CurrentUser.companyOf(currentUser.requireAdmin());
 
-        // Verificar que l'empresa existeix
-        Company company = companyRepository.findByUuid(companyUuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada amb UUID: " + companyUuid));
-
-        if (!company.getTaxId().equals(companyRequestDTO.getTaxId()) &&
-                companyRepository.existsByTaxId(companyRequestDTO.getTaxId())) {
-            throw new DuplicateResourceException("Ja existeix una empresa amb el NIF/CIF: " + companyRequestDTO.getTaxId());
+        String taxId = blankToNull(dto.getTaxId());
+        if (taxId != null && !taxId.equals(company.getTaxId()) && companyRepository.existsByTaxId(taxId)) {
+            throw new DuplicateResourceException("error.company.taxIdExists");
         }
 
-        company.setName(companyRequestDTO.getName());
-        company.setTaxId(companyRequestDTO.getTaxId());
-        company.setEmail(companyRequestDTO.getEmail());
-        company.setPhone(companyRequestDTO.getPhone());
-        company.setAddress(companyRequestDTO.getAddress());
-        company.setCity(companyRequestDTO.getCity());
-        company.setPostalCode(companyRequestDTO.getPostalCode());
+        company.setName(dto.getName());
+        company.setTaxId(taxId);
+        company.setEmail(dto.getEmail());
+        company.setPhone(dto.getPhone());
+        company.setAddress(dto.getAddress());
+        company.setCity(dto.getCity());
+        company.setPostalCode(dto.getPostalCode());
+        // L'estat de l'empresa (prova, activa, suspesa) només el pot canviar el superadministrador
 
-        if (companyRequestDTO.getStatus() != null) {
-            company.setStatus(companyRequestDTO.getStatus());
-        }
-
-        Company updatedCompany = companyRepository.save(company);
-        return mapToResponseDTO(updatedCompany);
-    }
-
-    private String getCompanyUuidFromAuthenticatedUser() {
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
-
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
-
-        if (user.getCompany() == null || user.getCompany().getUuid() == null) {
-            throw new ResourceNotFoundException("L'usuari no té empresa assignada");
-        }
-
-        return user.getCompany().getUuid();
-    }
-
-    private Boolean isAdminUser() {
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
-
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuari no trobat: " + username));
-
-        return user.getRole() == ADMIN;
+        return mapToResponseDTO(companyRepository.save(company));
     }
 
     @Override
     @Transactional(readOnly = true)
     public MyPlanDTO getMyPlan() {
-        String companyUuid = getCompanyUuidFromAuthenticatedUser();
-        Company company = companyRepository.findByUuid(companyUuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada"));
+        Company company = currentUser.company();
         return MyPlanDTO.builder()
                 .status(company.getStatus().name())
                 .trialEndsAt(company.getTrialEndsAt())
                 .build();
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private CompanyResponseDTO mapToResponseDTO(Company company) {
@@ -197,5 +149,4 @@ public class CompanyServiceImpl implements CompanyService {
                 .trialEndsAt(company.getTrialEndsAt())
                 .build();
     }
-
 }

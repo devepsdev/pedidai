@@ -3,36 +3,26 @@ package com.pedidai.api.services.impl;
 import com.pedidai.api.dto.*;
 import com.pedidai.api.entities.Company;
 import com.pedidai.api.entities.User;
-import com.pedidai.api.entities.Company.CompanyStatus;
-import com.pedidai.api.entities.User.UserRole;
 import com.pedidai.api.exceptions.BadRequestException;
-import com.pedidai.api.exceptions.DuplicateResourceException;
+import com.pedidai.api.exceptions.ForbiddenException;
 import com.pedidai.api.exceptions.ResourceNotFoundException;
+import com.pedidai.api.exceptions.TooManyRequestsException;
 import com.pedidai.api.repositories.CompanyRepository;
 import com.pedidai.api.repositories.UserRepository;
+import com.pedidai.api.security.CurrentUser;
 import com.pedidai.api.security.JwtUtil;
+import com.pedidai.api.security.RateLimiter;
 import com.pedidai.api.services.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,750 +31,204 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
-@DisplayName("UserServiceImpl Tests")
+@DisplayName("UserServiceImpl: sessió, aïllament entre empreses i rols")
 class UserServiceImplTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
+    @Mock private CompanyRepository companyRepository;
+    @Mock private EmailService emailService;
+    @Mock private JwtUtil jwtUtil;
+    @Mock private PasswordEncoder passwordEncoder;
+    @Mock private CurrentUser currentUser;
 
-    @Mock
-    private CompanyRepository companyRepository;
-
-    @Mock
-    private EmailService emailService;
-
-    @Mock
-    private JwtUtil jwtUtil;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @InjectMocks
-    private UserServiceImpl userService;
-
-    private User testUser;
-    private Company testCompany;
-    private LoginRequestDTO loginRequest;
+    private RateLimiter rateLimiter;
+    private UserServiceImpl service;
+    private Company company;
+    private User admin;
 
     @BeforeEach
     void setUp() {
-        testCompany = Company.builder()
-                .id(1L)
-                .uuid("company-uuid")
-                .name("Test Company")
-                .status(CompanyStatus.ACTIVE)
-                .build();
+        rateLimiter = new RateLimiter();
+        service = new UserServiceImpl(userRepository, companyRepository, emailService, jwtUtil, passwordEncoder,
+                currentUser, rateLimiter);
+        company = Company.builder().id(1L).uuid("company-1").name("Bar Prova")
+                .status(Company.CompanyStatus.ACTIVE).trialEndsAt(LocalDateTime.now().plusDays(10)).build();
+        admin = user(10L, "admin-uuid", "admin@bar.test", User.UserRole.ADMIN);
+    }
 
-        testUser = User.builder()
-                .id(1L)
-                .uuid("user-uuid")
-                .email("test@pedidai.com")
-                .password("encoded-password")
-                .firstName("Joan")
-                .lastName("Garcia")
-                .role(UserRole.USER)
-                .company(testCompany)
-                .isActive(true)
-                .emailVerified(true)
-                .build();
+    private User user(Long id, String uuid, String email, User.UserRole role) {
+        return User.builder().id(id).uuid(uuid).email(email).password("hash").firstName("Nom").lastName("")
+                .role(role).company(company).isActive(true).isDeleted(false).emailVerified(true).language("ca").build();
+    }
 
-        loginRequest = LoginRequestDTO.builder()
-                .email("test@pedidai.com")
-                .password("password123")
-                .build();
+    private LoginRequestDTO login(String email, String password) {
+        LoginRequestDTO dto = new LoginRequestDTO();
+        dto.setEmail(email);
+        dto.setPassword(password);
+        return dto;
+    }
+
+    @Nested
+    @DisplayName("login")
+    class Login {
+
+        @Test
+        @DisplayName("usuari inexistent i contrasenya incorrecta donen el mateix error")
+        void sameErrorForUnknownUserAndWrongPassword() {
+            when(userRepository.findByEmail("nobody@bar.test")).thenReturn(Optional.empty());
+            when(userRepository.findByEmail("admin@bar.test")).thenReturn(Optional.of(admin));
+            when(passwordEncoder.matches("mala", "hash")).thenReturn(false);
+
+            assertThatThrownBy(() -> service.login(login("nobody@bar.test", "mala"), "1.1.1.1"))
+                    .isInstanceOf(BadRequestException.class).hasMessage("error.auth.invalidCredentials");
+            assertThatThrownBy(() -> service.login(login("admin@bar.test", "mala"), "1.1.1.1"))
+                    .isInstanceOf(BadRequestException.class).hasMessage("error.auth.invalidCredentials");
+        }
+
+        @Test
+        @DisplayName("un usuari esborrat no pot entrar i no es revela que existeix")
+        void deletedUserLooksLikeUnknown() {
+            admin.setIsDeleted(true);
+            when(userRepository.findByEmail("admin@bar.test")).thenReturn(Optional.of(admin));
+
+            assertThatThrownBy(() -> service.login(login("admin@bar.test", "Bar12345"), "1.1.1.1"))
+                    .hasMessage("error.auth.invalidCredentials");
+        }
+
+        @Test
+        @DisplayName("amb la prova acabada, l'empresa passa a inactiva i es bloqueja l'accés")
+        void trialEnded() {
+            company.setTrialEndsAt(LocalDateTime.now().minusMinutes(1));
+            when(userRepository.findByEmail("admin@bar.test")).thenReturn(Optional.of(admin));
+            when(passwordEncoder.matches("Bar12345", "hash")).thenReturn(true);
+
+            assertThatThrownBy(() -> service.login(login("admin@bar.test", "Bar12345"), "1.1.1.1"))
+                    .isInstanceOf(ForbiddenException.class).hasMessage("error.auth.trialEnded");
+            assertThat(company.getStatus()).isEqualTo(Company.CompanyStatus.INACTIVE);
+        }
+
+        @Test
+        @DisplayName("login correcte retorna token i no cal tenir l'email verificat")
+        void okWithoutVerifiedEmail() {
+            admin.setEmailVerified(false);
+            when(userRepository.findByEmail("admin@bar.test")).thenReturn(Optional.of(admin));
+            when(passwordEncoder.matches("Bar12345", "hash")).thenReturn(true);
+            when(jwtUtil.generateToken("admin@bar.test", "ADMIN")).thenReturn("jwt");
+
+            LoginResponseDTO response = service.login(login(" Admin@Bar.test ", "Bar12345"), "1.1.1.1");
+
+            assertThat(response.getToken()).isEqualTo("jwt");
+            assertThat(admin.getLastLogin()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("massa intents fallits sobre el mateix compte → 429")
+        void bruteForceIsLimited() {
+            when(userRepository.findByEmail("admin@bar.test")).thenReturn(Optional.of(admin));
+            when(passwordEncoder.matches(anyString(), eq("hash"))).thenReturn(false);
+            for (int i = 0; i < 8; i++) {
+                assertThatThrownBy(() -> service.login(login("admin@bar.test", "mala"), "1.1.1." + System.nanoTime() % 200))
+                        .isInstanceOf(BadRequestException.class);
+            }
+            assertThatThrownBy(() -> service.login(login("admin@bar.test", "mala"), "2.2.2.2"))
+                    .isInstanceOf(TooManyRequestsException.class);
+        }
     }
 
     @Test
-    @DisplayName("Login hauria de retornar token JWT quan les credencials són correctes")
-    void login_ShouldReturnJwtToken_WhenCredentialsAreValid() {
-        // Given
-        when(userRepository.findByEmail("test@pedidai.com")).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
-        when(jwtUtil.generateToken(eq("test@pedidai.com"), any(String.class))).thenReturn("jwt-token");
+    @DisplayName("recuperar contrasenya d'un email desconegut no dona error ni envia res")
+    void passwordResetDoesNotRevealAccounts() {
+        when(userRepository.findByEmail("nobody@bar.test")).thenReturn(Optional.empty());
 
-        // When
-        LoginResponseDTO response = userService.login(loginRequest);
+        service.requestPasswordReset("nobody@bar.test", "1.1.1.1");
 
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.getToken()).isEqualTo("jwt-token");
-        assertThat(response.getType()).isEqualTo("Bearer");
-        assertThat(response.getUser().getEmail()).isEqualTo("test@pedidai.com");
+        verifyNoInteractions(emailService);
+    }
 
-        verify(userRepository).save(testUser);
-        verify(jwtUtil).generateToken(eq("test@pedidai.com"), any(String.class));
+    @Nested
+    @DisplayName("gestió d'usuaris")
+    class Management {
+
+        @BeforeEach
+        void asAdmin() {
+            lenient().when(currentUser.requireAdmin()).thenReturn(admin);
+            lenient().when(currentUser.get()).thenReturn(admin);
+        }
+
+        @Test
+        @DisplayName("no es pot crear un SUPER_ADMIN")
+        void cannotCreateSuperAdmin() {
+            UserRegistrationDTO dto = UserRegistrationDTO.builder().email("x@bar.test").password("Bar12345")
+                    .firstName("X").lastName("Y").role(User.UserRole.SUPER_ADMIN).build();
+
+            assertThatThrownBy(() -> service.registerUser(dto))
+                    .isInstanceOf(ForbiddenException.class).hasMessage("error.user.roleNotAllowed");
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("un usuari d'una altra empresa es tracta com a inexistent")
+        void otherCompanyUserNotFound() {
+            when(userRepository.findByUuidAndCompany_Id("other-uuid", 1L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> service.updateUser("other-uuid", UserRequestDTO.builder().email("a@b.c").build()))
+                    .isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(() -> service.deleteUser("other-uuid")).isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(() -> service.getUserByUuid("other-uuid")).isInstanceOf(ResourceNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("l'administrador no es pot canviar el propi rol ni posar-se SUPER_ADMIN")
+        void cannotEscalateOwnRole() {
+            when(userRepository.findByUuidAndCompany_Id("admin-uuid", 1L)).thenReturn(Optional.of(admin));
+            UserRequestDTO dto = UserRequestDTO.builder().email("admin@bar.test").role(User.UserRole.SUPER_ADMIN).build();
+
+            assertThatThrownBy(() -> service.updateUser("admin-uuid", dto)).isInstanceOf(ForbiddenException.class);
+            assertThat(admin.getRole()).isEqualTo(User.UserRole.ADMIN);
+        }
+
+        @Test
+        @DisplayName("canviar l'email d'un usuari obliga a tornar-lo a verificar")
+        void emailChangeRequiresVerification() {
+            User worker = user(11L, "worker-uuid", "worker@bar.test", User.UserRole.USER);
+            when(userRepository.findByUuidAndCompany_Id("worker-uuid", 1L)).thenReturn(Optional.of(worker));
+            when(userRepository.existsByEmail("nou@bar.test")).thenReturn(false);
+            when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+            service.updateUser("worker-uuid", UserRequestDTO.builder().email("Nou@bar.test").build());
+
+            assertThat(worker.getEmail()).isEqualTo("nou@bar.test");
+            assertThat(worker.getEmailVerified()).isFalse();
+            verify(emailService).sendEmailVerification(eq("nou@bar.test"), anyString(), eq("Nom"), any());
+        }
+
+        @Test
+        @DisplayName("ningú pot canviar la contrasenya d'un altre usuari")
+        void cannotChangeOthersPassword() {
+            PasswordChangeDTO dto = new PasswordChangeDTO();
+            dto.setCurrentPassword("Bar12345");
+            dto.setNewPassword("Nova12345");
+
+            assertThatThrownBy(() -> service.changePassword("another-uuid", dto)).isInstanceOf(ForbiddenException.class);
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("l'administrador no es pot esborrar a si mateix")
+        void cannotDeleteSelf() {
+            when(userRepository.findByUuidAndCompany_Id("admin-uuid", 1L)).thenReturn(Optional.of(admin));
+
+            assertThatThrownBy(() -> service.deleteUser("admin-uuid")).hasMessage("error.user.cannotDeleteSelf");
+        }
     }
 
     @Test
-    @DisplayName("Login hauria de llançar excepció quan l'usuari no existeix")
-    void login_ShouldThrowException_WhenUserNotFound() {
-        // Given
-        when(userRepository.findByEmail("test@pedidai.com")).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> userService.login(loginRequest))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("Credencials invàlides");
-    }
-
-    @Test
-    @DisplayName("Login hauria de llançar excepció quan l'usuari està inactiu")
-    void login_ShouldThrowException_WhenUserIsInactive() {
-        // Given
-        testUser.setIsActive(false);
-        when(userRepository.findByEmail("test@pedidai.com")).thenReturn(Optional.of(testUser));
-
-        // When & Then
-        assertThatThrownBy(() -> userService.login(loginRequest))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("L'usuari està inactiu");
-    }
-
-    @Test
-    @DisplayName("Login hauria de llançar excepció quan l'email no està verificat")
-    void login_ShouldThrowException_WhenEmailNotVerified() {
-        // Given
-        testUser.setEmailVerified(false);
-        when(userRepository.findByEmail("test@pedidai.com")).thenReturn(Optional.of(testUser));
-
-        // When & Then
-        assertThatThrownBy(() -> userService.login(loginRequest))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("verificar el teu correu electrònic");
-    }
-
-    @Test
-    @DisplayName("Login hauria de llançar excepció quan la contrasenya és incorrecta")
-    void login_ShouldThrowException_WhenPasswordIsWrong() {
-        // Given
-        when(userRepository.findByEmail("test@pedidai.com")).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(false);
-
-        // When & Then
-        assertThatThrownBy(() -> userService.login(loginRequest))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("Credencials invàlides");
-    }
-
-    @Test
-    @DisplayName("RequestPasswordReset hauria de generar token i enviar email")
-    void requestPasswordReset_ShouldGenerateTokenAndSendEmail() {
-        // Given
-        when(userRepository.findByEmail("test@pedidai.com")).thenReturn(Optional.of(testUser));
-
-        // When
-        userService.requestPasswordReset("test@pedidai.com");
-
-        // Then
-        verify(userRepository).save(testUser);
-        verify(emailService).sendPasswordResetEmail(eq("test@pedidai.com"), anyString(), eq("Joan"));
-        assertThat(testUser.getPasswordResetToken()).isNotNull();
-        assertThat(testUser.getPasswordResetExpires()).isAfter(LocalDateTime.now());
-    }
-
-    @Test
-    @DisplayName("ResetPassword hauria de canviar la contrasenya amb token vàlid")
-    void resetPassword_ShouldChangePassword_WhenTokenIsValid() {
-        // Given
-        PasswordResetDTO resetDTO = PasswordResetDTO.builder()
-                .token("valid-token")
-                .newPassword("newPassword123")
-                .build();
-
-        when(userRepository.findByValidResetToken(eq("valid-token"), any(LocalDateTime.class)))
-                .thenReturn(Optional.of(testUser));
-        when(passwordEncoder.encode("newPassword123")).thenReturn("new-encoded-password");
-
-        // When
-        userService.resetPassword(resetDTO);
-
-        // Then
-        verify(passwordEncoder).encode("newPassword123");
-        verify(userRepository).save(testUser);
-        assertThat(testUser.getPassword()).isEqualTo("new-encoded-password");
-        assertThat(testUser.getPasswordResetToken()).isNull();
-        assertThat(testUser.getPasswordResetExpires()).isNull();
-    }
-
-    @Test
-    @DisplayName("VerifyEmail hauria de verificar l'usuari i activar l'empresa si és ADMIN")
-    void verifyEmail_ShouldVerifyUserAndActivateCompany_WhenUserIsAdmin() {
-        // Given
-        testUser.setRole(UserRole.ADMIN);
-        testUser.setEmailVerified(false);
-        testCompany.setStatus(CompanyStatus.PENDING);
-
-        when(userRepository.findByValidVerificationToken(eq("valid-token"), any(LocalDateTime.class)))
-                .thenReturn(Optional.of(testUser));
-
-        // When
-        userService.verifyEmail("valid-token");
-
-        // Then
-        assertThat(testUser.getEmailVerified()).isTrue();
-        assertThat(testUser.getEmailVerificationToken()).isNull();
-        assertThat(testCompany.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
-
-        verify(userRepository).save(testUser);
-        verify(companyRepository).save(testCompany);
-    }
-
-    @Test
-    @DisplayName("VerifyEmail hauria de verificar l'usuari sense activar empresa si és USER")
-    void verifyEmail_ShouldVerifyUserOnly_WhenUserIsNotAdmin() {
-        // Given
-        testUser.setRole(UserRole.USER);
-        testUser.setEmailVerified(false);
-
-        when(userRepository.findByValidVerificationToken(eq("valid-token"), any(LocalDateTime.class)))
-                .thenReturn(Optional.of(testUser));
-
-        // When
-        userService.verifyEmail("valid-token");
-
-        // Then
-        assertThat(testUser.getEmailVerified()).isTrue();
-        verify(userRepository).save(testUser);
-        verify(companyRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("ResendVerificationEmail hauria de generar nou token i enviar email")
-    void resendVerificationEmail_ShouldGenerateNewTokenAndSendEmail() {
-        // Given
-        testUser.setEmailVerified(false);
-        when(userRepository.findByEmail("test@pedidai.com")).thenReturn(Optional.of(testUser));
-
-        // When
-        userService.resendVerificationEmail("test@pedidai.com");
-
-        // Then
-        verify(emailService).sendEmailVerification(eq("test@pedidai.com"), anyString(), eq("Joan"));
-        verify(userRepository).save(testUser);
-        assertThat(testUser.getEmailVerificationToken()).isNotNull();
-        assertThat(testUser.getEmailVerificationExpires()).isAfter(LocalDateTime.now());
-    }
-
-    @Test
-    @DisplayName("ResendVerificationEmail hauria de llançar excepció si l'email ja està verificat")
-    void resendVerificationEmail_ShouldThrowException_WhenEmailAlreadyVerified() {
-        // Given
-        testUser.setEmailVerified(true);
-        when(userRepository.findByEmail("test@pedidai.com")).thenReturn(Optional.of(testUser));
-
-        // When & Then
-        assertThatThrownBy(() -> userService.resendVerificationEmail("test@pedidai.com"))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("Aquest email ja està verificat");
-    }
-
-    // ==================== Tests de RegisterUser ====================
-
-    @Test
-    @DisplayName("RegisterUser hauria de crear un usuari nou correctament")
-    void registerUser_ShouldCreateNewUser_WhenDataIsValid() {
-        // Given
-        mockAuthenticatedAdmin();
-
-        UserRegistrationDTO registrationDTO = UserRegistrationDTO.builder()
-                .email("nou@pedidai.com")
-                .password("Password123")
-                .firstName("Maria")
-                .lastName("Martínez")
-                .phone("600123456")
-                .role(UserRole.USER)
-                .build();
-
-        User newUser = User.builder()
-                .id(2L)
-                .uuid("new-user-uuid")
-                .email("nou@pedidai.com")
-                .firstName("Maria")
-                .lastName("Martínez")
-                .phone("600123456")
-                .role(UserRole.USER)
-                .company(testCompany)
-                .isActive(true)
-                .emailVerified(false)
-                .build();
-
-        when(userRepository.existsByEmail("nou@pedidai.com")).thenReturn(false);
-        when(companyRepository.findByUuid("company-uuid")).thenReturn(Optional.of(testCompany));
-        when(passwordEncoder.encode("Password123")).thenReturn("encoded-password-123");
-        when(userRepository.save(any(User.class))).thenReturn(newUser);
-
-        // When
-        UserResponseDTO response = userService.registerUser(registrationDTO);
-
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.getEmail()).isEqualTo("nou@pedidai.com");
-        assertThat(response.getFirstName()).isEqualTo("Maria");
-        assertThat(response.getLastName()).isEqualTo("Martínez");
-
-        verify(emailService).sendEmailVerification(eq("nou@pedidai.com"), anyString(), eq("Maria"));
-        verify(userRepository).save(any(User.class));
-    }
-
-    @Test
-    @DisplayName("RegisterUser hauria de llançar excepció si l'usuari no és ADMIN")
-    void registerUser_ShouldThrowException_WhenUserIsNotAdmin() {
-        // Given
-        mockAuthenticatedNonAdmin();
-
-        UserRegistrationDTO registrationDTO = UserRegistrationDTO.builder()
-                .email("nou@pedidai.com")
-                .password("Password123")
-                .firstName("Maria")
-                .lastName("Martínez")
-                .build();
-
-        // When & Then
-        assertThatThrownBy(() -> userService.registerUser(registrationDTO))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("L'usuari ha de ser Administrador");
-    }
-
-    @Test
-    @DisplayName("RegisterUser hauria de llançar excepció si l'email ja existeix")
-    void registerUser_ShouldThrowException_WhenEmailAlreadyExists() {
-        // Given
-        mockAuthenticatedAdmin();
-
-        UserRegistrationDTO registrationDTO = UserRegistrationDTO.builder()
-                .email("test@pedidai.com")
-                .password("Password123")
-                .firstName("Maria")
-                .lastName("Martínez")
-                .build();
-
-        when(userRepository.existsByEmail("test@pedidai.com")).thenReturn(true);
-
-        // When & Then
-        assertThatThrownBy(() -> userService.registerUser(registrationDTO))
-                .isInstanceOf(DuplicateResourceException.class)
-                .hasMessageContaining("Ja existeix un usuari amb l'email");
-    }
-
-    @Test
-    @DisplayName("RegisterUser hauria de llançar excepció si l'empresa no existeix")
-    void registerUser_ShouldThrowException_WhenCompanyNotFound() {
-        // Given
-        mockAuthenticatedAdmin();
-
-        UserRegistrationDTO registrationDTO = UserRegistrationDTO.builder()
-                .email("nou@pedidai.com")
-                .password("Password123")
-                .firstName("Maria")
-                .lastName("Martínez")
-                .build();
-
-        when(userRepository.existsByEmail("nou@pedidai.com")).thenReturn(false);
-        when(companyRepository.findByUuid("company-uuid")).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> userService.registerUser(registrationDTO))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Empresa no trobada");
-    }
-
-    // ==================== Tests de GetAllUsersPaginated ====================
-
-    @Test
-    @DisplayName("GetAllUsersPaginated hauria de retornar usuaris paginats")
-    void getAllUsersPaginated_ShouldReturnPagedUsers() {
-        // Given
-        mockAuthenticatedAdmin();
-
-        User user2 = User.builder()
-                .id(2L)
-                .uuid("user-uuid-2")
-                .email("user2@pedidai.com")
-                .firstName("Pere")
-                .lastName("López")
-                .role(UserRole.USER)
-                .company(testCompany)
-                .isActive(true)
-                .isDeleted(false)
-                .build();
-
-        List<User> users = Arrays.asList(testUser, user2);
-        Page<User> usersPage = new PageImpl<>(users);
-        Pageable pageable = PageRequest.of(0, 10);
-
-        when(userRepository.findByCompanyUuidAndIsDeletedFalse("company-uuid", pageable)).thenReturn(usersPage);
-
-        // When
-        Page<UserResponseDTO> result = userService.getAllUsersPaginated(pageable);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getTotalElements()).isEqualTo(2);
-        assertThat(result.getContent()).hasSize(2);
-        verify(userRepository).findByCompanyUuidAndIsDeletedFalse("company-uuid", pageable);
-    }
-
-    @Test
-    @DisplayName("GetAllUsersPaginated hauria de llançar excepció si no és ADMIN")
-    void getAllUsersPaginated_ShouldThrowException_WhenUserIsNotAdmin() {
-        // Given
-        mockAuthenticatedNonAdmin();
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // When & Then
-        assertThatThrownBy(() -> userService.getAllUsersPaginated(pageable))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("L'usuari ha de ser Administrador");
-    }
-
-    // ==================== Tests de GetUserByUuid ====================
-
-    @Test
-    @DisplayName("GetUserByUuid hauria de retornar l'usuari correcte")
-    void getUserByUuid_ShouldReturnUser_WhenUserExists() {
-        // Given
-        mockAuthenticatedAdmin();
-        when(userRepository.findByUuid("user-uuid")).thenReturn(Optional.of(testUser));
-
-        // When
-        UserResponseDTO result = userService.getUserByUuid("user-uuid");
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getUuid()).isEqualTo("user-uuid");
-        assertThat(result.getEmail()).isEqualTo("test@pedidai.com");
-        verify(userRepository).findByUuid("user-uuid");
-    }
-
-    @Test
-    @DisplayName("GetUserByUuid hauria de llançar excepció si l'usuari no existeix")
-    void getUserByUuid_ShouldThrowException_WhenUserNotFound() {
-        // Given
-        mockAuthenticatedAdmin();
-        when(userRepository.findByUuid("invalid-uuid")).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> userService.getUserByUuid("invalid-uuid"))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Usuari no trobat");
-    }
-
-    @Test
-    @DisplayName("GetUserByUuid hauria de llançar excepció si no és ADMIN")
-    void getUserByUuid_ShouldThrowException_WhenUserIsNotAdmin() {
-        // Given
-        mockAuthenticatedNonAdmin();
-
-        // When & Then
-        assertThatThrownBy(() -> userService.getUserByUuid("user-uuid"))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("L'usuari ha de ser Administrador");
-    }
-
-    // ==================== Tests de SearchUsersByText ====================
-
-    @Test
-    @DisplayName("SearchUsersByText hauria de retornar usuaris que coincideixin amb el text")
-    void searchUsersByText_ShouldReturnMatchingUsers() {
-        // Given
-        mockAuthenticatedAdmin();
-
-        List<User> users = Collections.singletonList(testUser);
-        Page<User> usersPage = new PageImpl<>(users);
-        Pageable pageable = PageRequest.of(0, 10);
-
-        when(companyRepository.findByUuid("company-uuid")).thenReturn(Optional.of(testCompany));
-        when(userRepository.findByCompanyIdAndMultipleFieldsContainingNoDeleted(1L, "Joan", pageable))
-                .thenReturn(usersPage);
-
-        // When
-        Page<UserResponseDTO> result = userService.searchUsersByText("Joan", pageable);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().getFirst().getFirstName()).isEqualTo("Joan");
-    }
-
-    @Test
-    @DisplayName("SearchUsersByText hauria de llançar excepció si l'empresa no existeix")
-    void searchUsersByText_ShouldThrowException_WhenCompanyNotFound() {
-        // Given
-        mockAuthenticatedAdmin();
-        Pageable pageable = PageRequest.of(0, 10);
-
-        when(companyRepository.findByUuid("company-uuid")).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> userService.searchUsersByText("Joan", pageable))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Empresa no trobada");
-    }
-
-    // ==================== Tests de SearchUsersWithFilters ====================
-
-    @Test
-    @DisplayName("SearchUsersWithFilters hauria de retornar usuaris filtrats")
-    void searchUsersWithFilters_ShouldReturnFilteredUsers() {
-        // Given
-        mockAuthenticatedAdmin();
-
-        UserFilterDTO filterDTO = UserFilterDTO.builder()
-                .email("test@pedidai.com")
-                .isActive(true)
-                .build();
-
-        List<User> users = Collections.singletonList(testUser);
-        Page<User> usersPage = new PageImpl<>(users);
-        Pageable pageable = PageRequest.of(0, 10);
-
-        when(companyRepository.findByUuid("company-uuid")).thenReturn(Optional.of(testCompany));
-        when(userRepository.findByCompanyIdAndCriteriaActive(
-                eq(1L), eq("test@pedidai.com"), isNull(), isNull(), isNull(), eq(true), isNull(), isNull(), eq(pageable)))
-                .thenReturn(usersPage);
-
-        // When
-        Page<UserResponseDTO> result = userService.searchUsersWithFilters(filterDTO, pageable);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().getFirst().getEmail()).isEqualTo("test@pedidai.com");
-    }
-
-    // ==================== Tests de UpdateUser ====================
-
-    @Test
-    @DisplayName("UpdateUser hauria d'actualitzar l'usuari correctament")
-    void updateUser_ShouldUpdateUser_WhenDataIsValid() {
-        // Given
-        mockAuthenticatedAdmin();
-
-        UserRequestDTO updateDTO = UserRequestDTO.builder()
-                .email("updated@pedidai.com")
-                .firstName("Joan")
-                .lastName("Garcia Updated")
-                .phone("600999888")
-                .role(UserRole.USER)
-                .isActive(true)
-                .build();
-
-        when(userRepository.findByUuid("user-uuid")).thenReturn(Optional.of(testUser));
-        when(userRepository.existsByEmail("updated@pedidai.com")).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
-
-        // When
-        UserResponseDTO result = userService.updateUser("user-uuid", updateDTO);
-
-        // Then
-        assertThat(result).isNotNull();
-        verify(userRepository).save(testUser);
-        assertThat(testUser.getEmail()).isEqualTo("updated@pedidai.com");
-        assertThat(testUser.getLastName()).isEqualTo("Garcia Updated");
-    }
-
-    @Test
-    @DisplayName("UpdateUser hauria de llançar excepció si l'email ja existeix")
-    void updateUser_ShouldThrowException_WhenEmailAlreadyExists() {
-        // Given
-        mockAuthenticatedAdmin();
-
-        UserRequestDTO updateDTO = UserRequestDTO.builder()
-                .email("existing@pedidai.com")
-                .firstName("Joan")
-                .lastName("Garcia")
-                .build();
-
-        when(userRepository.findByUuid("user-uuid")).thenReturn(Optional.of(testUser));
-        when(userRepository.existsByEmail("existing@pedidai.com")).thenReturn(true);
-
-        // When & Then
-        assertThatThrownBy(() -> userService.updateUser("user-uuid", updateDTO))
-                .isInstanceOf(DuplicateResourceException.class)
-                .hasMessageContaining("Ja existeix un usuari amb l'email");
-    }
-
-    @Test
-    @DisplayName("UpdateUser hauria de llançar excepció si no és ADMIN")
-    void updateUser_ShouldThrowException_WhenUserIsNotAdmin() {
-        // Given
-        mockAuthenticatedNonAdmin();
-
-        UserRequestDTO updateDTO = UserRequestDTO.builder()
-                .email("updated@pedidai.com")
-                .firstName("Joan")
-                .lastName("Garcia")
-                .build();
-
-        // When & Then
-        assertThatThrownBy(() -> userService.updateUser("user-uuid", updateDTO))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("L'usuari ha de ser Administrador");
-    }
-
-    // ==================== Tests de ChangeUserStatus ====================
-
-    @Test
-    @DisplayName("ChangeUserStatus hauria de canviar l'estat de l'usuari")
-    void changeUserStatus_ShouldChangeStatus_WhenDataIsValid() {
-        // Given
-        mockAuthenticatedAdmin();
-        when(userRepository.findByUuid("user-uuid")).thenReturn(Optional.of(testUser));
-        when(userRepository.save(testUser)).thenReturn(testUser);
-
-        // When
-        UserResponseDTO result = userService.changeUserStatus("user-uuid", false);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(testUser.getIsActive()).isFalse();
-        verify(userRepository).save(testUser);
-    }
-
-    @Test
-    @DisplayName("ChangeUserStatus hauria de llançar excepció si no és ADMIN")
-    void changeUserStatus_ShouldThrowException_WhenUserIsNotAdmin() {
-        // Given
-        mockAuthenticatedNonAdmin();
-
-        // When & Then
-        assertThatThrownBy(() -> userService.changeUserStatus("user-uuid", false))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("L'usuari ha de ser Administrador");
-    }
-
-    // ==================== Tests de ChangePassword ====================
-
-    @Test
-    @DisplayName("ChangePassword hauria de canviar la contrasenya correctament")
-    void changePassword_ShouldChangePassword_WhenCurrentPasswordIsCorrect() {
-        // Given
-        PasswordChangeDTO changeDTO = PasswordChangeDTO.builder()
-                .currentPassword("oldPassword123")
-                .newPassword("newPassword456")
-                .build();
-
-        when(userRepository.findByUuid("user-uuid")).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.matches("oldPassword123", "encoded-password")).thenReturn(true);
-        when(passwordEncoder.encode("newPassword456")).thenReturn("new-encoded-password");
-
-        // When
-        userService.changePassword("user-uuid", changeDTO);
-
-        // Then
-        verify(passwordEncoder).encode("newPassword456");
-        verify(userRepository).save(testUser);
-        assertThat(testUser.getPassword()).isEqualTo("new-encoded-password");
-    }
-
-    @Test
-    @DisplayName("ChangePassword hauria de llançar excepció si la contrasenya actual és incorrecta")
-    void changePassword_ShouldThrowException_WhenCurrentPasswordIsWrong() {
-        // Given
-        PasswordChangeDTO changeDTO = PasswordChangeDTO.builder()
-                .currentPassword("wrongPassword")
-                .newPassword("newPassword456")
-                .build();
-
-        when(userRepository.findByUuid("user-uuid")).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.matches("wrongPassword", "encoded-password")).thenReturn(false);
-
-        // When & Then
-        assertThatThrownBy(() -> userService.changePassword("user-uuid", changeDTO))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("La contrasenya actual és incorrecta");
-    }
-
-    @Test
-    @DisplayName("ChangePassword hauria de llançar excepció si l'usuari no existeix")
-    void changePassword_ShouldThrowException_WhenUserNotFound() {
-        // Given
-        PasswordChangeDTO changeDTO = PasswordChangeDTO.builder()
-                .currentPassword("oldPassword123")
-                .newPassword("newPassword456")
-                .build();
-
-        when(userRepository.findByUuid("invalid-uuid")).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> userService.changePassword("invalid-uuid", changeDTO))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Usuari no trobat");
-    }
-
-    // ==================== Tests de DeleteUser ====================
-
-    @Test
-    @DisplayName("DeleteUser hauria de fer soft delete de l'usuari")
-    void deleteUser_ShouldSoftDeleteUser() {
-        // Given
-        mockAuthenticatedAdmin();
-        when(userRepository.findByUuid("user-uuid")).thenReturn(Optional.of(testUser));
-        when(userRepository.save(testUser)).thenReturn(testUser);
-
-        // When
-        userService.deleteUser("user-uuid");
-
-        // Then
-        assertThat(testUser.getIsDeleted()).isTrue();
-        verify(userRepository).save(testUser);
-    }
-
-    @Test
-    @DisplayName("DeleteUser hauria de llançar excepció si no és ADMIN")
-    void deleteUser_ShouldThrowException_WhenUserIsNotAdmin() {
-        // Given
-        mockAuthenticatedNonAdmin();
-
-        // When & Then
-        assertThatThrownBy(() -> userService.deleteUser("user-uuid"))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("L'usuari ha de ser Administrador");
-    }
-
-    @Test
-    @DisplayName("DeleteUser hauria de llançar excepció si l'usuari no existeix")
-    void deleteUser_ShouldThrowException_WhenUserNotFound() {
-        // Given
-        mockAuthenticatedAdmin();
-        when(userRepository.findByUuid("invalid-uuid")).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> userService.deleteUser("invalid-uuid"))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Usuari no trobat");
-    }
-
-    // ==================== Mètodes auxiliars per mocking ====================
-
-    private void mockAuthenticatedAdmin() {
-        User adminUser = User.builder()
-                .id(1L)
-                .uuid("admin-uuid")
-                .email("admin@pedidai.com")
-                .role(UserRole.ADMIN)
-                .company(testCompany)
-                .build();
-
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("admin@pedidai.com");
-        SecurityContextHolder.setContext(securityContext);
-
-        when(userRepository.findByEmail("admin@pedidai.com")).thenReturn(Optional.of(adminUser));
-    }
-
-    private void mockAuthenticatedNonAdmin() {
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("test@pedidai.com");
-        SecurityContextHolder.setContext(securityContext);
-
-        when(userRepository.findByEmail("test@pedidai.com")).thenReturn(Optional.of(testUser));
+    @DisplayName("idioma preferit: només ca o es")
+    void languageMustBeSupported() {
+        when(currentUser.get()).thenReturn(admin);
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        assertThat(service.updateMyLanguage("es").getLanguage()).isEqualTo("es");
+        assertThatThrownBy(() -> service.updateMyLanguage("en")).isInstanceOf(BadRequestException.class);
     }
 }

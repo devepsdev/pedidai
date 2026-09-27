@@ -42,6 +42,12 @@ O desde la consola MySQL:
 SOURCE /ruta/a/pedidai-db/pedidai_db_schema.sql;
 ```
 
+Después, aplica en orden las migraciones de `pedidai-db/migrations/` (en una base existente, haz antes una copia con `mysqldump`):
+
+```bash
+mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/001_lanzamiento.sql
+```
+
 ### 3. Verificar las tablas
 
 ```sql

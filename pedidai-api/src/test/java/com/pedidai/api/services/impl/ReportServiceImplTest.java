@@ -1,5 +1,9 @@
 package com.pedidai.api.services.impl;
 
+import com.pedidai.api.config.Messages;
+import com.pedidai.api.exceptions.ForbiddenException;
+import com.pedidai.api.security.CurrentUser;
+
 import com.pedidai.api.dto.*;
 import com.pedidai.api.entities.*;
 import com.pedidai.api.entities.Order;
@@ -12,8 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -25,11 +27,11 @@ import static org.mockito.Mockito.*;
 class ReportServiceImplTest {
 
     @Mock
-    private ProductRepository productRepository;
-    @Mock
     private OrderRepository orderRepository;
     @Mock
-    private UserRepository userRepository;
+    private CurrentUser currentUser;
+    @Mock
+    private Messages messages;
 
     @InjectMocks
     private ReportServiceImpl reportService;
@@ -83,24 +85,14 @@ class ReportServiceImplTest {
                 .quantity(BigDecimal.valueOf(2))
                 .build();
 
-        // Mock SecurityContext
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn(testUser.getEmail());
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
     }
 
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
-    }
 
     @Test
     @DisplayName("Comprova retorn d'informació dashboard")
     void dashboardInfo_success() {
         // Mock userRepository
-        when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
+        when(currentUser.companyId()).thenReturn(testCompany.getId());
 
         // Crear orders de prova
         Order order1 = Order.builder()
@@ -131,7 +123,7 @@ class ReportServiceImplTest {
         assertThat(dto.getComandesPendents()).isEqualTo(1);
 
         // Verificacions
-        verify(userRepository).findByEmail(testUser.getEmail());
+        verify(currentUser).companyId();
         verify(orderRepository).getOrdersByCompanyIdAndPeriodWithoutOrderItems(eq(testCompany.getId()), any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
@@ -139,7 +131,7 @@ class ReportServiceImplTest {
     @DisplayName("Comprova retorn d'informació global (informe)")
     void globalInfo_success() {
         // Mock userRepository
-        when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
+        when(currentUser.companyId()).thenReturn(testCompany.getId());
 
         // Crear orders i items
         Order order1 = Order.builder()
@@ -179,14 +171,14 @@ class ReportServiceImplTest {
         assertThat(dto.getDespesaProveidors()).hasSize(1);
         assertThat(dto.getTopProductes()).hasSize(1);
 
-        verify(userRepository).findByEmail(testUser.getEmail());
+        verify(currentUser).companyId();
         verify(orderRepository).getOrdersByCompanyIdAndPeriodWithOrderItems(eq(testCompany.getId()), eq(periodDTO.getDataInicial()), eq(periodDTO.getDataFinal()));
     }
 
     @Test
     @DisplayName("Comprova excepció d'usuari no trobat")
     void globalInfo_userNotFound_throws() {
-        when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Optional.empty());
+        when(currentUser.companyId()).thenThrow(new ForbiddenException("error.auth.required"));
 
         PeriodRequestDTO periodDTO = PeriodRequestDTO.builder()
                 .dataInicial(LocalDateTime.now().minusDays(30))
@@ -194,10 +186,9 @@ class ReportServiceImplTest {
                 .build();
 
         assertThatThrownBy(() -> reportService.globalInfo(periodDTO))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining(testUser.getEmail());
+                .isInstanceOf(ForbiddenException.class);
 
-        verify(userRepository).findByEmail(testUser.getEmail());
+        verify(currentUser).companyId();
         verifyNoInteractions(orderRepository);
     }
 }

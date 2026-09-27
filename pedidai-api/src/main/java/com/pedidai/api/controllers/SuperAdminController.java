@@ -26,7 +26,7 @@ public class SuperAdminController {
     public ResponseEntity<ApiResponseDTO<SuperAdminDashboardDTO>> getDashboard() {
         return ResponseEntity.ok(ApiResponseDTO.success(
                 superAdminService.getDashboard(),
-                "Dashboard carregat correctament"));
+                "success.ok"));
     }
 
     @GetMapping("/companies")
@@ -40,7 +40,7 @@ public class SuperAdminController {
         Page<CompanySummaryDTO> result = superAdminService.getCompanies(search, status, pageable);
         return ResponseEntity.ok(ApiResponseDTO.success(
                 PagedResponseDTO.of(result),
-                "Empreses carregades correctament"));
+                "success.ok"));
     }
 
     @GetMapping("/companies/{uuid}")
@@ -48,7 +48,7 @@ public class SuperAdminController {
     public ResponseEntity<ApiResponseDTO<CompanyDetailDTO>> getCompany(@PathVariable String uuid) {
         return ResponseEntity.ok(ApiResponseDTO.success(
                 superAdminService.getCompanyDetail(uuid),
-                "Empresa trobada correctament"));
+                "success.ok"));
     }
 
     @PatchMapping("/companies/{uuid}/status")
@@ -58,7 +58,7 @@ public class SuperAdminController {
             @Valid @RequestBody CompanyStatusUpdateDTO dto) {
         return ResponseEntity.ok(ApiResponseDTO.success(
                 superAdminService.updateCompanyStatus(uuid, dto.getStatus()),
-                "Estat de l'empresa actualitzat correctament"));
+                "success.company.statusUpdated"));
     }
 
     @GetMapping("/users")
@@ -73,7 +73,7 @@ public class SuperAdminController {
         Page<UserAdminDTO> result = superAdminService.getUsers(search, role, companyUuid, pageable);
         return ResponseEntity.ok(ApiResponseDTO.success(
                 PagedResponseDTO.of(result),
-                "Usuaris carregats correctament"));
+                "success.ok"));
     }
 
     @GetMapping("/stats/monthly")
@@ -81,7 +81,7 @@ public class SuperAdminController {
     public ResponseEntity<ApiResponseDTO<List<MonthlyStatsDTO>>> getMonthlyStats() {
         return ResponseEntity.ok(ApiResponseDTO.success(
                 superAdminService.getMonthlyStats(),
-                "Estadístiques mensuals carregades correctament"));
+                "success.ok"));
     }
 
     @PatchMapping("/companies/{uuid}/extend-trial")
@@ -91,7 +91,7 @@ public class SuperAdminController {
             @Valid @RequestBody ExtendTrialDTO dto) {
         return ResponseEntity.ok(ApiResponseDTO.success(
                 superAdminService.extendTrial(uuid, dto.getMonths()),
-                "Període de prova ampliat correctament"));
+                "success.company.trialExtended"));
     }
 
     @PatchMapping("/companies/{uuid}/activate")
@@ -101,6 +101,6 @@ public class SuperAdminController {
             @RequestBody ActivateCompanyDTO dto) {
         return ResponseEntity.ok(ApiResponseDTO.success(
                 superAdminService.activateCompany(uuid, dto.getPlan()),
-                "Empresa activada com a client Pro correctament"));
+                "success.company.activated"));
     }
 }

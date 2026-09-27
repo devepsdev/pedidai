@@ -70,6 +70,11 @@ public class User {
     @Column(name = "password_reset_expires")
     private LocalDateTime passwordResetExpires;
 
+    /** Idioma preferit de l'usuari ("ca" o "es"): correus, PDF i missatges fora de peticions HTTP. */
+    @Column(name = "language", nullable = false, length = 2)
+    @Builder.Default
+    private String language = "es";
+
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 

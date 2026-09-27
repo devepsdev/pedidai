@@ -29,6 +29,7 @@ public class OrderResponseDTO {
     private LocalDateTime updatedAt;
 
     private String supplierUuid;
+    private String supplierName;
 
     private List<OrderItemResponseDTO> items;
 }

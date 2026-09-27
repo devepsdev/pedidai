@@ -5,12 +5,15 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("CompanyRegistrationDTO: registre mínim")
 class CompanyRegistrationDTOTest {
 
     private static Validator validator;
@@ -22,52 +25,47 @@ class CompanyRegistrationDTOTest {
         }
     }
 
-    @Test
-    void whenAllFieldsValid_thenNoValidationErrors() {
-        CompanyRegistrationDTO dto = CompanyRegistrationDTO.builder()
-                .companyName("PedidAI SL")
-                .taxId("B12345678")
-                .companyEmail("empresa@pedidai.com")
-                .companyPhone("123456789")
-                .companyAddress("Carrer Exemple, 1")
-                .companyCity("Barcelona")
-                .companyPostalCode("08001")
-                .adminEmail("admin@pedidai.com")
-                .adminPassword("Aa123456!")
-                .adminFirstName("Dani")
-                .adminLastName("Garcia")
-                .adminPhone("987654321")
-                .build();
+    private static CompanyRegistrationDTO.CompanyRegistrationDTOBuilder valid() {
+        return CompanyRegistrationDTO.builder().companyName("Bar Prova").adminFirstName("Laura")
+                .adminEmail("laura@bar.test").adminPassword("Bar12345").acceptTerms(true);
+    }
 
-        Set<ConstraintViolation<CompanyRegistrationDTO>> violations = validator.validate(dto);
-        assertEquals(0, violations.size());
+    private static Set<String> invalidFields(CompanyRegistrationDTO dto) {
+        return validator.validate(dto).stream().map(v -> v.getPropertyPath().toString()).collect(Collectors.toSet());
     }
 
     @Test
-    void whenMandatoryFieldsMissing_thenValidationErrors() {
-        CompanyRegistrationDTO dto = new CompanyRegistrationDTO(); // tot null
-
-        Set<ConstraintViolation<CompanyRegistrationDTO>> violations = validator.validate(dto);
-        // Hauríem de tenir errors per: companyName, taxId, adminEmail, adminPassword, adminFirstName, adminLastName
-        assertEquals(6, violations.size());
+    @DisplayName("només calen nom del negoci, nom, email, contrasenya i acceptar els termes (CIF opcional)")
+    void minimalRegistrationIsValid() {
+        assertThat(validator.validate(valid().build())).isEmpty();
     }
 
     @Test
-    void whenInvalidPassword_thenValidationError() {
-        CompanyRegistrationDTO dto = CompanyRegistrationDTO.builder()
-                .companyName("PedidAI SL")
-                .taxId("B12345678")
-                .companyEmail("contact@pedidai.com") // opcional però vàlid
-                .adminEmail("admin@pedidai.com")     // obligatori i vàlid
-                .adminFirstName("Dani")
-                .adminLastName("Garcia")
-                .adminPassword("abc")               // incorrecte
-                .build();
-
-        Set<ConstraintViolation<CompanyRegistrationDTO>> violations = validator.validate(dto);
-        violations.forEach(v -> System.out.println(v.getPropertyPath() + " -> " + v.getMessage()));
-
-        assertEquals(2, violations.size()); // hauria d'anar bé
+    @DisplayName("camps obligatoris buits")
+    void mandatoryFields() {
+        assertThat(invalidFields(new CompanyRegistrationDTO()))
+                .containsExactlyInAnyOrder("companyName", "adminFirstName", "adminEmail", "adminPassword", "acceptTerms");
     }
 
+    @Test
+    @DisplayName("contrasenya: mínim 8 caràcters amb lletra i número (igual que el formulari)")
+    void passwordPolicy() {
+        assertThat(invalidFields(valid().adminPassword("abc1").build())).containsExactly("adminPassword");
+        assertThat(invalidFields(valid().adminPassword("abcdefgh").build())).containsExactly("adminPassword");
+        assertThat(invalidFields(valid().adminPassword("12345678").build())).containsExactly("adminPassword");
+        assertThat(invalidFields(valid().adminPassword("restaurante1").build())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("cal acceptar els termes")
+    void termsRequired() {
+        assertThat(invalidFields(valid().acceptTerms(false).build())).containsExactly("acceptTerms");
+    }
+
+    @Test
+    @DisplayName("email mal format")
+    void invalidEmail() {
+        Set<ConstraintViolation<CompanyRegistrationDTO>> v = validator.validate(valid().adminEmail("no-es-un-email").build());
+        assertThat(v).extracting(c -> c.getPropertyPath().toString()).containsExactly("adminEmail");
+    }
 }

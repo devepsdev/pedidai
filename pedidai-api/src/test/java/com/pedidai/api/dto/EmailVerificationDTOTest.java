@@ -45,7 +45,7 @@ class EmailVerificationDTOTest {
         Set<ConstraintViolation<EmailVerificationDTO>> violations = validator.validate(dto);
 
         assertFalse(violations.isEmpty());
-        assertEquals("El token és obligatori", violations.iterator().next().getMessage());
+        assertEquals("{validation.token.required}", violations.iterator().next().getMessage());
     }
 
     @Test
@@ -55,7 +55,7 @@ class EmailVerificationDTOTest {
         Set<ConstraintViolation<EmailVerificationDTO>> violations = validator.validate(dto);
 
         assertFalse(violations.isEmpty());
-        assertEquals("El token és obligatori", violations.iterator().next().getMessage());
+        assertEquals("{validation.token.required}", violations.iterator().next().getMessage());
     }
 
     @Test

@@ -1,6 +1,5 @@
 package com.pedidai.api.dto;
 
-import com.pedidai.api.entities.Company;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,27 +12,23 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CompanyRequestDTO {
 
-    @NotBlank(message = "El nom és obligatori")
-    @Size(max = 255, message = "El nom no pot excedir de 255 caràcters")
+    @NotBlank(message = "{validation.name.required}")
+    @Size(max = 255, message = "{validation.name.tooLong}")
     private String name;
-
-    @NotBlank(message = "El NIF/CIF és obligatori")
-    @Size(max = 50, message = "El NIF/CIF no pot excedir de 50 caràcters")
+    @Size(max = 50, message = "{validation.taxId.tooLong}")
     private String taxId;
 
-    @Email(message = "L'email ha de ser vàlid")
+    @Email(message = "{validation.email.invalid}")
     private String email;
 
-    @Size(max = 50, message = "El telèfon no pot excedir de 50 caràcters")
+    @Size(max = 50, message = "{validation.phone.tooLong}")
     private String phone;
 
     private String address;
 
-    @Size(max = 100, message = "La ciutat no pot excedir de 100 caràcters")
+    @Size(max = 100, message = "{validation.city.tooLong}")
     private String city;
 
-    @Size(max = 20, message = "El codi postal no pot excedir de 20 caràcters")
+    @Size(max = 20, message = "{validation.postalCode.tooLong}")
     private String postalCode;
-
-    private Company.CompanyStatus status;
 }

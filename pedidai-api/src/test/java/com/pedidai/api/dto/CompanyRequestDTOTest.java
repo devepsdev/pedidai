@@ -1,6 +1,5 @@
 package com.pedidai.api.dto;
 
-import com.pedidai.api.entities.Company;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -37,7 +36,6 @@ class CompanyRequestDTOTest {
                 .address("Carrer Test 123")
                 .city("Barcelona")
                 .postalCode("08001")
-                .status(Company.CompanyStatus.ACTIVE)
                 .build();
 
         // When
@@ -61,12 +59,12 @@ class CompanyRequestDTOTest {
 
         // Then
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage()).isEqualTo("El nom és obligatori");
+        assertThat(violations.iterator().next().getMessage()).isEqualTo("{validation.name.required}");
     }
 
     @Test
-    @DisplayName("TaxId buit hauria de fallar la validació")
-    void blankTaxId_ShouldFailValidation() {
+    @DisplayName("El CIF és opcional (es demana en contractar)")
+    void blankTaxId_IsAllowed() {
         // Given
         CompanyRequestDTO dto = CompanyRequestDTO.builder()
                 .name("Test Company")
@@ -77,8 +75,7 @@ class CompanyRequestDTOTest {
         Set<ConstraintViolation<CompanyRequestDTO>> violations = validator.validate(dto);
 
         // Then
-        assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage()).isEqualTo("El NIF/CIF és obligatori");
+        assertThat(violations).isEmpty();
     }
 
     @Test
@@ -96,7 +93,7 @@ class CompanyRequestDTOTest {
 
         // Then
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage()).isEqualTo("L'email ha de ser vàlid");
+        assertThat(violations.iterator().next().getMessage()).isEqualTo("{validation.email.invalid}");
     }
 
     @Test
@@ -114,7 +111,7 @@ class CompanyRequestDTOTest {
 
         // Then
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage()).isEqualTo("El nom no pot excedir de 255 caràcters");
+        assertThat(violations.iterator().next().getMessage()).isEqualTo("{validation.name.tooLong}");
     }
 
     @Test
@@ -132,7 +129,7 @@ class CompanyRequestDTOTest {
 
         // Then
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage()).isEqualTo("El NIF/CIF no pot excedir de 50 caràcters");
+        assertThat(violations.iterator().next().getMessage()).isEqualTo("{validation.taxId.tooLong}");
     }
 
     @Test
@@ -147,7 +144,6 @@ class CompanyRequestDTOTest {
                 .address(null)
                 .city(null)
                 .postalCode(null)
-                .status(null)
                 .build();
 
         // When
@@ -187,24 +183,7 @@ class CompanyRequestDTOTest {
         Set<ConstraintViolation<CompanyRequestDTO>> violations = validator.validate(dto);
 
         // Then
-        assertThat(violations).hasSize(3);
+        assertThat(violations).hasSize(2);
     }
 
-    @Test
-    @DisplayName("Status PENDING hauria de ser vàlid")
-    void pendingStatus_ShouldBeValid() {
-        // Given
-        CompanyRequestDTO dto = CompanyRequestDTO.builder()
-                .name("Test Company")
-                .taxId("B12345678")
-                .status(Company.CompanyStatus.PENDING)
-                .build();
-
-        // When
-        Set<ConstraintViolation<CompanyRequestDTO>> violations = validator.validate(dto);
-
-        // Then
-        assertThat(violations).isEmpty();
-        assertThat(dto.getStatus()).isEqualTo(Company.CompanyStatus.PENDING);
-    }
 }

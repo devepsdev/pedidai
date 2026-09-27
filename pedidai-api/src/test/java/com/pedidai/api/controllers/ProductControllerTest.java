@@ -77,7 +77,7 @@ public class ProductControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Producte creat correctament"))
+                .andExpect(jsonPath("$.message").value("success.product.created"))
                 .andExpect(jsonPath("$.data.uuid").value("product-uuid"))
                 .andExpect(jsonPath("$.data.name").value("Aigua Mineral"))
                 .andExpect(jsonPath("$.data.supplier.uuid").value("suuplier-uuid"))
@@ -160,7 +160,7 @@ public class ProductControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Producte eliminat correctament"))
+                .andExpect(jsonPath("$.message").value("success.product.deleted"))
                 .andExpect(jsonPath("$.data.uuid").value("fa5fc192-770a-4d44-ba52-56414980d328"))
                 .andExpect(jsonPath("$.data.isActive").value(false));
     }

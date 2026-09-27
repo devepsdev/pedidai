@@ -76,6 +76,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                // Sense sessió vàlida → 401 (el frontend torna al login); amb sessió però sense permís → 403
+                .exceptionHandling(e -> e.authenticationEntryPoint(
+                        new org.springframework.security.web.authentication.HttpStatusEntryPoint(
+                                org.springframework.http.HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(auth -> auth
                         // Swagger endpoints - públics
                         .requestMatchers("/swagger-ui.html").permitAll()
@@ -96,6 +100,9 @@ public class SecurityConfig {
 
                         // Companies - públics per al registre
                         .requestMatchers(HttpMethod.POST, "/api/companies/register").permitAll()
+
+                        // Imatges de producte (noms aleatoris, sense dades sensibles)
+                        .requestMatchers(HttpMethod.GET, "/api/img/productes/**").permitAll()
 
                         // Super Admin endpoints - requereixen rol SUPER_ADMIN
                         .requestMatchers("/api/superadmin/**").hasRole("SUPER_ADMIN")

@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PasswordResetRequestDTO {
 
-    @NotBlank(message = "No pot ser null, buit o contenir només espais en blanc")
-    @Email(message = "Ha de tenir un format d'email vàlid (exemple: user@domain.com)")
+    @NotBlank(message = "{validation.required}")
+    @Email(message = "{validation.email.invalid}")
     private String email;
 }

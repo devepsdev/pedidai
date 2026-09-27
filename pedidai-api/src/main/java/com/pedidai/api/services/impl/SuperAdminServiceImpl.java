@@ -88,7 +88,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     @Override
     public CompanyDetailDTO getCompanyDetail(String uuid) {
         Company company = companyRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada: " + uuid));
+                .orElseThrow(() -> new ResourceNotFoundException("error.company.notFound"));
 
         List<User> users = userRepository.findByCompanyIdNotDeleted(company.getId());
         List<UserSummaryDTO> userDTOs = users.stream().map(this::toUserSummaryDTO).collect(Collectors.toList());
@@ -138,11 +138,11 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     @Transactional
     public CompanySummaryDTO updateCompanyStatus(String uuid, String statusStr) {
         Company company = companyRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada: " + uuid));
+                .orElseThrow(() -> new ResourceNotFoundException("error.company.notFound"));
         try {
             company.setStatus(Company.CompanyStatus.valueOf(statusStr.toUpperCase()));
         } catch (IllegalArgumentException e) {
-            throw new com.pedidai.api.exceptions.BadRequestException("Status invàlid: " + statusStr);
+            throw new com.pedidai.api.exceptions.BadRequestException("error.company.invalidStatus");
         }
         companyRepository.save(company);
         return toSummaryDTO(company);
@@ -177,7 +177,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     @Transactional
     public CompanySummaryDTO extendTrial(String uuid, int months) {
         Company company = companyRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada: " + uuid));
+                .orElseThrow(() -> new ResourceNotFoundException("error.company.notFound"));
         // Si ya tenía trial, extender desde hoy; si no tenía, iniciar desde hoy
         company.setTrialEndsAt(LocalDateTime.now().plusMonths(months));
         // Si estaba INACTIVE por trial expirado, la reactivamos
@@ -192,7 +192,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     @Transactional
     public CompanySummaryDTO activateCompany(String uuid, String plan) {
         Company company = companyRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa no trobada: " + uuid));
+                .orElseThrow(() -> new ResourceNotFoundException("error.company.notFound"));
         // Cliente de pago: sin límite de trial, estado ACTIVE
         company.setTrialEndsAt(null);
         company.setStatus(Company.CompanyStatus.ACTIVE);

@@ -16,7 +16,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
+    /** Usuari amb la seva empresa ja carregada (per al filtre JWT i l'usuari actual, fora de transacció). */
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.company WHERE u.email = :email")
+    Optional<User> findWithCompanyByEmail(@Param("email") String email);
+
     Optional<User> findByUuid(String uuid);
+
+    /** Usuari només si pertany a l'empresa indicada. */
+    Optional<User> findByUuidAndCompany_Id(String uuid, Long companyId);
+
+    long countByCompany_IdAndRoleAndIsDeletedFalseAndIsActiveTrue(Long companyId, User.UserRole role);
 
     @Query("SELECT u FROM User u WHERE u.emailVerificationToken = :token AND u.emailVerificationExpires > :now")
     Optional<User> findByValidVerificationToken(@Param("token") String token, @Param("now") LocalDateTime now);

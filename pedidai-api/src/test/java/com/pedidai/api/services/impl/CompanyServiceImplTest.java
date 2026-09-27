@@ -2,459 +2,138 @@ package com.pedidai.api.services.impl;
 
 import com.pedidai.api.dto.CompanyRegistrationDTO;
 import com.pedidai.api.dto.CompanyRequestDTO;
-import com.pedidai.api.dto.CompanyResponseDTO;
+import com.pedidai.api.dto.LoginResponseDTO;
 import com.pedidai.api.entities.Company;
 import com.pedidai.api.entities.User;
-import com.pedidai.api.entities.Company.CompanyStatus;
-import com.pedidai.api.entities.User.UserRole;
 import com.pedidai.api.exceptions.DuplicateResourceException;
-import com.pedidai.api.exceptions.ResourceNotFoundException;
+import com.pedidai.api.exceptions.ForbiddenException;
+import com.pedidai.api.exceptions.TooManyRequestsException;
 import com.pedidai.api.repositories.CompanyRepository;
 import com.pedidai.api.repositories.UserRepository;
+import com.pedidai.api.security.CurrentUser;
+import com.pedidai.api.security.RateLimiter;
 import com.pedidai.api.services.EmailService;
+import com.pedidai.api.services.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.Locale;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("CompanyServiceImpl Tests Corrected")
+@DisplayName("CompanyServiceImpl: alta amb prova de 14 dies")
 class CompanyServiceImplTest {
 
-    @Mock
-    private CompanyRepository companyRepository;
+    @Mock private CompanyRepository companyRepository;
+    @Mock private UserRepository userRepository;
+    @Mock private PasswordEncoder passwordEncoder;
+    @Mock private EmailService emailService;
+    @Mock private UserService userService;
+    @Mock private CurrentUser currentUser;
 
-    @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @Mock
-    private EmailService emailService;
-
-    // Security mocks - només quan es necessitin
-    @Mock
-    private SecurityContext securityContext;
-
-    @Mock
-    private Authentication authentication;
-
-    @InjectMocks
-    private CompanyServiceImpl companyService;
-
-    private CompanyRegistrationDTO registrationDTO;
-    private CompanyRequestDTO updateDTO;
-    private Company testCompany;
-    private User testAdmin;
-    private final String TEST_USER_EMAIL = "admin@test.com";
-    private final String TEST_COMPANY_UUID = "company-uuid-123";
+    private CompanyServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        setupTestData();
+        service = new CompanyServiceImpl(companyRepository, userRepository, passwordEncoder, emailService,
+                userService, currentUser, new RateLimiter());
     }
 
-    private void setupTestData() {
-        registrationDTO = CompanyRegistrationDTO.builder()
-                .companyName("Test Company SL")
-                .taxId("B12345678")
-                .companyEmail("empresa@test.com")
-                .companyPhone("123456789")
-                .companyAddress("Carrer Test 123")
-                .companyCity("Barcelona")
-                .companyPostalCode("08001")
-                .adminEmail(TEST_USER_EMAIL)
-                .adminPassword("password123")
-                .adminFirstName("Joan")
-                .adminLastName("Garcia")
-                .adminPhone("987654321")
-                .build();
-
-        updateDTO = CompanyRequestDTO.builder()
-                .name("Updated Company SL")
-                .taxId("B12345678")
-                .email("updated@empresa.com")
-                .phone("987654321")
-                .address("Carrer Updated 456")
-                .city("Madrid")
-                .postalCode("28001")
-                .status(CompanyStatus.ACTIVE)
-                .build();
-
-        testCompany = Company.builder()
-                .id(1L)
-                .uuid(TEST_COMPANY_UUID)
-                .name("Test Company SL")
-                .taxId("B12345678")
-                .email("empresa@test.com")
-                .phone("123456789")
-                .address("Carrer Test 123")
-                .city("Barcelona")
-                .postalCode("08001")
-                .status(CompanyStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        testAdmin = User.builder()
-                .id(1L)
-                .uuid("admin-uuid")
-                .email(TEST_USER_EMAIL)
-                .firstName("Joan")
-                .lastName("Garcia")
-                .role(UserRole.ADMIN)
-                .company(testCompany)
-                .isActive(true)
-                .emailVerified(false)
-                .build();
+    @AfterEach
+    void resetLocale() {
+        LocaleContextHolder.resetLocaleContext();
     }
 
-    // Mètode auxiliar per configurar SecurityContext només quan es necessiti
-    private void setupSecurityContextForAuthenticatedUser() {
-        when(authentication.getName()).thenReturn(TEST_USER_EMAIL);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
+    private CompanyRegistrationDTO registration(String email) {
+        return CompanyRegistrationDTO.builder().companyName(" Bar Prova ").adminFirstName("Laura")
+                .adminEmail(email).adminPassword("Bar12345").acceptTerms(true).build();
     }
 
-    @Nested
-    @DisplayName("Tests de registerCompanyWithAdmin")
-    class RegisterCompanyWithAdminTests {
+    @Test
+    @DisplayName("crea empresa activa amb 14 dies de prova, admin amb l'idioma de la petició i sessió iniciada")
+    void registersAndStartsTrial() {
+        LocaleContextHolder.setLocale(Locale.forLanguageTag("ca-ES"));
+        when(userRepository.existsByEmail("laura@bar.test")).thenReturn(false);
+        when(companyRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(passwordEncoder.encode("Bar12345")).thenReturn("hash");
+        LoginResponseDTO session = LoginResponseDTO.builder().token("jwt").build();
+        when(userService.issueSession(any())).thenReturn(session);
 
-        @Test
-        @DisplayName("hauria de crear empresa i administrador correctament")
-        void registerCompanyWithAdmin_ShouldCreateCompanyAndAdmin_Successfully() {
-            // Given
-            when(companyRepository.existsByTaxId("B12345678")).thenReturn(false);
-            when(userRepository.existsByEmail(TEST_USER_EMAIL)).thenReturn(false);
-            when(companyRepository.save(any(Company.class))).thenReturn(testCompany);
-            when(userRepository.save(any(User.class))).thenReturn(testAdmin);
-            when(passwordEncoder.encode("password123")).thenReturn("encoded-password");
-            doNothing().when(emailService).sendCompanyAdminVerification(
-                    anyString(), anyString(), anyString(), anyString());
+        assertThat(service.registerCompanyWithAdmin(registration("Laura@Bar.test"), "1.1.1.1")).isSameAs(session);
 
-            // When
-            CompanyResponseDTO response = companyService.registerCompanyWithAdmin(registrationDTO);
+        ArgumentCaptor<Company> company = ArgumentCaptor.forClass(Company.class);
+        verify(companyRepository).save(company.capture());
+        assertThat(company.getValue().getName()).isEqualTo("Bar Prova");
+        assertThat(company.getValue().getStatus()).isEqualTo(Company.CompanyStatus.ACTIVE);
+        assertThat(company.getValue().getTaxId()).isNull();
+        assertThat(company.getValue().getTrialEndsAt())
+                .isBetween(LocalDateTime.now().plusDays(13).plusHours(23), LocalDateTime.now().plusDays(14).plusMinutes(1));
 
-            // Then
-            assertThat(response).isNotNull();
-            assertThat(response.getUuid()).isEqualTo(TEST_COMPANY_UUID);
-            assertThat(response.getName()).isEqualTo("Test Company SL");
-            assertThat(response.getTaxId()).isEqualTo("B12345678");
-            assertThat(response.getEmail()).isEqualTo("empresa@test.com");
-            assertThat(response.getStatus()).isEqualTo(CompanyStatus.PENDING);
-
-            // Verificar interaccions
-            verify(companyRepository).existsByTaxId("B12345678");
-            verify(userRepository).existsByEmail(TEST_USER_EMAIL);
-            verify(companyRepository).save(any(Company.class));
-            verify(userRepository).save(any(User.class));
-            verify(passwordEncoder).encode("password123");
-            verify(emailService).sendCompanyAdminVerification(
-                    eq(TEST_USER_EMAIL), anyString(), eq("Joan"), eq("Test Company SL"));
-        }
-
-        @Test
-        @DisplayName("hauria de llançar excepció quan taxId ja existeix")
-        void registerCompanyWithAdmin_ShouldThrowException_WhenTaxIdExists() {
-            // Given
-            when(companyRepository.existsByTaxId("B12345678")).thenReturn(true);
-
-            // When & Then
-            assertThatThrownBy(() -> companyService.registerCompanyWithAdmin(registrationDTO))
-                    .isInstanceOf(DuplicateResourceException.class)
-                    .hasMessageContaining("El CIF/NIF ja està registrat");
-
-            verify(companyRepository).existsByTaxId("B12345678");
-            verify(userRepository, never()).existsByEmail(anyString());
-        }
-
-        @Test
-        @DisplayName("hauria de llançar excepció quan email admin ja existeix")
-        void registerCompanyWithAdmin_ShouldThrowException_WhenAdminEmailExists() {
-            // Given
-            when(companyRepository.existsByTaxId("B12345678")).thenReturn(false);
-            when(userRepository.existsByEmail(TEST_USER_EMAIL)).thenReturn(true);
-
-            // When & Then
-            assertThatThrownBy(() -> companyService.registerCompanyWithAdmin(registrationDTO))
-                    .isInstanceOf(DuplicateResourceException.class)
-                    .hasMessageContaining("L'email de l'administrador ja està registrat");
-
-            verify(companyRepository).existsByTaxId("B12345678");
-            verify(userRepository).existsByEmail(TEST_USER_EMAIL);
-            verify(companyRepository, never()).save(any());
-        }
+        ArgumentCaptor<User> admin = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(admin.capture());
+        assertThat(admin.getValue().getRole()).isEqualTo(User.UserRole.ADMIN);
+        assertThat(admin.getValue().getEmail()).isEqualTo("laura@bar.test");
+        assertThat(admin.getValue().getLanguage()).isEqualTo("ca");
+        assertThat(admin.getValue().getEmailVerified()).isFalse();
+        verify(emailService).sendWelcomeVerification(eq("laura@bar.test"), anyString(), eq("Laura"), eq("Bar Prova"), any());
     }
 
-    @Nested
-    @DisplayName("Tests de getCompanyByUuid")
-    class GetCompanyByUuidTests {
+    @Test
+    @DisplayName("email ja registrat → 409")
+    void duplicateEmail() {
+        when(userRepository.existsByEmail("laura@bar.test")).thenReturn(true);
 
-        @Test
-        @DisplayName("hauria de retornar empresa de l'usuari autenticat")
-        void getCompanyByUuid_ShouldReturnCompany_WhenAuthenticated() {
-            // Given
-            setupSecurityContextForAuthenticatedUser();
-
-            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testAdmin));
-            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.of(testCompany));
-
-            // When
-            CompanyResponseDTO response;
-            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-                response = companyService.getCompanyByUuid();
-            }
-
-            // Then
-            assertThat(response).isNotNull();
-            assertThat(response.getUuid()).isEqualTo(TEST_COMPANY_UUID);
-            assertThat(response.getName()).isEqualTo("Test Company SL");
-            assertThat(response.getTaxId()).isEqualTo("B12345678");
-
-            verify(userRepository).findByEmail(TEST_USER_EMAIL);
-            verify(companyRepository).findByUuid(TEST_COMPANY_UUID);
-        }
-
-        @Test
-        @DisplayName("hauria de llançar excepció quan usuari no existeix")
-        void getCompanyByUuid_ShouldThrowException_WhenUserNotFound() {
-            // Given
-            setupSecurityContextForAuthenticatedUser();
-
-            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.empty());
-
-            // When & Then
-            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-
-                assertThatThrownBy(() -> companyService.getCompanyByUuid())
-                        .isInstanceOf(ResourceNotFoundException.class)
-                        .hasMessageContaining("Usuari no trobat");
-            }
-        }
-
-        @Test
-        @DisplayName("hauria de llançar excepció quan usuari no té empresa")
-        void getCompanyByUuid_ShouldThrowException_WhenUserHasNoCompany() {
-            // Given
-            setupSecurityContextForAuthenticatedUser();
-
-            User userWithoutCompany = User.builder()
-                    .email(TEST_USER_EMAIL)
-                    .company(null)
-                    .build();
-
-            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(userWithoutCompany));
-
-            // When & Then
-            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-
-                assertThatThrownBy(() -> companyService.getCompanyByUuid())
-                        .isInstanceOf(ResourceNotFoundException.class)
-                        .hasMessageContaining("L'usuari no té empresa assignada");
-            }
-        }
-
-        @Test
-        @DisplayName("hauria de llançar excepció quan empresa no existeix")
-        void getCompanyByUuid_ShouldThrowException_WhenCompanyNotFound() {
-            // Given
-            setupSecurityContextForAuthenticatedUser();
-
-            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testAdmin));
-            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.empty());
-
-            // When & Then
-            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-
-                assertThatThrownBy(() -> companyService.getCompanyByUuid())
-                        .isInstanceOf(ResourceNotFoundException.class)
-                        .hasMessageContaining("Empresa no trobada amb UUID");
-            }
-        }
+        assertThatThrownBy(() -> service.registerCompanyWithAdmin(registration("laura@bar.test"), "1.1.1.1"))
+                .isInstanceOf(DuplicateResourceException.class).hasMessage("error.register.emailExists");
+        verify(companyRepository, never()).save(any());
     }
 
-    @Nested
-    @DisplayName("Tests de updateCompany")
-    class UpdateCompanyTests {
-
-        @Test
-        @DisplayName("hauria d'actualitzar empresa correctament")
-        void updateCompany_ShouldUpdateCompany_Successfully() {
-            // Given
-            setupSecurityContextForAuthenticatedUser();
-
-            Company updatedCompany = Company.builder()
-                    .uuid(TEST_COMPANY_UUID)
-                    .name("Updated Company SL")
-                    .taxId("B12345678")
-                    .email("updated@empresa.com")
-                    .phone("987654321")
-                    .address("Carrer Updated 456")
-                    .city("Madrid")
-                    .postalCode("28001")
-                    .status(CompanyStatus.ACTIVE)
-                    .createdAt(testCompany.getCreatedAt())
-                    .updatedAt(LocalDateTime.now())
-                    .build();
-
-            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testAdmin));
-            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.of(testCompany));
-            when(companyRepository.save(any(Company.class))).thenReturn(updatedCompany);
-
-            // When
-            CompanyResponseDTO response;
-            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-                response = companyService.updateCompany(updateDTO);
-            }
-
-            // Then
-            assertThat(response).isNotNull();
-            assertThat(response.getUuid()).isEqualTo(TEST_COMPANY_UUID);
-            assertThat(response.getName()).isEqualTo("Updated Company SL");
-            assertThat(response.getEmail()).isEqualTo("updated@empresa.com");
-            assertThat(response.getCity()).isEqualTo("Madrid");
-            assertThat(response.getStatus()).isEqualTo(CompanyStatus.ACTIVE);
-
-            verify(userRepository).findByEmail(TEST_USER_EMAIL);
-            verify(companyRepository).findByUuid(TEST_COMPANY_UUID);
-            verify(companyRepository).save(any(Company.class));
+    @Test
+    @DisplayName("més de 5 registres per hora des de la mateixa IP → 429")
+    void registrationRateLimited() {
+        when(userRepository.existsByEmail(anyString())).thenReturn(true);
+        for (int i = 0; i < 5; i++) {
+            int n = i;
+            assertThatThrownBy(() -> service.registerCompanyWithAdmin(registration("u" + n + "@bar.test"), "9.9.9.9"))
+                    .isInstanceOf(DuplicateResourceException.class);
         }
-
-        @Test
-        @DisplayName("hauria d'actualitzar taxId quan no hi ha duplicat")
-        void updateCompany_ShouldAllowTaxIdChange_WhenNoDuplicate() {
-            // Given
-            setupSecurityContextForAuthenticatedUser();
-
-            CompanyRequestDTO updateDTOWithNewTaxId = CompanyRequestDTO.builder()
-                    .name("Updated Company SL")
-                    .taxId("B87654321") // Nou taxId
-                    .email("updated@empresa.com")
-                    .phone("987654321")
-                    .address("Carrer Updated 456")
-                    .city("Madrid")
-                    .postalCode("28001")
-                    .build();
-
-            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testAdmin));
-            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.of(testCompany));
-            when(companyRepository.existsByTaxId("B87654321")).thenReturn(false);
-            when(companyRepository.save(any(Company.class))).thenReturn(testCompany);
-
-            // When
-            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-                companyService.updateCompany(updateDTOWithNewTaxId);
-            }
-
-            // Then
-            verify(companyRepository).existsByTaxId("B87654321");
-            verify(companyRepository).save(any(Company.class));
-        }
-
-        @Test
-        @DisplayName("hauria de llançar excepció quan nou taxId ja existeix")
-        void updateCompany_ShouldThrowException_WhenNewTaxIdExists() {
-            // Given
-            setupSecurityContextForAuthenticatedUser();
-
-            CompanyRequestDTO updateDTOWithExistingTaxId = CompanyRequestDTO.builder()
-                    .name("Updated Company SL")
-                    .taxId("B87654321") // TaxId que ja existeix
-                    .email("updated@empresa.com")
-                    .build();
-
-            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testAdmin));
-            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.of(testCompany));
-            when(companyRepository.existsByTaxId("B87654321")).thenReturn(true);
-
-            // When & Then
-            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-
-                assertThatThrownBy(() -> companyService.updateCompany(updateDTOWithExistingTaxId))
-                        .isInstanceOf(DuplicateResourceException.class)
-                        .hasMessageContaining("Ja existeix una empresa amb el NIF/CIF");
-            }
-
-            verify(companyRepository).existsByTaxId("B87654321");
-            verify(companyRepository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("hauria de llançar excepció quan empresa no existeix")
-        void updateCompany_ShouldThrowException_WhenCompanyNotFound() {
-            // Given
-            setupSecurityContextForAuthenticatedUser();
-
-            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testAdmin));
-            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.empty());
-
-            // When & Then
-            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-
-                assertThatThrownBy(() -> companyService.updateCompany(updateDTO))
-                        .isInstanceOf(ResourceNotFoundException.class)
-                        .hasMessageContaining("Empresa no trobada amb UUID");
-            }
-        }
+        assertThatThrownBy(() -> service.registerCompanyWithAdmin(registration("u6@bar.test"), "9.9.9.9"))
+                .isInstanceOf(TooManyRequestsException.class);
     }
 
-    @Nested
-    @DisplayName("Tests del mapeig mapToResponseDTO")
-    class MapToResponseDTOTests {
+    @Test
+    @DisplayName("l'administrador no pot canviar l'estat de la seva empresa")
+    void updateIgnoresStatus() {
+        Company company = Company.builder().id(1L).uuid("c1").name("Bar").status(Company.CompanyStatus.INACTIVE).build();
+        User admin = User.builder().role(User.UserRole.ADMIN).company(company).build();
+        when(currentUser.requireAdmin()).thenReturn(admin);
+        when(companyRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        @Test
-        @DisplayName("hauria de mapar entitat a DTO correctament")
-        void mapToResponseDTO_ShouldMapCorrectly() {
-            // Given - configurem el test per verificar el mapping indirectament
-            setupSecurityContextForAuthenticatedUser();
+        service.updateCompany(CompanyRequestDTO.builder().name("Bar Nou").email("bar@bar.test").build());
 
-            when(userRepository.findByEmail(TEST_USER_EMAIL)).thenReturn(Optional.of(testAdmin));
-            when(companyRepository.findByUuid(TEST_COMPANY_UUID)).thenReturn(Optional.of(testCompany));
+        assertThat(company.getName()).isEqualTo("Bar Nou");
+        assertThat(company.getStatus()).isEqualTo(Company.CompanyStatus.INACTIVE);
+    }
 
-            // When
-            CompanyResponseDTO result;
-            try (MockedStatic<SecurityContextHolder> mockedHolder = mockStatic(SecurityContextHolder.class)) {
-                mockedHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-                result = companyService.getCompanyByUuid();
-            }
+    @Test
+    @DisplayName("un usuari que no és administrador no pot editar l'empresa")
+    void onlyAdminCanUpdate() {
+        when(currentUser.requireAdmin()).thenThrow(new ForbiddenException("error.user.adminRequired"));
 
-            // Then - verifica que tots els camps s'hagin mapejat correctament
-            assertThat(result.getUuid()).isEqualTo(testCompany.getUuid());
-            assertThat(result.getName()).isEqualTo(testCompany.getName());
-            assertThat(result.getTaxId()).isEqualTo(testCompany.getTaxId());
-            assertThat(result.getEmail()).isEqualTo(testCompany.getEmail());
-            assertThat(result.getPhone()).isEqualTo(testCompany.getPhone());
-            assertThat(result.getAddress()).isEqualTo(testCompany.getAddress());
-            assertThat(result.getCity()).isEqualTo(testCompany.getCity());
-            assertThat(result.getPostalCode()).isEqualTo(testCompany.getPostalCode());
-            assertThat(result.getStatus()).isEqualTo(testCompany.getStatus());
-            assertThat(result.getCreatedAt()).isEqualTo(testCompany.getCreatedAt());
-            assertThat(result.getUpdatedAt()).isEqualTo(testCompany.getUpdatedAt());
-        }
+        assertThatThrownBy(() -> service.updateCompany(CompanyRequestDTO.builder().name("X").build()))
+                .isInstanceOf(ForbiddenException.class);
     }
 }

@@ -19,6 +19,9 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
 
     Optional<Supplier> findByUuid(String uuid);
 
+    /** Proveïdor només si pertany a l'empresa indicada. */
+    Optional<Supplier> findByUuidAndCompany_Id(String uuid, Long companyId);
+
     @Query("SELECT COUNT(s) > 0 FROM Supplier s WHERE s.company.uuid = :companyUuid AND LOWER(s.name) = LOWER(:name) AND s.uuid != :supplierUuid")
     boolean existsByCompanyUuidAndNameIgnoreCaseAndUuidNot(@Param("companyUuid") String companyUuid, @Param("name") String name, @Param("supplierUuid") String supplierUuid);
 

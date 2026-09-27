@@ -1,7 +1,7 @@
 package com.pedidai.api.exceptions;
 
-public class DuplicateResourceException extends RuntimeException {
-    public DuplicateResourceException(String message) {
-        super(message);
+public class DuplicateResourceException extends LocalizedException {
+    public DuplicateResourceException(String key, Object... args) {
+        super(key, args);
     }
 }

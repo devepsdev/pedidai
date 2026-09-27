@@ -45,15 +45,15 @@ class PasswordResetDTOTest {
         PasswordResetDTO dto = new PasswordResetDTO("token123", "");
         Set<ConstraintViolation<PasswordResetDTO>> violations = validator.validate(dto);
         assertFalse(violations.isEmpty());
-        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("obligatòria")));
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("password.required")));
     }
 
     @Test
     void whenPasswordDoesNotMeetPattern_thenValidationError() {
-        PasswordResetDTO dto = new PasswordResetDTO("token123", "abcdefghi"); // sense majúscula, número ni especial
+        PasswordResetDTO dto = new PasswordResetDTO("token123", "abcdefghi"); // sense cap número
         Set<ConstraintViolation<PasswordResetDTO>> violations = validator.validate(dto);
         assertFalse(violations.isEmpty());
-        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("majúscula")));
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("password.weak")));
     }
 
     @Test
@@ -61,6 +61,6 @@ class PasswordResetDTOTest {
         PasswordResetDTO dto = new PasswordResetDTO("", "Abcdef1@");
         Set<ConstraintViolation<PasswordResetDTO>> violations = validator.validate(dto);
         assertFalse(violations.isEmpty());
-        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("obligatori")));
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("token.required")));
     }
 }

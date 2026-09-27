@@ -82,7 +82,7 @@ class OrderControllerTest {
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(responseEntity.getBody()).isNotNull();
         assertThat(responseEntity.getBody().getData()).isEqualTo(orderResponse);
-        assertThat(responseEntity.getBody().getMessage()).isEqualTo("Comanda creada correctament");
+        assertThat(responseEntity.getBody().getMessage()).isEqualTo("success.order.created");
 
         // Verificar que el servei ha estat cridat exactament una vegada
         verify(orderService, times(1)).createOrder(orderRequest);
@@ -102,7 +102,7 @@ class OrderControllerTest {
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseEntity.getBody()).isNotNull();
         assertThat(responseEntity.getBody().getData()).isEqualTo(orderResponse);
-        assertThat(responseEntity.getBody().getMessage()).isEqualTo("Comanda enviada correctament");
+        assertThat(responseEntity.getBody().getMessage()).isEqualTo("success.order.sent");
 
         verify(orderService, times(1)).sendOrder("order-uuid");
     }
@@ -135,7 +135,7 @@ class OrderControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getData()).isEqualTo(orderResponse);
-        assertThat(response.getBody().getMessage()).isEqualTo("Comanda trobada correctament");
+        assertThat(response.getBody().getMessage()).isEqualTo("success.ok");
 
         verify(orderService, times(1)).getOrderByUuid("order-uuid");
     }
@@ -151,7 +151,7 @@ class OrderControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getData()).isEqualTo(orderResponse);
-        assertThat(response.getBody().getMessage()).isEqualTo("Comanda eliminada correctament");
+        assertThat(response.getBody().getMessage()).isEqualTo("success.order.deleted");
 
         verify(orderService, times(1)).deleteOrder("order-uuid");
     }
@@ -167,7 +167,7 @@ class OrderControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getData()).isEqualTo(orderResponse);
-        assertThat(response.getBody().getMessage()).isEqualTo("Comanda actualitzada correctament");
+        assertThat(response.getBody().getMessage()).isEqualTo("success.order.updated");
 
         verify(orderService, times(1)).updateOrder("order-uuid", orderRequest);
     }
@@ -195,7 +195,7 @@ class OrderControllerTest {
         assertThat(response.getBody().getData().getContent()).hasSize(1);
         assertThat(response.getBody().getData().getContent().get(0)).isEqualTo(orderResponse);
         assertThat(response.getBody().getMessage())
-                .contains("Cerca avançada de comandes completada");
+                .contains("success.search.done");
 
         verify(orderService, times(1))
                 .filterOrders(filterDTO, PageRequest.of(0, 10, Sort.by("name").ascending()));

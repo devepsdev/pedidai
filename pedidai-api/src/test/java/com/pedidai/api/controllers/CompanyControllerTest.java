@@ -3,6 +3,8 @@ package com.pedidai.api.controllers;
 import com.pedidai.api.dto.CompanyRegistrationDTO;
 import com.pedidai.api.dto.CompanyRequestDTO;
 import com.pedidai.api.dto.CompanyResponseDTO;
+import com.pedidai.api.dto.LoginResponseDTO;
+import com.pedidai.api.dto.UserResponseDTO;
 import com.pedidai.api.entities.Company;
 import com.pedidai.api.services.CompanyService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -125,28 +127,26 @@ class CompanyControllerTest {
 
         CompanyRegistrationDTO request = CompanyRegistrationDTO.builder()
                 .companyName("NewCo")
-                .taxId("A99999999")
-                .companyEmail("info@newco.com")
                 .adminEmail("admin@newco.com")
-                .adminPassword("Password1!")
+                .adminPassword("Password1")
                 .adminFirstName("Admin")
-                .adminLastName("User")
+                .acceptTerms(true)
                 .build();
 
-        CompanyResponseDTO companyResponse = CompanyResponseDTO.builder()
-                .uuid("uuid-123")
-                .name("NewCo")
-                .taxId("A99999999")
+        LoginResponseDTO session = LoginResponseDTO.builder()
+                .token("jwt")
+                .user(UserResponseDTO.builder().companyName("NewCo").build())
                 .build();
 
-        when(companyService.registerCompanyWithAdmin(any(CompanyRegistrationDTO.class)))
-                .thenReturn(companyResponse);
+        when(companyService.registerCompanyWithAdmin(any(CompanyRegistrationDTO.class), any()))
+                .thenReturn(session);
 
         mockMvc.perform(post("/api/companies/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.company.name").value("NewCo"));
+                .andExpect(jsonPath("$.data.token").value("jwt"))
+                .andExpect(jsonPath("$.data.user.companyName").value("NewCo"));
     }
 }

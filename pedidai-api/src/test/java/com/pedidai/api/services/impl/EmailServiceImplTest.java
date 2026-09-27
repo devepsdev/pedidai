@@ -1,163 +1,101 @@
 package com.pedidai.api.services.impl;
 
+import com.pedidai.api.config.I18nConfig;
+import com.pedidai.api.config.Messages;
+import com.pedidai.api.services.EmailService;
+import jakarta.mail.Session;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
+import java.util.List;
+import java.util.Properties;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
-@DisplayName("EmailServiceImpl Tests")
+@DisplayName("EmailServiceImpl: correus bilingües i sense HTML injectat")
 class EmailServiceImplTest {
 
-    @Mock
-    private JavaMailSender mailSender;
-
-    @Mock
-    private MimeMessage mimeMessage;
-
-    @InjectMocks
-    private EmailServiceImpl emailService;
+    @Mock private JavaMailSender mailSender;
+    private EmailServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        // Configurar el fromEmail usando ReflectionTestUtils
-        ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@pedidai.com");
+        service = new EmailServiceImpl(mailSender, new Messages(new I18nConfig().messageSource()));
+        ReflectionTestUtils.setField(service, "fromEmail", "noreply@pedidai.test");
+        ReflectionTestUtils.setField(service, "frontendUrl", "https://pedidai.test");
+        when(mailSender.createMimeMessage()).thenReturn(new MimeMessage(Session.getInstance(new Properties())));
+    }
 
-        // Configurar el mock per retornar un MimeMessage
-        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+    private MimeMessage sent() {
+        ArgumentCaptor<MimeMessage> message = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender).send(message.capture());
+        return message.getValue();
+    }
+
+    private static String html(MimeMessage message) throws Exception {
+        // El cos és multipart: es busca la part HTML recursivament
+        return findHtml(message.getContent());
+    }
+
+    private static String findHtml(Object content) throws Exception {
+        if (content instanceof String s) {
+            return s;
+        }
+        if (content instanceof jakarta.mail.Multipart mp) {
+            for (int i = 0; i < mp.getCount(); i++) {
+                String found = findHtml(mp.getBodyPart(i).getContent());
+                if (found != null && found.contains("<html")) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 
     @Test
-    @DisplayName("SendPasswordResetEmail hauria d'enviar email sense errors")
-    void sendPasswordResetEmail_ShouldSendEmailSuccessfully() {
-        // Given
-        String to = "user@test.com";
-        String token = "reset-token-123";
-        String userName = "Joan";
+    @DisplayName("la comanda escapa el text de l'usuari i les respostes van al client")
+    void orderEmailIsEscaped() throws Exception {
+        var order = new EmailService.OrderEmail("pere@prov.test", "laura@bar.test", "Pere", "Bar <b>Prova</b>",
+                null, null, "Setmanal", List.of(new EmailService.OrderEmailLine("<script>alert(1)</script>", "10", "kg", null)),
+                "<a href=\"http://phishing.test\">clica</a>");
 
-        // When & Then
-        assertThatCode(() -> emailService.sendPasswordResetEmail(to, token, userName))
-                .doesNotThrowAnyException();
+        service.sendOrderNotification(order, I18nConfig.CATALAN);
 
-        verify(mailSender).createMimeMessage();
-        verify(mailSender).send(mimeMessage);
+        MimeMessage message = sent();
+        String body = html(message);
+        assertThat(body).doesNotContain("<script>").doesNotContain("<a href=\"http://phishing.test\">");
+        assertThat(body).contains("&lt;script&gt;");
+        assertThat(((InternetAddress) message.getReplyTo()[0]).getAddress()).isEqualTo("laura@bar.test");
+        assertThat(message.getSubject()).startsWith("Nova comanda");
     }
 
     @Test
-    @DisplayName("SendEmailVerification hauria d'enviar email sense errors")
-    void sendEmailVerification_ShouldSendEmailSuccessfully() {
-        // Given
-        String to = "user@test.com";
-        String token = "verification-token-123";
-        String userName = "Maria";
+    @DisplayName("el correu de benvinguda surt en l'idioma de l'usuari")
+    void welcomeEmailLanguage() throws Exception {
+        service.sendWelcomeVerification("laura@bar.test", "token-1", "Laura", "Bar Prova", I18nConfig.SPANISH);
 
-        // When & Then
-        assertThatCode(() -> emailService.sendEmailVerification(to, token, userName))
-                .doesNotThrowAnyException();
-
-        verify(mailSender).createMimeMessage();
-        verify(mailSender).send(mimeMessage);
+        MimeMessage message = sent();
+        assertThat(message.getSubject()).contains("prueba de 14 días");
+        assertThat(html(message)).contains("https://pedidai.test/verify-email?token=token-1");
     }
 
     @Test
-    @DisplayName("SendCompanyAdminVerification hauria d'enviar email sense errors")
-    void sendCompanyAdminVerification_ShouldSendEmailSuccessfully() {
-        // Given
-        String to = "admin@company.com";
-        String token = "company-token-123";
-        String userName = "Pere";
-        String companyName = "Test Company SL";
+    @DisplayName("si el correu de compte falla, no es propaga l'error (l'usuari pot demanar-ne un altre)")
+    void accountEmailFailureIsSwallowed() {
+        doThrow(new org.springframework.mail.MailSendException("smtp caigut")).when(mailSender).send(any(MimeMessage.class));
 
-        // When & Then
-        assertThatCode(() -> emailService.sendCompanyAdminVerification(to, token, userName, companyName))
-                .doesNotThrowAnyException();
-
-        verify(mailSender).createMimeMessage();
-        verify(mailSender).send(mimeMessage);
-    }
-
-    @Test
-    @DisplayName("Haurien d'usar el fromEmail configurat")
-    void shouldUseConfiguredFromEmail() {
-        // Given
-        String testFromEmail = "test@pedidai.com";
-        ReflectionTestUtils.setField(emailService, "fromEmail", testFromEmail);
-
-        // When
-        emailService.sendPasswordResetEmail("user@test.com", "token", "User");
-
-        // Then
-        verify(mailSender).createMimeMessage();
-        verify(mailSender).send(mimeMessage);
-    }
-
-    @Test
-    @DisplayName("Tots els mètodes haurien de cridar mailSender.send()")
-    void allMethodsShouldCallMailSenderSend() {
-        // When
-        emailService.sendPasswordResetEmail("user@test.com", "token1", "User1");
-        emailService.sendEmailVerification("user@test.com", "token2", "User2");
-        emailService.sendCompanyAdminVerification("admin@test.com", "token3", "Admin", "Company");
-
-        // Then
-        verify(mailSender, times(3)).createMimeMessage();
-        verify(mailSender, times(3)).send(mimeMessage);
-    }
-
-    @Test
-    @DisplayName("SendPasswordResetEmail amb paràmetres vàlids")
-    void sendPasswordResetEmail_WithValidParameters() {
-        // Given
-        String validEmail = "valid@test.com";
-        String validToken = "valid-reset-token";
-        String validName = "Valid User";
-
-        // When & Then
-        assertThatCode(() -> emailService.sendPasswordResetEmail(validEmail, validToken, validName))
-                .doesNotThrowAnyException();
-
-        verify(mailSender).send(mimeMessage);
-    }
-
-    @Test
-    @DisplayName("SendEmailVerification amb paràmetres vàlids")
-    void sendEmailVerification_WithValidParameters() {
-        // Given
-        String validEmail = "verification@test.com";
-        String validToken = "valid-verification-token";
-        String validName = "Verification User";
-
-        // When & Then
-        assertThatCode(() -> emailService.sendEmailVerification(validEmail, validToken, validName))
-                .doesNotThrowAnyException();
-
-        verify(mailSender).send(mimeMessage);
-    }
-
-    @Test
-    @DisplayName("SendCompanyAdminVerification amb paràmetres vàlids")
-    void sendCompanyAdminVerification_WithValidParameters() {
-        // Given
-        String validEmail = "company-admin@test.com";
-        String validToken = "valid-company-token";
-        String validAdminName = "Company Admin";
-        String validCompanyName = "Valid Company Ltd";
-
-        // When & Then
-        assertThatCode(() -> emailService.sendCompanyAdminVerification(validEmail, validToken, validAdminName, validCompanyName))
-                .doesNotThrowAnyException();
-
-        verify(mailSender).send(mimeMessage);
+        assertThatCode(() -> service.sendEmailVerification("a@b.test", "t", "A", I18nConfig.CATALAN)).doesNotThrowAnyException();
     }
 }

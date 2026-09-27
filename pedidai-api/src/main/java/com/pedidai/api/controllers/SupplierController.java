@@ -35,15 +35,15 @@ public class SupplierController {
         PagedResponseDTO<SupplierResponseDTO> pagedResponse = PagedResponseDTO.of(suppliers);
 
         return ResponseEntity.ok(
-                ApiResponseDTO.success(pagedResponse, "Proveïdors de l'empresa obtinguts correctament"));
+                ApiResponseDTO.success(pagedResponse, "success.ok"));
     }
 
     @GetMapping("/{uuid}")
     public ResponseEntity<ApiResponseDTO<SupplierResponseDTO>> getSupplierByUuid(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid) {
         SupplierResponseDTO supplier = supplierService.getSupplierByUuid(uuid);
         return ResponseEntity.ok(
-                ApiResponseDTO.success(supplier, "Proveïdor obtingut correctament"));
+                ApiResponseDTO.success(supplier, "success.ok"));
     }
 
     @GetMapping("/search")
@@ -63,7 +63,7 @@ public class SupplierController {
         PagedResponseDTO<SupplierResponseDTO> pagedResponse = PagedResponseDTO.of(suppliers);
 
         return ResponseEntity.ok(
-                ApiResponseDTO.success(pagedResponse, "Cerca bàsica de proveïdors completada"));
+                ApiResponseDTO.success(pagedResponse, "success.search.done"));
     }
 
     @GetMapping("/filter")
@@ -82,8 +82,7 @@ public class SupplierController {
         // Convertir Page a PagedResponseDTO per evitar warning de serialització
         PagedResponseDTO<SupplierResponseDTO> pagedResponse = PagedResponseDTO.of(suppliers);
 
-        String message = String.format("Cerca avançada completada. Filtres aplicats: text=%s",
-                filterDTO.hasTextFilters());
+        String message = "success.search.done";
 
         return ResponseEntity.ok(
                 ApiResponseDTO.success(pagedResponse, message));
@@ -95,25 +94,25 @@ public class SupplierController {
         SupplierResponseDTO createdSupplier = supplierService.createSupplier(supplierRequestDTO);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponseDTO.success(createdSupplier, "Proveïdor creat correctament"));
+                .body(ApiResponseDTO.success(createdSupplier, "success.supplier.created"));
     }
 
     @PutMapping("/{uuid}")
     public ResponseEntity<ApiResponseDTO<SupplierResponseDTO>> updateSupplier(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid,
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid,
             @Valid @RequestBody SupplierRequestDTO supplierRequestDTO) {
         SupplierResponseDTO updatedSupplier = supplierService.updateSupplier(uuid, supplierRequestDTO);
         return ResponseEntity.ok(
-                ApiResponseDTO.success(updatedSupplier, "Proveïdor actualitzat correctament"));
+                ApiResponseDTO.success(updatedSupplier, "success.supplier.updated"));
     }
 
     @PatchMapping("/{uuid}/status")
     public ResponseEntity<ApiResponseDTO<SupplierResponseDTO>> toggleSupplierStatus(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid,
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid,
             @RequestParam Boolean isActive) {
         SupplierResponseDTO updatedSupplier = supplierService.toggleSupplierStatus(uuid, isActive);
         return ResponseEntity.ok(
-                ApiResponseDTO.success(updatedSupplier, "Estat del proveïdor actualitzat correctament"));
+                ApiResponseDTO.success(updatedSupplier, "success.supplier.statusUpdated"));
     }
 
 }

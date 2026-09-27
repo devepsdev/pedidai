@@ -27,7 +27,7 @@ public class OrderController {
         OrderResponseDTO createOrder = orderService.createOrder(orderRequestDTO);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponseDTO.success(createOrder, "Comanda creada correctament"));
+                .body(ApiResponseDTO.success(createOrder, "success.order.created"));
     }
 
     @GetMapping({"/filter", "/list"})
@@ -44,7 +44,7 @@ public class OrderController {
         PagedResponseDTO<OrderResponseDTO> pagedResponse = PagedResponseDTO.of(orders);
 
         // Retorn
-        String message = String.format("Cerca avançada de comandes completada. Filtres aplicats: text=%s", filterDTO.hasTextFilters());
+        String message = "success.search.done";
         return ResponseEntity.ok(ApiResponseDTO.success(pagedResponse, message));
     }
 
@@ -54,23 +54,23 @@ public class OrderController {
 
         OrderResponseDTO sentOrder = orderService.sendOrder(uuid);
         return ResponseEntity
-                .ok(ApiResponseDTO.success(sentOrder, "Comanda enviada correctament"));
+                .ok(ApiResponseDTO.success(sentOrder, "success.order.sent"));
     }
 
     @GetMapping("/{uuid}")
     public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> getOrder(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid) {
         OrderResponseDTO order = orderService.getOrderByUuid(uuid);
         return ResponseEntity.ok(
-                ApiResponseDTO.success(order, "Comanda trobada correctament"));
+                ApiResponseDTO.success(order, "success.ok"));
     }
 
     @PatchMapping("/delete/{uuid}")
     public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> deleteOrder(
-            @PathVariable @NotBlank(message = "L'UUID no pot estar buit") String uuid) {
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid) {
         OrderResponseDTO deletedOrder = orderService.deleteOrder(uuid);
         return ResponseEntity.ok(
-                ApiResponseDTO.success(deletedOrder, "Comanda eliminada correctament"));
+                ApiResponseDTO.success(deletedOrder, "success.order.deleted"));
     }
 
     @PutMapping("/update/{uuid}")
@@ -80,7 +80,7 @@ public class OrderController {
 
         OrderResponseDTO updatedOrder = orderService.updateOrder(uuid, dto);
         return ResponseEntity.ok(
-                ApiResponseDTO.success(updatedOrder, "Comanda actualitzada correctament")
+                ApiResponseDTO.success(updatedOrder, "success.order.updated")
         );
     }
 
@@ -90,7 +90,7 @@ public class OrderController {
 
         ConsumptionAnalysisDTO analysis = orderService.getConsumptionAnalysis(days);
         return ResponseEntity.ok(
-                ApiResponseDTO.success(analysis, "Anàlisi de consum generat correctament")
+                ApiResponseDTO.success(analysis, "success.report.consumption")
         );
     }
 
