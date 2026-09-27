@@ -145,14 +145,14 @@
 <!-- Footer -->
 <footer class="bg-slate-900 text-slate-400">
   <div class="max-w-7xl mx-auto px-6 lg:px-8 py-14">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
+    <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-10 mb-10">
       <!-- Brand -->
-      <div class="md:col-span-1">
+      <div class="md:col-span-3 xl:col-span-3">
         <div class="flex items-center gap-2 mb-4">
           <img src="logo-navbar.png" class="h-8 w-auto" alt="PedidAI">
           <span class="brand-name text-xl text-white">Pedid<span class="brand-ai">AI</span></span>
         </div>
-        <p class="text-sm leading-relaxed">{{ 'FOOTER.TAGLINE' | translate }}</p>
+        <p class="text-sm leading-relaxed">@for (line of ('FOOTER.TAGLINE' | translate | lines); track $index) {<span class="lg:block">{{ line }} </span>}</p>
         <p class="text-sm mt-3">
           <a href="mailto:hola@pedidai.es" class="hover:text-white transition-colors">hola&#64;pedidai.es</a>
         </p>

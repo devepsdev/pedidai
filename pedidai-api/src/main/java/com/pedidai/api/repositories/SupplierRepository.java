@@ -4,6 +4,7 @@ import com.pedidai.api.entities.Supplier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -56,4 +57,8 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
 
     @Query("SELECT s FROM Supplier s WHERE s.company.id = :companyId AND s.isActive = true AND LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%'))")
     List<Supplier> findActiveByCompanyIdAndNameContaining(@Param("companyId") Long companyId, @Param("name") String name);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM Supplier s WHERE s.company.id = :companyId")
+    int deleteByCompanyId(@Param("companyId") Long companyId);
 }

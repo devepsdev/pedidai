@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { LanguageService } from '../../services/language.service';
 import { formatMoney } from '../../shared/format';
+import { LinesPipe } from '../../shared/lines.pipe';
 
 /**
  * Ejemplo de ahorro con cifras supuestas y explícitas (no son resultados de clientes):
@@ -10,7 +11,7 @@ import { formatMoney } from '../../shared/format';
  */
 @Component({
   selector: 'app-savings-section',
-  imports: [RouterLink, TranslateModule],
+  imports: [RouterLink, TranslateModule, LinesPipe],
   templateUrl: './savings-section.html',
 })
 export class SavingsSection {

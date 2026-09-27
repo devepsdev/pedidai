@@ -2,7 +2,7 @@
   <div class="max-w-5xl mx-auto px-5 lg:px-8">
     <div class="text-center mb-10">
       <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900">{{ 'LANDING.SAVINGS.TITLE' | translate }}</h2>
-      <p class="mt-3 text-lg text-gray-500 max-w-2xl mx-auto">{{ 'LANDING.SAVINGS.SUBTITLE' | translate }}</p>
+      <p class="mt-3 text-lg text-gray-500 max-w-2xl mx-auto">@for (line of ('LANDING.SAVINGS.SUBTITLE' | translate | lines); track $index) {<span class="lg:block">{{ line }} </span>}</p>
     </div>
 
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-8">
@@ -31,7 +31,7 @@
       @if (net() > 0) {
         <p class="mt-4 text-sm text-gray-700">{{ 'LANDING.SAVINGS.NET' | translate: { net: money(net()), price: launchPrice } }}</p>
       }
-      <p class="mt-4 text-xs text-gray-400">{{ 'LANDING.SAVINGS.DISCLAIMER' | translate: { share: sharePercent, gap: gapPercent } }}</p>
+      <p class="mt-4 text-xs text-gray-400">@for (line of ('LANDING.SAVINGS.DISCLAIMER' | translate: { share: sharePercent, gap: gapPercent } | lines); track $index) {<span class="lg:block">{{ line }} </span>}</p>
 
       <div class="mt-6">
         <a routerLink="/register"

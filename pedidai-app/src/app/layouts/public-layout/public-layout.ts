@@ -4,10 +4,11 @@ import { TranslateModule } from '@ngx-translate/core';
 import { LanguageService } from '../../services/language.service';
 import { AnalyticsService } from '../../services/analytics.service';
 import { filter } from 'rxjs';
+import { LinesPipe } from '../../shared/lines.pipe';
 
 @Component({
   selector: 'app-public-layout',
-  imports: [RouterOutlet, RouterLink, TranslateModule],
+  imports: [RouterOutlet, RouterLink, TranslateModule, LinesPipe],
   templateUrl: './public-layout.html',
 })
 export class PublicLayoutComponent {

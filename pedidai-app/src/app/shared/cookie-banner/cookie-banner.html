@@ -1,9 +1,9 @@
 @if (visible()) {
   <div class="fixed bottom-0 inset-x-0 z-50 p-3 sm:p-4" role="dialog" aria-modal="false" [attr.aria-label]="'COOKIE_BANNER.TITLE' | translate">
-    <div class="max-w-3xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-2xl p-5 sm:p-6">
+    <div class="max-w-3xl lg:max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-2xl p-5 sm:p-6">
       <h2 class="text-base font-bold text-gray-900 mb-2">{{ 'COOKIE_BANNER.TITLE' | translate }}</h2>
       <p class="text-sm text-gray-600 leading-relaxed">
-        {{ 'COOKIE_BANNER.TEXT' | translate }}
+        @for (line of ('COOKIE_BANNER.TEXT' | translate | lines); track $index) {<span class="lg:block">{{ line }} </span>}
         <a routerLink="/cookies" class="text-blue-600 underline hover:text-blue-800">{{ 'COOKIE_BANNER.LEARN_MORE' | translate }}</a>
       </p>
 

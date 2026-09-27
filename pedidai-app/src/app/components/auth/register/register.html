@@ -1,10 +1,10 @@
 <div class="min-h-screen bg-slate-50 pt-24 pb-16 px-4">
-  <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-10 items-start">
+  <div class="max-w-5xl xl:max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-10 items-start">
 
     <!-- Qué obtienes -->
     <div class="hidden lg:block pt-8">
-      <h1 class="text-3xl font-extrabold text-gray-900 leading-tight">{{ 'AUTH.REGISTER.SIDE_TITLE' | translate }}</h1>
-      <p class="mt-4 text-gray-600 text-lg">{{ 'AUTH.REGISTER.SIDE_TEXT' | translate }}</p>
+      <h1 class="text-3xl font-extrabold text-gray-900 leading-tight">@for (line of ('AUTH.REGISTER.SIDE_TITLE' | translate | lines); track $index) {<span class="xl:block">{{ line }} </span>}</h1>
+      <p class="mt-4 text-gray-600 text-base xl:text-lg">@for (line of ('AUTH.REGISTER.SIDE_TEXT' | translate | lines); track $index) {<span class="xl:block">{{ line }} </span>}</p>
       <ul class="mt-8 space-y-4">
         @for (i of [1, 2, 3]; track i) {
           <li class="flex items-start gap-3">
@@ -15,7 +15,7 @@
           </li>
         }
       </ul>
-      <p class="mt-8 text-sm text-gray-500">{{ 'AUTH.REGISTER.SIDE_PRICE' | translate }}</p>
+      <p class="mt-8 text-sm text-gray-500">@for (line of ('AUTH.REGISTER.SIDE_PRICE' | translate | lines); track $index) {<span class="xl:block">{{ line }} </span>}</p>
     </div>
 
     <!-- Formulario -->

@@ -12,7 +12,7 @@
     "COOKIES": "Política de cookies",
     "TERMS": "Termes i condicions",
     "COPYRIGHT": "Tots els drets reservats.",
-    "TAGLINE": "Compara el que et cobren els teus proveïdors i demana al més barat. Per a bars i restaurants.",
+    "TAGLINE": "Compara el que et cobren els teus proveïdors i demana al més barat.\nPer a bars i restaurants.",
     "WHATSAPP": "Escriu-nos per WhatsApp"
   },
   "SIDEBAR": {
@@ -89,12 +89,12 @@
     "REGISTER": {
       "TITLE": "Crea el teu compte",
       "SUBTITLE": "En 1 minut. Sense targeta de crèdit.",
-      "SIDE_TITLE": "Descobreix quant pagues de més als teus proveïdors",
-      "SIDE_TEXT": "Puja fotos dels teus albarans i PedidAI compara els preus de tots els teus proveïdors per tu.",
+      "SIDE_TITLE": "Descobreix quant pagues de més\nals teus proveïdors",
+      "SIDE_TEXT": "Puja fotos dels teus albarans.\nPedidAI compara els preus de tots els teus proveïdors per tu.",
       "SIDE_POINT1": "Veus quin proveïdor et ven més barat cada producte",
       "SIDE_POINT2": "T’avisa quan un proveïdor t’apuja un preu",
       "SIDE_POINT3": "Demanes per xat i la comanda va al més barat",
-      "SIDE_PRICE": "Després de la prova: 29 €/mes + IVA (preu de llançament). Sense permanència.",
+      "SIDE_PRICE": "Després de la prova: 29 €/mes + IVA (preu de llançament).\nSense permanència.",
       "COMPANY_NAME": "Nom del teu bar o restaurant",
       "COMPANY_NAME_PH": "Bar La Plaça",
       "FIRST_NAME": "El teu nom",
@@ -653,7 +653,7 @@
   },
   "contact": {
     "title": "Contacte",
-    "intro": "Sóc l'Enrique, fundador de PedidAI. Si tens qualsevol dubte, suggeriment o problema, contacta'm per qualsevol d'aquests canals.",
+    "intro": "Sóc l'Enrique, fundador de PedidAI.\nSi tens qualsevol dubte, suggeriment o problema, contacta'm per qualsevol d'aquests canals.",
     "email": {
       "title": "Email",
       "note": "Resposta en menys de 24h laborables."
@@ -678,7 +678,7 @@
   },
   "COOKIE_BANNER": {
     "TITLE": "La teva privacitat",
-    "TEXT": "Fem servir emmagatzematge tècnic necessari perquè el web funcioni. Amb el teu permís, també farem servir galetes de Google Analytics per saber com s’utilitza el web i de Google Ads per mesurar les nostres campanyes. Pots acceptar-les, rebutjar-les o triar, i canviar d’opinió quan vulguis des del peu de pàgina.",
+    "TEXT": "Fem servir emmagatzematge tècnic necessari perquè el web funcioni.\nAmb el teu permís, farem servir galetes de Google Analytics (ús del web) i de Google Ads (mesurar campanyes).\nPots acceptar-les, rebutjar-les o triar, i canviar d’opinió quan vulguis des del peu de pàgina.",
     "LEARN_MORE": "Política de galetes",
     "NECESSARY": "Tècniques (necessàries)",
     "NECESSARY_DESC": "Sessió, idioma i les teves preferències de galetes.",
@@ -791,41 +791,41 @@
     "EXAMPLE_TAG": "Exemple",
     "HERO": {
       "BADGE": "Per a bars i restaurants que fan les seves pròpies compres",
-      "TITLE": "Descobreix quant pagues de més als teus proveïdors",
-      "SUBTITLE": "Fes una foto als teus albarans. PedidAI compara el que et cobra cada proveïdor, t’avisa quan t’apugen un preu i et prepara la comanda al més barat.",
+      "TITLE": "Descobreix quant pagues de més\nals teus proveïdors",
+      "SUBTITLE": "Fes una foto als teus albarans.\nPedidAI compara el que et cobra cada proveïdor.\nT’avisa quan t’apugen un preu.\nI et prepara la comanda al més barat.",
       "MICROCOPY": "Sense targeta de crèdit · Sense permanència · A punt en 1 minut",
       "CARD_TITLE": "Tomàquet pera",
       "CARD_SUPPLIER_A": "Fruites Martínez",
       "CARD_SUPPLIER_B": "Distribucions López",
-      "CARD_ALERT": "Distribucions López t’ha apujat el tomàquet un 16 % des de l’últim albarà",
+      "CARD_ALERT": "Distribucions López t’ha apujat el tomàquet.\n+16 % des de l’últim albarà.",
       "CARD_CHAT_USER": "10 kg de tomàquets i 5 garrafes d’aigua",
-      "CARD_CHAT_BOT": "Comanda a punt amb Fruites Martínez, el més barat: 20,40 €.",
+      "CARD_CHAT_BOT": "Comanda a punt amb Fruites Martínez.\nÉs el més barat: 20,40 €.",
       "CARD_SEND": "Enviar al proveïdor"
     },
     "HOW": {
       "TITLE": "Com funciona",
       "SUBTITLE": "Tres passos. Sense canviar de proveïdors ni de manera de treballar.",
       "STEP1_TITLE": "Fes una foto als teus albarans",
-      "STEP1_TEXT": "Dels teus proveïdors de sempre, amb el mòbil. Llegim productes, quantitats i preus; tu només revises i deses.",
+      "STEP1_TEXT": "Dels teus proveïdors de sempre, amb el mòbil.\nLlegim productes, quantitats i preus; tu només revises i deses.",
       "STEP2_TITLE": "Mira qui et cobra de més",
-      "STEP2_TEXT": "Comparem el mateix producte entre els teus proveïdors i t’avisem de cada pujada de preu, albarà a albarà.",
+      "STEP2_TEXT": "Comparem el mateix producte entre els teus proveïdors.\nI t’avisem de cada pujada de preu, albarà a albarà.",
       "STEP3_TITLE": "Demana per xat al més barat",
-      "STEP3_TEXT": "Escriu «10 kg de tomàquets i 5 garrafes d’aigua». Et preparem la comanda al proveïdor més barat i l’envies amb un clic."
+      "STEP3_TEXT": "Escriu «10 kg de tomàquets i 5 garrafes d’aigua».\nEt preparem la comanda al proveïdor més barat i l’envies amb un clic."
     },
     "SAVINGS": {
       "TITLE": "Un exemple amb números",
-      "SUBTITLE": "Mou la barra amb el que compres al mes i mira un exemple del que podries estalviar.",
+      "SUBTITLE": "Mou la barra amb el que compres al mes.\nVeuràs un exemple del que podries estalviar.",
       "MONTHLY_LABEL": "Compres a proveïdors al mes",
       "COMPARABLE": "Compres amb un proveïdor més barat ({{pct}} %)",
       "GAP": "Diferència mitjana de preu",
       "RESULT": "Estalvi estimat",
       "MONTH": "mes",
       "NET": "Fins i tot descomptant la quota de llançament ({{price}} €/mes), et quedarien uns {{net}} al mes.",
-      "DISCLAIMER": "Exemple il·lustratiu amb xifres suposades: que el {{share}} % del que compres el tingui un altre dels teus proveïdors un {{gap}} % més barat. No és un resultat garantit; el teu estalvi real depèn dels teus proveïdors i productes, i el veuràs amb els teus propis albarans durant la prova."
+      "DISCLAIMER": "Exemple il·lustratiu amb xifres suposades: que el {{share}} % del que compres el tingui un altre dels teus proveïdors un {{gap}} % més barat.\nNo és un resultat garantit: el teu estalvi real depèn dels teus proveïdors i productes.\nEl veuràs amb els teus propis albarans durant la prova."
     },
     "PRICING": {
       "TITLE": "Un preu senzill",
-      "SUBTITLE": "14 dies gratis per comprovar-ho amb els teus albarans. Després, si et compensa, continues.",
+      "SUBTITLE": "14 dies gratis per comprovar-ho amb els teus albarans.\nDesprés, si et compensa, continues.",
       "LAUNCH_BADGE": "Preu de llançament",
       "PLAN": "PedidAI · per local",
       "PER_MONTH": "/mes + IVA",
@@ -841,19 +841,19 @@
     "FAQ": {
       "TITLE": "Preguntes freqüents",
       "Q1": "Necessito targeta per a la prova?",
-      "A1": "No. T’hi registres amb el teu email i tens 14 dies gratis. Quan s’acabin, si vols continuar, ens escrius i activem el teu pla. Si no, no passa res: no es cobra res.",
+      "A1": "No. T’hi registres amb el teu email i tens 14 dies gratis.\nQuan s’acabin, si vols continuar, ens escrius i activem el teu pla.\nSi no, no passa res: no es cobra res.",
       "Q2": "Quins albarans serveixen?",
-      "A2": "Albarans valorats (amb preus) i factures, en foto o PDF. Abans de desar pots revisar i corregir cada línia. Els albarans sense preus no permeten comparar.",
+      "A2": "Albarans valorats (amb preus) i factures, en foto o PDF.\nAbans de desar pots revisar i corregir cada línia.\nEls albarans sense preus no permeten comparar.",
       "Q3": "Com sabeu quin proveïdor és més barat?",
-      "A3": "Comparem l’últim preu de cada proveïdor per al mateix producte i la mateixa unitat, a partir dels albarans que puges. Per això com més albarans de proveïdors diferents pugis, millor comparació tindràs.",
+      "A3": "Comparem l’últim preu de cada proveïdor per al mateix producte i la mateixa unitat.\nL’obtenim dels albarans que puges.\nCom més albarans de proveïdors diferents pugis, millor serà la comparació.",
       "Q4": "Els meus proveïdors se n’assabenten?",
-      "A4": "Només reben les comandes que tu decideixis enviar, per email des de PedidAI. Si responen, la resposta t’arriba directament a tu. No s’envia res sense que premis el botó.",
+      "A4": "Només reben les comandes que tu decideixis enviar, per email des de PedidAI.\nSi responen, la resposta t’arriba directament a tu.\nNo s’envia res sense que premis el botó.",
       "Q5": "Quant de temps em porta?",
-      "A5": "Crear el compte, un minut. Cada albarà, el que trigues a fer la foto i revisar les línies. Demanar per xat és escriure el que necessites.",
+      "A5": "Crear el compte, un minut.\nCada albarà, el que trigues a fer la foto i revisar les línies.\nDemanar per xat és escriure el que necessites.",
       "Q6": "Què passa amb les meves dades?",
-      "A6": "Les teves dades només les veus tu i el teu equip. Per llegir els albarans i preparar comandes fem servir intel·ligència artificial (DeepSeek), a la qual només enviem el text necessari. Ho tens tot explicat a la política de privacitat.",
+      "A6": "Les teves dades només les veus tu i el teu equip.\nPer llegir els albarans i preparar comandes fem servir intel·ligència artificial (DeepSeek).\nNomés li enviem el text necessari.\nHo tens tot explicat a la política de privacitat.",
       "Q7": "Tinc diversos locals, com funciona?",
-      "A7": "El preu és per local i cada local té el seu compte. Si en tens diversos, escriu-nos a hola@pedidai.es i ho organitzem amb tu.",
+      "A7": "El preu és per local i cada local té el seu compte.\nSi en tens diversos, escriu-nos a hola@pedidai.es i ho organitzem amb tu.",
       "Q8": "Hi ha permanència?",
       "A8": "No. És mes a mes i ho pots deixar quan vulguis."
     },

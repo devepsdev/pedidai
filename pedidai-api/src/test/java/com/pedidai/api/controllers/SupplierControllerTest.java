@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import com.pedidai.api.config.Messages;
+import com.pedidai.api.repositories.UserRepository;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
@@ -24,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -32,6 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(SupplierController.class)
+@Import(Messages.class)
 @ActiveProfiles("test")
 @DisplayName("SupplierController Absolute Final Tests")
 class SupplierControllerTest {
@@ -44,6 +49,9 @@ class SupplierControllerTest {
 
     @MockitoBean
     private JwtUtil jwtUtil;
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -315,31 +323,29 @@ class SupplierControllerTest {
         }
 
         @Test
-        @DisplayName("hauria de gestionar JSON incorrecte - comportament real 500")
+        @DisplayName("hauria de gestionar JSON incorrecte - 400 sense detalls interns")
         @WithMockUser
         void shouldHandleIncorrectJsonFormat() throws Exception {
-            // When & Then - L'aplicació REAL retorna 500 per errors de parsing JSON
             mockMvc.perform(post("/api/suppliers")
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{invalid-json}"))
-                    .andExpect(status().isInternalServerError()) // Comportament REAL
+                    .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.message", containsString("JSON parse error")));
+                    .andExpect(jsonPath("$.message", not(containsString("JSON parse error"))));
         }
 
         @Test
-        @DisplayName("hauria de gestionar content-type incorrecte - comportament real 500")
+        @DisplayName("hauria de gestionar content-type incorrecte - 415 sense detalls interns")
         @WithMockUser
         void shouldHandleIncorrectContentType() throws Exception {
-            // When & Then - L'aplicació REAL retorna 500 per Content-Type no suportat
             mockMvc.perform(post("/api/suppliers")
                             .with(csrf())
                             .contentType(MediaType.TEXT_PLAIN)
                             .content("plain text content"))
-                    .andExpect(status().isInternalServerError()) // Comportament REAL
+                    .andExpect(status().isUnsupportedMediaType())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.message", containsString("is not supported")));
+                    .andExpect(jsonPath("$.message", not(containsString("is not supported"))));
         }
     }
 

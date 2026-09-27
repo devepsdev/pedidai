@@ -170,7 +170,7 @@ class SupplierRequestDTOTest {
             // Then
             assertThat(violations).hasSize(1);
             assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("name");
-            assertThat(violations.iterator().next().getMessage()).contains("obligatori");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("{validation.supplierName.required}");
         }
 
         @Test
@@ -203,7 +203,7 @@ class SupplierRequestDTOTest {
             // Then
             assertThat(violations).hasSize(1);
             assertThat(violations.iterator().next().getPropertyPath().toString()).isEqualTo("name");
-            assertThat(violations.iterator().next().getMessage()).contains("255 caràcters");
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("{validation.name.tooLong}");
         }
     }
 

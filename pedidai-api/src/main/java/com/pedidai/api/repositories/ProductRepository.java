@@ -4,6 +4,7 @@ import com.pedidai.api.entities.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -119,4 +120,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("name") String name
     );
 
+    @Query("SELECT p.imageUrl FROM Product p WHERE p.supplier.company.id = :companyId AND p.imageUrl IS NOT NULL")
+    List<String> findImageUrlsByCompanyId(@Param("companyId") Long companyId);
+
+    boolean existsByImageUrl(String imageUrl);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM Product p WHERE p.supplier.id IN (SELECT s.id FROM Supplier s WHERE s.company.id = :companyId)")
+    int deleteByCompanyId(@Param("companyId") Long companyId);
 }

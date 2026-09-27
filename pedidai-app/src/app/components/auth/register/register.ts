@@ -4,13 +4,14 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../services/auth';
 import { AnalyticsService } from '../../../services/analytics.service';
+import { LinesPipe } from '../../../shared/lines.pipe';
 
 /** Misma regla que el servidor: mínimo 8 caracteres, con alguna letra y algún número. */
 export const PASSWORD_PATTERN = /^(?=.*\p{L})(?=.*\d).{8,100}$/u;
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink, TranslateModule],
+  imports: [ReactiveFormsModule, RouterLink, TranslateModule, LinesPipe],
   templateUrl: './register.html',
 })
 export class Register {

@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AnalyticsService } from '../../services/analytics.service';
+import { LinesPipe } from '../lines.pipe';
 
 /**
  * Banner de consentimiento (RGPD / guía de cookies de la AEPD):
@@ -11,7 +12,7 @@ import { AnalyticsService } from '../../services/analytics.service';
  */
 @Component({
   selector: 'app-cookie-banner',
-  imports: [RouterLink, TranslateModule],
+  imports: [RouterLink, TranslateModule, LinesPipe],
   templateUrl: './cookie-banner.html',
 })
 export class CookieBanner {

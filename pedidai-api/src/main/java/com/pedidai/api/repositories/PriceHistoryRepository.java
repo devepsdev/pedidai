@@ -2,6 +2,7 @@ package com.pedidai.api.repositories;
 
 import com.pedidai.api.entities.PriceHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -30,4 +31,12 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, Long
     List<PriceHistory> findActiveByCompanySince(@Param("companyId") Long companyId, @Param("from") LocalDate from);
 
     long countByCompany_Id(Long companyId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            DELETE FROM PriceHistory h
+            WHERE h.company.id = :companyId
+               OR h.product.id IN (SELECT p.id FROM Product p WHERE p.supplier.company.id = :companyId)
+            """)
+    int deleteByCompanyId(@Param("companyId") Long companyId);
 }

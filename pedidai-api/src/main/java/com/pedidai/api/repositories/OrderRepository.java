@@ -4,6 +4,7 @@ import com.pedidai.api.entities.Order;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -59,4 +60,12 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
     @Query("SELECT FUNCTION('DATE_FORMAT', o.createdAt, '%Y-%m'), COUNT(o), COALESCE(SUM(o.totalAmount),0) FROM Order o WHERE o.createdAt >= :since GROUP BY FUNCTION('DATE_FORMAT', o.createdAt, '%Y-%m') ORDER BY FUNCTION('DATE_FORMAT', o.createdAt, '%Y-%m') ASC")
     java.util.List<Object[]> findMonthlyOrderStats(@Param("since") LocalDateTime since);
 
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            DELETE FROM Order o
+            WHERE o.id IN (SELECT o.id FROM Order o WHERE o.company.id = :companyId
+                   OR o.supplier.id IN (SELECT s.id FROM Supplier s WHERE s.company.id = :companyId)
+                   OR o.user.id IN (SELECT u.id FROM User u WHERE u.company.id = :companyId))
+            """)
+    int deleteByCompanyId(@Param("companyId") Long companyId);
 }
