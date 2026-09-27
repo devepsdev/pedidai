@@ -69,7 +69,7 @@ public class OrderServiceImpl implements OrderService {
 
         orderRepository.save(order);
         orderItemRepository.saveAll(items);
-        log.info("Comanda {} creada per {} (empresa {})", order.getUuid(), user.getEmail(), company.getId());
+        log.info("Comanda {} creada per l'usuari {} (empresa {})", order.getUuid(), user.getUuid(), company.getId());
         return mapToResponseDTO(order);
     }
 

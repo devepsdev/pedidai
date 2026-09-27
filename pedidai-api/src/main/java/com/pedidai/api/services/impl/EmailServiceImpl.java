@@ -85,7 +85,7 @@ public class EmailServiceImpl implements EmailService {
             send(to, null, subject, layout(locale, headerTitle, null, body, footer));
         } catch (MessagingException | RuntimeException e) {
             // Un correu de compte que falla no ha de trencar el registre: l'usuari pot demanar-ne un altre
-            log.error("No s'ha pogut enviar el correu '{}' a {}: {}", subject, to, e.getMessage());
+            log.error("No s'ha pogut enviar el correu '{}' a {}: {}", subject, maskEmail(to), e.getMessage());
         }
     }
 
@@ -137,7 +137,7 @@ public class EmailServiceImpl implements EmailService {
                     layout(locale, t(locale, "email.order.title"), htmlEscape(order.orderName()), body,
                             t(locale, "email.order.footer")));
         } catch (MessagingException e) {
-            log.error("Error en enviar la comanda '{}' a {}: {}", order.orderName(), order.to(), e.getMessage());
+            log.error("Error en enviar la comanda '{}' a {}: {}", order.orderName(), maskEmail(order.to()), e.getMessage());
             throw new IllegalStateException("No s'ha pogut enviar el correu de la comanda", e);
         }
     }
@@ -155,7 +155,16 @@ public class EmailServiceImpl implements EmailService {
         helper.setSubject(subject);
         helper.setText(html, true);
         mailSender.send(message);
-        log.info("Correu '{}' enviat a {}", subject, to);
+        log.info("Correu '{}' enviat a {}", subject, maskEmail(to));
+    }
+
+    /** Als logs no hi van adreces completes: «p***@domini.cat». */
+    static String maskEmail(String email) {
+        if (email == null) {
+            return null;
+        }
+        int at = email.indexOf('@');
+        return at <= 0 ? "***" : email.charAt(0) + "***" + email.substring(at);
     }
 
     private String layout(Locale locale, String headerTitle, String headerSubtitle, String body, String footerExtra) {

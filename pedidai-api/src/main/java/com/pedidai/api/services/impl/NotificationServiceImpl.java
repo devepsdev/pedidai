@@ -50,7 +50,7 @@ public class NotificationServiceImpl implements NotificationService {
                 order.getNotes()
         ), I18nConfig.localeOf(language));
 
-        log.info("Comanda {} enviada per email a {}", order.getUuid(), supplier.getEmail());
+        log.info("Comanda {} enviada per email al proveïdor {}", order.getUuid(), supplier.getUuid());
     }
 
     private OrderEmailLine toLine(OrderItem item) {
