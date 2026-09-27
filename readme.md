@@ -129,7 +129,7 @@
 
 #### Lenguaje del Backend
 
-- **Java 21** — Última versión LTS (Long Term Support)
+- **Java 25** — Última versión LTS (Long Term Support)
 
 #### Framework Principal
 

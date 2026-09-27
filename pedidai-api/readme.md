@@ -4,7 +4,7 @@ API REST desarrollada con Spring Boot para la gestión integral de la cadena de 
 
 **Versión:** 1.2
 **Framework:** Spring Boot 3.5.6
-**Lenguaje:** Java 21
+**Lenguaje:** Java 25
 **Base de datos:** MySQL 8.0+
 **Autenticación:** JWT (JSON Web Tokens)
 
