@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProductService } from '../../../services/product';
 import { SupplierService } from '../../../services/supplier';
 import { SupplierResponse } from '../../../models/supplier.model';
@@ -15,6 +15,7 @@ const UNITS = ['kg', 'L', 'unitat', 'capsa', 'paquet', 'litre', 'dotzena'];
   templateUrl: './product-form.html',
 })
 export class ProductForm implements OnInit {
+  private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -69,7 +70,7 @@ export class ProductForm implements OnInit {
           this.loading.set(false);
         },
         error: () => {
-          this.error.set('Error al cargar el producto');
+          this.error.set(this.translate.instant('ERRORS.LOAD_PRODUCT'));
           this.loading.set(false);
         }
       });
@@ -111,7 +112,7 @@ export class ProductForm implements OnInit {
               this.router.navigate(['/products']);
             },
             error: () => {
-              this.error.set('Error al subir la imagen');
+              this.error.set(this.translate.instant('ERRORS.UPLOAD_IMAGE'));
               this.uploadingImage.set(false);
             }
           });
@@ -120,7 +121,7 @@ export class ProductForm implements OnInit {
         }
       },
       error: () => {
-        this.error.set('Error al guardar el producto');
+        this.error.set(this.translate.instant('ERRORS.SAVE_PRODUCT'));
         this.saving.set(false);
       }
     });

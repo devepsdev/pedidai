@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DatePipe, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SuperAdminService, CompanyDetail } from '../../../services/super-admin.service';
@@ -11,6 +11,7 @@ import { SuperAdminService, CompanyDetail } from '../../../services/super-admin.
   templateUrl: './superadmin-company-detail.html',
 })
 export class SuperadminCompanyDetail implements OnInit {
+  private translate = inject(TranslateService);
   private svc = inject(SuperAdminService);
   private route = inject(ActivatedRoute);
 
@@ -30,7 +31,7 @@ export class SuperadminCompanyDetail implements OnInit {
     const uuid = this.route.snapshot.paramMap.get('uuid')!;
     this.svc.getCompany(uuid).subscribe({
       next: data => { this.company.set(data); this.loading.set(false); },
-      error: () => { this.error.set('Error al cargar empresa'); this.loading.set(false); }
+      error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_COMPANY')); this.loading.set(false); }
     });
   }
 
@@ -89,7 +90,7 @@ export class SuperadminCompanyDetail implements OnInit {
         this.actionSaving.set(false);
       },
       error: () => {
-        this.actionError.set('Error al extender el trial');
+        this.actionError.set(this.translate.instant('ERRORS.EXTEND_TRIAL'));
         this.actionSaving.set(false);
       }
     });
@@ -110,7 +111,7 @@ export class SuperadminCompanyDetail implements OnInit {
         this.actionSaving.set(false);
       },
       error: () => {
-        this.actionError.set('Error al activar Plan Pro');
+        this.actionError.set(this.translate.instant('ERRORS.ACTIVATE_PLAN'));
         this.actionSaving.set(false);
       }
     });

@@ -1,7 +1,7 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../services/auth';
 
 function passwordsMatch(control: AbstractControl): ValidationErrors | null {
@@ -17,6 +17,7 @@ function passwordsMatch(control: AbstractControl): ValidationErrors | null {
   styleUrl: './reset-password.scss',
 })
 export class ResetPassword implements OnInit {
+  private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private route = inject(ActivatedRoute);
@@ -38,7 +39,7 @@ export class ResetPassword implements OnInit {
 
   ngOnInit() {
     const t = this.route.snapshot.queryParamMap.get('token') ?? '';
-    if (!t) this.error.set('Enllaç invàlid o caducat.');
+    if (!t) this.error.set(this.translate.instant('ERRORS.INVALID_LINK'));
     this.token.set(t);
   }
 
@@ -49,7 +50,7 @@ export class ResetPassword implements OnInit {
     this.error.set('');
     this.auth.resetPassword(this.token(), this.pw!.value!).subscribe({
       next: () => { this.loading.set(false); this.success.set(true); },
-      error: () => { this.loading.set(false); this.error.set('Enllaç invàlid o caducat. Sol·licita un nou correu de recuperació.'); },
+      error: () => { this.loading.set(false); this.error.set(this.translate.instant('ERRORS.INVALID_RESET_LINK')); },
     });
   }
 }

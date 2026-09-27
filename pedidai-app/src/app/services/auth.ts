@@ -5,11 +5,13 @@ import { ApiService } from './api';
 import { ApiResponse } from '../models/shared.model';
 import { LoginRequest, LoginResponse, RegisterRequest } from '../models/auth.model';
 import { UserResponse } from '../models/user.model';
+import { LanguageService } from './language.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private api = inject(ApiService);
   private router = inject(Router);
+  private language = inject(LanguageService);
 
   private _authenticated$ = new BehaviorSubject<boolean>(this.hasToken());
   readonly authenticated$ = this._authenticated$.asObservable();
@@ -21,16 +23,35 @@ export class AuthService {
   login(email: string, password: string): Observable<LoginResponse> {
     return this.api.post<ApiResponse<LoginResponse>>('/auth/login', { email, password } as LoginRequest).pipe(
       map(res => res.data),
-      tap(data => {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        this._authenticated$.next(true);
-      })
+      tap(data => this.startSession(data))
     );
   }
 
-  register(data: RegisterRequest): Observable<ApiResponse<unknown>> {
-    return this.api.post<ApiResponse<unknown>>('/companies/register', data);
+  /** Crea la cuenta y deja la sesión iniciada (la prueba empieza en ese momento). */
+  register(data: RegisterRequest): Observable<LoginResponse> {
+    return this.api.post<ApiResponse<LoginResponse>>('/companies/register', data).pipe(
+      map(res => res.data),
+      tap(session => this.startSession(session))
+    );
+  }
+
+  private startSession(data: LoginResponse): void {
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    this.language.adoptFromAccount(data.user?.language);
+    this._authenticated$.next(true);
+  }
+
+  /** Datos actualizados del usuario (p. ej. si ya ha verificado el email). */
+  refreshMe(): Observable<UserResponse> {
+    return this.api.get<ApiResponse<UserResponse>>('/users/me').pipe(
+      map(res => res.data),
+      tap(user => localStorage.setItem('user', JSON.stringify(user)))
+    );
+  }
+
+  resendMyVerification(): Observable<ApiResponse<unknown>> {
+    return this.api.post<ApiResponse<unknown>>('/users/me/resend-verification', {});
   }
 
   logout(): void {

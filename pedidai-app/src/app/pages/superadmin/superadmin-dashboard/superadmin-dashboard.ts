@@ -1,15 +1,16 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
-import { DecimalPipe, DatePipe, CurrencyPipe } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { CurrencyPipe } from '@angular/common';
 import { SuperAdminService, SuperAdminDashboard, MonthlyStats } from '../../../services/super-admin.service';
 
 @Component({
   selector: 'app-superadmin-dashboard',
-  imports: [RouterLink, TranslateModule, DecimalPipe, DatePipe, CurrencyPipe],
+  imports: [RouterLink, TranslateModule, CurrencyPipe],
   templateUrl: './superadmin-dashboard.html',
 })
 export class SuperadminDashboard implements OnInit {
+  private translate = inject(TranslateService);
   private superAdminService = inject(SuperAdminService);
 
   loading = signal(true);
@@ -29,7 +30,7 @@ export class SuperadminDashboard implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Error al cargar el dashboard');
+        this.error.set(this.translate.instant('ERRORS.LOAD_DASHBOARD'));
         this.loading.set(false);
       }
     });

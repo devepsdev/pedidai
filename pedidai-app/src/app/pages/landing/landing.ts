@@ -1,23 +1,14 @@
 import { Component } from '@angular/core';
 import { HeroSection } from './hero-section';
-import { BenefitsSection } from './benefits-section';
 import { HowItWorksSection } from './how-it-works-section';
-import { FeaturesSection } from './features-section';
-import { AiSection } from './ai-section';
+import { SavingsSection } from './savings-section';
 import { PricingSection } from './pricing-section';
+import { FaqSection } from './faq-section';
 import { CtaSection } from './cta-section';
 
 @Component({
   selector: 'app-landing',
-  imports: [
-    HeroSection,
-    BenefitsSection,
-    HowItWorksSection,
-    FeaturesSection,
-    AiSection,
-    PricingSection,
-    CtaSection,
-  ],
+  imports: [HeroSection, HowItWorksSection, SavingsSection, PricingSection, FaqSection, CtaSection],
   templateUrl: './landing.html',
 })
 export class Landing {}

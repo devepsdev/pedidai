@@ -12,7 +12,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
     provideHttpClient(withInterceptors([jwtInterceptor, errorInterceptor])),
-    provideTranslateService({ fallbackLang: 'ca' }),
+    provideTranslateService({ fallbackLang: 'es' }),
     provideTranslateHttpLoader({ prefix: 'i18n/', suffix: '.json' })
   ]
 };

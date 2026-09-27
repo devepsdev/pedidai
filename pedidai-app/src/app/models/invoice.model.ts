@@ -1,22 +1,25 @@
-export type InvoiceProductAction = 'CREATED' | 'UPDATED' | 'SKIPPED';
+/** NEW: producto nuevo · CHANGED: precio distinto del último conocido · SAME: mismo precio. */
+export type InvoiceLineStatus = 'NEW' | 'CHANGED' | 'SAME';
 
 export interface InvoiceProductDTO {
   name: string;
-  quantity: number;
-  unit: string;
-  unitPrice: number;
-  ivaPercent: number;
-  subtotal: number;
-  action: InvoiceProductAction;
+  genericName?: string;
+  quantity?: number;
+  unit?: string;
+  unitPrice?: number;
+  ivaPercent?: number;
+  subtotal?: number;
+  status: InvoiceLineStatus;
   matchedProductUuid?: string;
   previousPrice?: number;
+  priceChangePercent?: number;
 }
 
 export interface InvoiceScanResultDTO {
   success: boolean;
-  message: string;
   detectedSupplierName?: string;
   detectedSupplierCif?: string;
+  detectedSupplierPhone?: string;
   invoiceNumber?: string;
   invoiceDate?: string;
   products: InvoiceProductDTO[];
@@ -25,18 +28,25 @@ export interface InvoiceScanResultDTO {
   productsCreated: number;
   productsUpdated: number;
   productsSkipped: number;
+  pricesRecorded?: number;
+  priceIncreases?: number;
   matchedSupplierUuid?: string;
   supplierAutoMatched: boolean;
 }
 
 export interface InvoiceProductConfirmDTO {
   name: string;
-  matchedProductUuid?: string;
+  genericName?: string;
+  quantity?: number;
+  unit?: string;
   unitPrice: number;
-  action: InvoiceProductAction;
+  matchedProductUuid?: string;
 }
 
 export interface InvoiceConfirmRequestDTO {
-  supplierUuid: string;
+  supplierUuid?: string;
+  newSupplier?: { name: string; email?: string; phone?: string };
+  invoiceNumber?: string;
+  invoiceDate?: string;
   products: InvoiceProductConfirmDTO[];
 }

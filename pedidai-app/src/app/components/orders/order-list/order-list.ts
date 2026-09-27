@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { OrderService } from '../../../services/order';
 import { SupplierService } from '../../../services/supplier';
 import { OrderResponse } from '../../../models/order.model';
@@ -13,6 +13,7 @@ import { SupplierResponse } from '../../../models/supplier.model';
   templateUrl: './order-list.html',
 })
 export class OrderList implements OnInit {
+  private translate = inject(TranslateService);
   private orderService = inject(OrderService);
   private supplierService = inject(SupplierService);
   private router = inject(Router);
@@ -104,7 +105,7 @@ export class OrderList implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Error al cargar pedidos');
+        this.error.set(this.translate.instant('ERRORS.LOAD_ORDERS'));
         this.loading.set(false);
       },
     });
@@ -210,7 +211,7 @@ export class OrderList implements OnInit {
         this.pendingOrder.set(null);
       },
       error: () => {
-        this.error.set('Error al enviar el pedido');
+        this.error.set(this.translate.instant('ERRORS.SEND_ORDER'));
         this.sendingUuid.set('');
         this.pendingOrder.set(null);
       },

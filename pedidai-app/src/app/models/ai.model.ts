@@ -1,7 +1,20 @@
+/** Pedido pendiente que ha preparado el asistente (aún no enviado al proveedor). */
+export interface ChatOrder {
+  uuid: string;
+  name: string;
+  status: string;
+  supplier_name: string;
+  total: number;
+  items: { product: string; quantity: number; unit_price: number; subtotal: number }[];
+}
+
 export interface AiMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  orders?: ChatOrder[];
+  unmatched?: string[];
+  isError?: boolean;
 }
 
 export interface AiOrderRequest {
@@ -13,12 +26,10 @@ export interface AiOrderRequest {
 }
 
 export interface AiOrderResponse {
-  status: 'success' | 'duplicate' | 'error';
-  orderUuid?: string;
-  supplier?: string;
-  itemsCount?: number;
-  confidence?: number;
+  status: 'success' | 'partial' | 'not_found' | 'error';
   message: string;
+  unmatched?: string[];
+  orders?: ChatOrder[];
 }
 
 export interface AiSuggestion {

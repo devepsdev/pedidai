@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CompanyService } from '../../../services/company';
 import { CompanyRequest } from '../../../models/company.model';
 
@@ -10,6 +10,7 @@ import { CompanyRequest } from '../../../models/company.model';
   templateUrl: './company-config.html',
 })
 export class CompanyConfig implements OnInit {
+  private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private companyService = inject(CompanyService);
 
@@ -45,7 +46,7 @@ export class CompanyConfig implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Error al cargar los datos de la empresa');
+        this.error.set(this.translate.instant('ERRORS.LOAD_COMPANY'));
         this.loading.set(false);
       },
     });
@@ -85,7 +86,7 @@ export class CompanyConfig implements OnInit {
         setTimeout(() => this.success.set(false), 3000);
       },
       error: () => {
-        this.error.set('Error al guardar los cambios');
+        this.error.set(this.translate.instant('ERRORS.SAVE_CHANGES'));
         this.saving.set(false);
       },
     });

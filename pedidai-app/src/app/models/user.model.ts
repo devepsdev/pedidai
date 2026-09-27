@@ -10,6 +10,7 @@ export interface UserResponse {
   isActive: boolean;
   isDeleted: boolean;
   emailVerified: boolean;
+  language?: 'es' | 'ca';
   lastLogin?: string;
   createdAt: string;
   updatedAt?: string;

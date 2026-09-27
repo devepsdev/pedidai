@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SupplierService } from '../../../services/supplier';
 import { SupplierRequest } from '../../../models/supplier.model';
 
@@ -11,6 +11,7 @@ import { SupplierRequest } from '../../../models/supplier.model';
   templateUrl: './supplier-form.html',
 })
 export class SupplierForm implements OnInit {
+  private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -50,7 +51,7 @@ export class SupplierForm implements OnInit {
           this.loading.set(false);
         },
         error: () => {
-          this.error.set('Error al cargar el proveedor');
+          this.error.set(this.translate.instant('ERRORS.LOAD_SUPPLIER'));
           this.loading.set(false);
         }
       });
@@ -85,7 +86,7 @@ export class SupplierForm implements OnInit {
         this.router.navigate(['/suppliers']);
       },
       error: () => {
-        this.error.set('Error al guardar el proveedor');
+        this.error.set(this.translate.instant('ERRORS.SAVE_SUPPLIER'));
         this.saving.set(false);
       }
     });

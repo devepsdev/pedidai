@@ -1,6 +1,8 @@
 import { Component, computed, HostListener, inject, signal } from '@angular/core';
 import { RouterLink, RouterOutlet, Router, NavigationEnd } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { LanguageService } from '../../services/language.service';
+import { AnalyticsService } from '../../services/analytics.service';
 import { filter } from 'rxjs';
 
 @Component({
@@ -10,12 +12,14 @@ import { filter } from 'rxjs';
 })
 export class PublicLayoutComponent {
   private router = inject(Router);
-  private translate = inject(TranslateService);
 
   isScrolled = signal(false);
   menuOpen = signal(false);
   isLanding = signal(this.router.url === '/');
-  currentLang = signal(localStorage.getItem('lang') ?? 'ca');
+  private language = inject(LanguageService);
+  private analytics = inject(AnalyticsService);
+  readonly year = new Date().getFullYear();
+  currentLang = this.language.current;
 
   navbarSolid = computed(() => !this.isLanding() || this.isScrolled());
 
@@ -48,9 +52,11 @@ export class PublicLayoutComponent {
     this.closeMenu();
   }
 
+  openCookieSettings() {
+    this.analytics.openPreferences();
+  }
+
   setLang(lang: string) {
-    this.translate.use(lang);
-    localStorage.setItem('lang', lang);
-    this.currentLang.set(lang);
+    this.language.use(lang === 'ca' ? 'ca' : 'es');
   }
 }

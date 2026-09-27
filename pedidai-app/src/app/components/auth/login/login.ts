@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../services/auth';
 
 @Component({
@@ -10,6 +10,7 @@ import { AuthService } from '../../../services/auth';
   templateUrl: './login.html',
 })
 export class Login {
+  private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
@@ -33,7 +34,7 @@ export class Login {
     this.auth.login(email!, password!).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err) => {
-        this.errorMsg.set(err.error?.message || 'Email o contraseña incorrectos');
+        this.errorMsg.set(err.error?.message || this.translate.instant('ERRORS.LOGIN_FAILED'));
         this.loading.set(false);
       }
     });

@@ -1,104 +1,39 @@
-<section id="pricing" class="py-20 bg-slate-50">
-  <div class="max-w-7xl mx-auto px-6 lg:px-8">
-    <div class="text-center mb-14">
-      <p class="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-2">{{ 'LANDING.PRICING.LABEL' | translate }}</p>
+<section id="pricing" class="py-16 sm:py-20 bg-white scroll-mt-16">
+  <div class="max-w-5xl mx-auto px-5 lg:px-8">
+    <div class="text-center mb-10">
       <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900">{{ 'LANDING.PRICING.TITLE' | translate }}</h2>
-      <p class="mt-4 text-lg text-gray-500 max-w-xl mx-auto">{{ 'LANDING.PRICING.SUBTITLE' | translate }}</p>
+      <p class="mt-3 text-lg text-gray-500 max-w-xl mx-auto">{{ 'LANDING.PRICING.SUBTITLE' | translate }}</p>
     </div>
 
-    <!-- Single centered trial card -->
-    <div class="max-w-lg mx-auto">
-      <div class="bg-slate-900 rounded-2xl border-2 border-cyan-500 p-8 relative shadow-2xl shadow-cyan-500/20">
+    <div class="max-w-lg mx-auto bg-slate-900 rounded-2xl border-2 border-emerald-500 p-6 sm:p-8 relative shadow-2xl">
+      <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-emerald-500 text-slate-950 text-xs font-bold px-4 py-1.5 rounded-full">
+        {{ 'LANDING.PRICING.LAUNCH_BADGE' | translate }}
+      </span>
 
-        <!-- Trial badge -->
-        <div class="absolute -top-4 left-1/2 -translate-x-1/2">
-          <span class="bg-cyan-500 text-white text-xs font-bold px-5 py-1.5 rounded-full shadow-lg">
-            {{ 'LANDING.PRICING.TRIAL_BADGE' | translate }}
-          </span>
-        </div>
-
-        <!-- Header -->
-        <div class="mb-6 text-center">
-          <h3 class="text-2xl font-bold text-white mb-2">{{ 'LANDING.PRICING.TRIAL_TITLE' | translate }}</h3>
-          <p class="text-slate-400 text-sm">{{ 'LANDING.PRICING.TRIAL_DESC' | translate }}</p>
-        </div>
-
-        <!-- Price -->
-        <div class="mb-6 text-center">
-          <div class="flex items-end justify-center gap-2">
-            <span class="text-5xl font-extrabold text-white">0€</span>
-            <span class="text-slate-400 mb-1 text-sm">{{ 'LANDING.PRICING.TRIAL_PERIOD' | translate }}</span>
-          </div>
-          <p class="text-xs text-slate-500 mt-2">{{ 'LANDING.PRICING.TRIAL_THEN' | translate }}</p>
-        </div>
-
-        <!-- Features -->
-        <ul class="space-y-3 mb-8">
-          <li class="flex items-center gap-3 text-sm text-slate-200">
-            <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            {{ 'LANDING.PRICING.F1' | translate }}
-          </li>
-          <li class="flex items-center gap-3 text-sm text-slate-200">
-            <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            {{ 'LANDING.PRICING.F2' | translate }}
-          </li>
-          <li class="flex items-center gap-3 text-sm text-slate-200">
-            <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            {{ 'LANDING.PRICING.F3' | translate }}
-          </li>
-          <li class="flex items-center gap-3 text-sm text-slate-200">
-            <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            {{ 'LANDING.PRICING.F4' | translate }}
-          </li>
-          <li class="flex items-center gap-3 text-sm text-slate-200">
-            <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            {{ 'LANDING.PRICING.F5' | translate }}
-          </li>
-          <li class="flex items-center gap-3 text-sm text-slate-200">
-            <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            {{ 'LANDING.PRICING.F6' | translate }}
-          </li>
-          <li class="flex items-center gap-3 text-sm text-slate-200">
-            <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            {{ 'LANDING.PRICING.F7' | translate }}
-          </li>
-          <li class="flex items-center gap-3 text-sm text-slate-200">
-            <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            {{ 'LANDING.PRICING.F8' | translate }}
-          </li>
-          <li class="flex items-center gap-3 text-sm text-slate-200">
-            <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            {{ 'LANDING.PRICING.F9' | translate }}
-          </li>
-        </ul>
-
-        <!-- CTA -->
-        <a routerLink="/register"
-          class="block w-full text-center py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white font-bold text-base transition-colors shadow-lg shadow-cyan-500/30">
-          {{ 'LANDING.PRICING.CTA' | translate }}
-        </a>
-
-        <!-- No CC disclaimer -->
-        <p class="text-center text-xs text-slate-500 mt-4">{{ 'LANDING.PRICING.NO_CC' | translate }}</p>
+      <h3 class="text-xl font-bold text-white text-center mt-2">{{ 'LANDING.PRICING.PLAN' | translate }}</h3>
+      <div class="mt-4 flex items-end justify-center gap-3">
+        <span class="text-2xl text-slate-500 line-through">39 €</span>
+        <span class="text-5xl font-extrabold text-white">29 €</span>
+        <span class="text-slate-400 mb-1.5 text-sm">{{ 'LANDING.PRICING.PER_MONTH' | translate }}</span>
       </div>
+      <p class="mt-2 text-center text-sm text-emerald-300">{{ 'LANDING.PRICING.LAUNCH_NOTE' | translate }}</p>
+
+      <ul class="mt-6 space-y-3">
+        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+          <li class="flex items-start gap-3 text-sm text-slate-200">
+            <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ 'LANDING.PRICING.F' + i | translate }}
+          </li>
+        }
+      </ul>
+
+      <a routerLink="/register"
+        class="mt-8 block w-full text-center py-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-lg transition-colors">
+        {{ 'CTA.TRIAL' | translate }}
+      </a>
+      <p class="text-center text-xs text-slate-400 mt-3">{{ 'LANDING.PRICING.NO_CARD' | translate }}</p>
     </div>
   </div>
 </section>

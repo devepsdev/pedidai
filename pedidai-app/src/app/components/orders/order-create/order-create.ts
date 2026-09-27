@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { OrderService } from '../../../services/order';
 import { SupplierService } from '../../../services/supplier';
 import { ProductService } from '../../../services/product';
@@ -23,6 +23,7 @@ interface CartItem {
   templateUrl: './order-create.html',
 })
 export class OrderCreate implements OnInit {
+  private translate = inject(TranslateService);
   private orderService = inject(OrderService);
   private supplierService = inject(SupplierService);
   private productService = inject(ProductService);
@@ -92,7 +93,7 @@ export class OrderCreate implements OnInit {
         });
       },
       error: () => {
-        this.error.set('Error al cargar el pedido');
+        this.error.set(this.translate.instant('ERRORS.LOAD_ORDER'));
         this.loading.set(false);
       },
     });
@@ -163,15 +164,15 @@ export class OrderCreate implements OnInit {
   submit() {
     this.error.set('');
     if (!this.selectedSupplierUuid()) {
-      this.error.set('Selecciona un proveedor');
+      this.error.set(this.translate.instant('ERRORS.SELECT_SUPPLIER'));
       return;
     }
     if (this.orderItems().length === 0) {
-      this.error.set('Añade al menos un producto al pedido');
+      this.error.set(this.translate.instant('ERRORS.ADD_PRODUCT'));
       return;
     }
     if (!this.name().trim()) {
-      this.error.set('El nombre del pedido es obligatorio');
+      this.error.set(this.translate.instant('ERRORS.ORDER_NAME_REQUIRED'));
       return;
     }
     this.saving.set(true);

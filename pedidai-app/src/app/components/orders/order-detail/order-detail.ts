@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { OrderService } from '../../../services/order';
 import { SupplierService } from '../../../services/supplier';
 import { OrderResponse } from '../../../models/order.model';
@@ -11,6 +11,7 @@ import { OrderResponse } from '../../../models/order.model';
   templateUrl: './order-detail.html',
 })
 export class OrderDetail implements OnInit {
+  private translate = inject(TranslateService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private orderService = inject(OrderService);
@@ -37,7 +38,7 @@ export class OrderDetail implements OnInit {
         });
       },
       error: () => {
-        this.error.set('Error al cargar el pedido');
+        this.error.set(this.translate.instant('ERRORS.LOAD_ORDER'));
         this.loading.set(false);
       },
     });
@@ -54,7 +55,7 @@ export class OrderDetail implements OnInit {
         this.sending.set(false);
       },
       error: () => {
-        this.error.set('Error al enviar el pedido');
+        this.error.set(this.translate.instant('ERRORS.SEND_ORDER'));
         this.sending.set(false);
       },
     });
@@ -86,7 +87,7 @@ export class OrderDetail implements OnInit {
         this.cancelling.set(false);
       },
       error: () => {
-        this.error.set('Error al cancelar el pedido');
+        this.error.set(this.translate.instant('ERRORS.CANCEL_ORDER'));
         this.cancelling.set(false);
       },
     });

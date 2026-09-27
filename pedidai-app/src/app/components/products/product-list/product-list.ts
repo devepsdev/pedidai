@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProductService } from '../../../services/product';
 import { SupplierService } from '../../../services/supplier';
 import { ProductResponse } from '../../../models/product.model';
@@ -13,6 +13,7 @@ import { SupplierResponse } from '../../../models/supplier.model';
   templateUrl: './product-list.html',
 })
 export class ProductList implements OnInit {
+  private translate = inject(TranslateService);
   private productService = inject(ProductService);
   private supplierService = inject(SupplierService);
   private router = inject(Router);
@@ -70,7 +71,7 @@ export class ProductList implements OnInit {
 
       this.productService.filter(params).subscribe({
         next: (data) => { this.setData(data); },
-        error: () => { this.error.set('Error al cargar productos'); this.loading.set(false); },
+        error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_PRODUCTS')); this.loading.set(false); },
       });
     } else {
       const text = this.searchText().trim();
@@ -80,7 +81,7 @@ export class ProductList implements OnInit {
 
       obs.subscribe({
         next: (data) => { this.setData(data); },
-        error: () => { this.error.set('Error al cargar productos'); this.loading.set(false); },
+        error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_PRODUCTS')); this.loading.set(false); },
       });
     }
   }
@@ -166,7 +167,7 @@ export class ProductList implements OnInit {
       next: (updated) => {
         this.products.update(list => list.map(p => p.uuid === updated.uuid ? updated : p));
       },
-      error: () => this.error.set('Error al desactivar el producto'),
+      error: () => this.error.set(this.translate.instant('ERRORS.DEACTIVATE_PRODUCT')),
     });
   }
 

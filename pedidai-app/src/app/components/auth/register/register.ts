@@ -1,22 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
-import { AbstractControl, ReactiveFormsModule, FormBuilder, Validators, ValidatorFn } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../services/auth';
+import { AnalyticsService } from '../../../services/analytics.service';
 
-const passwordStrength: ValidatorFn = (ctrl: AbstractControl) => {
-  const v = ctrl.value as string;
-  if (!v) return null;
-  if (!/[A-Z]/.test(v)) return { uppercase: true };
-  if (!/[0-9]/.test(v)) return { number: true };
-  return null;
-};
-
-const passwordMatch: ValidatorFn = (group: AbstractControl) => {
-  const pw = group.get('password')?.value;
-  const confirm = group.get('confirmPassword')?.value;
-  return pw && confirm && pw !== confirm ? { mismatch: true } : null;
-};
+/** Misma regla que el servidor: mínimo 8 caracteres, con alguna letra y algún número. */
+export const PASSWORD_PATTERN = /^(?=.*\p{L})(?=.*\d).{8,100}$/u;
 
 @Component({
   selector: 'app-register',
@@ -26,25 +16,21 @@ const passwordMatch: ValidatorFn = (group: AbstractControl) => {
 export class Register {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private analytics = inject(AnalyticsService);
+  private router = inject(Router);
+  private translate = inject(TranslateService);
 
   saving = signal(false);
   error = signal('');
-  success = signal(false);
+  showPassword = signal(false);
 
   form = this.fb.group({
-    companyName: ['', Validators.required],
-    taxId: ['', Validators.required],
-    companyEmail: ['', [Validators.required, Validators.email]],
-    companyPhone: [''],
-    companyAddress: [''],
-    companyCity: [''],
-    companyPostalCode: [''],
-    adminFirstName: ['', Validators.required],
-    adminLastName: ['', Validators.required],
-    password: ['', [Validators.required, Validators.minLength(8), passwordStrength]],
-    confirmPassword: ['', Validators.required],
-    termsAccepted: [false, Validators.requiredTrue],
-  }, { validators: passwordMatch });
+    companyName: ['', [Validators.required, Validators.maxLength(255)]],
+    adminFirstName: ['', [Validators.required, Validators.maxLength(100)]],
+    adminEmail: ['', [Validators.required, Validators.email]],
+    adminPassword: ['', [Validators.required, Validators.pattern(PASSWORD_PATTERN)]],
+    acceptTerms: [false, Validators.requiredTrue],
+  });
 
   submit() {
     if (this.form.invalid) {
@@ -56,25 +42,19 @@ export class Register {
     this.error.set('');
 
     this.authService.register({
-      companyName: raw.companyName!,
-      taxId: raw.taxId!,
-      companyEmail: raw.companyEmail!,
-      companyPhone: raw.companyPhone || undefined,
-      companyAddress: raw.companyAddress || undefined,
-      companyCity: raw.companyCity || undefined,
-      companyPostalCode: raw.companyPostalCode || undefined,
-      adminEmail: raw.companyEmail!,
-      adminPassword: raw.password!,
-      adminFirstName: raw.adminFirstName!,
-      adminLastName: raw.adminLastName!,
+      companyName: raw.companyName!.trim(),
+      adminFirstName: raw.adminFirstName!.trim(),
+      adminEmail: raw.adminEmail!.trim(),
+      adminPassword: raw.adminPassword!,
+      acceptTerms: true,
     }).subscribe({
       next: () => {
-        this.saving.set(false);
-        this.success.set(true);
+        // Conversión de la campaña: registro completado (solo se envía si hay consentimiento)
+        this.analytics.trackSignUp();
+        this.router.navigate(['/dashboard'], { queryParams: { welcome: 1 } });
       },
       error: (err) => {
-        const msg = err?.error?.message;
-        this.error.set(msg || 'Error al crear la cuenta. Inténtalo de nuevo.');
+        this.error.set(err?.error?.message || this.translate.instant('AUTH.REGISTER.ERROR_GENERIC'));
         this.saving.set(false);
       },
     });
@@ -83,15 +63,5 @@ export class Register {
   fieldError(field: string): boolean {
     const ctrl = this.form.get(field);
     return !!(ctrl?.invalid && ctrl?.touched);
-  }
-
-  get passwordErrors() {
-    const ctrl = this.form.get('password');
-    if (!ctrl?.touched || !ctrl?.errors) return null;
-    return ctrl.errors;
-  }
-
-  get mismatch() {
-    return this.form.errors?.['mismatch'] && this.form.get('confirmPassword')?.touched;
   }
 }

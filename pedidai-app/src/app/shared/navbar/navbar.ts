@@ -1,5 +1,6 @@
 import { Component, inject, output, signal } from '@angular/core';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { LanguageService } from '../../services/language.service';
 import { AuthService } from '../../services/auth';
 
 @Component({
@@ -9,18 +10,16 @@ import { AuthService } from '../../services/auth';
 })
 export class Navbar {
   private auth = inject(AuthService);
-  private translate = inject(TranslateService);
   menuToggle = output<void>();
 
-  currentLang = signal(localStorage.getItem('lang') ?? 'ca');
+  private language = inject(LanguageService);
+  currentLang = this.language.current;
 
   get user() { return this.auth.getCurrentUser(); }
 
   logout() { this.auth.logout(); }
 
   setLang(lang: string) {
-    this.translate.use(lang);
-    localStorage.setItem('lang', lang);
-    this.currentLang.set(lang);
+    this.language.use(lang === 'ca' ? 'ca' : 'es');
   }
 }

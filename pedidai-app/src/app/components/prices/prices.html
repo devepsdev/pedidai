@@ -1,0 +1,166 @@
+<div class="p-4 md:p-6 max-w-6xl">
+  <!-- Cabecera -->
+  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">{{ 'PRICES.TITLE' | translate }}</h1>
+      <p class="text-sm text-gray-500 mt-1">{{ 'PRICES.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <select (change)="load(+$any($event.target).value)" [attr.aria-label]="'PRICES.PERIOD' | translate"
+        class="flex-1 sm:flex-none px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        @for (p of periods; track p) {
+          <option [value]="p" [selected]="p === days()">{{ 'PRICES.LAST_DAYS' | translate: { days: p } }}</option>
+        }
+      </select>
+      <a routerLink="/invoices/scan"
+        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        {{ 'PRICES.UPLOAD' | translate }}
+      </a>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      @for (_ of [1, 2, 3, 4]; track $index) {
+        <div class="h-24 bg-white rounded-xl border border-gray-200 animate-pulse"></div>
+      }
+    </div>
+    <div class="h-64 bg-white rounded-xl border border-gray-200 animate-pulse"></div>
+  } @else if (error()) {
+    <div class="p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl" role="alert">{{ error() }}</div>
+  } @else if (isEmpty()) {
+    <!-- Sin albaranes todavía -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-8 text-center">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+      </div>
+      <h2 class="text-lg font-bold text-gray-800">{{ 'PRICES.EMPTY_TITLE' | translate }}</h2>
+      <p class="text-gray-500 mt-2 max-w-md mx-auto">{{ 'PRICES.EMPTY_TEXT' | translate }}</p>
+      <a routerLink="/invoices/scan" class="inline-block mt-6 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl">
+        {{ 'PRICES.EMPTY_CTA' | translate }}
+      </a>
+    </div>
+  } @else if (overview(); as o) {
+    <!-- Indicadores -->
+    <div class="grid grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+      <div class="col-span-3 lg:col-span-1 bg-white rounded-xl border p-4"
+        [class]="o.overpaidAmount > 0 ? 'border-amber-300 bg-amber-50' : 'border-gray-200'">
+        <p class="text-xs font-semibold uppercase tracking-wide" [class]="o.overpaidAmount > 0 ? 'text-amber-700' : 'text-gray-500'">
+          {{ 'PRICES.OVERPAID' | translate }}
+        </p>
+        <p class="text-2xl font-extrabold mt-1" [class]="o.overpaidAmount > 0 ? 'text-amber-800' : 'text-gray-800'">{{ money(o.overpaidAmount) }}</p>
+        <p class="text-xs text-gray-500 mt-1">{{ 'PRICES.OVERPAID_HINT' | translate: { days: o.days } }}</p>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
+        <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-gray-500 break-words">{{ 'PRICES.KPI_INCREASES' | translate }}</p>
+        <p class="text-2xl font-extrabold mt-1" [class]="o.alerts.length ? 'text-red-600' : 'text-gray-800'">{{ o.alerts.length }}</p>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
+        <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-gray-500 break-words">{{ 'PRICES.KPI_COMPARABLE' | translate }}</p>
+        <p class="text-2xl font-extrabold mt-1 text-gray-800">{{ o.comparable.length }}</p>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
+        <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-gray-500 break-words">{{ 'PRICES.KPI_SUPPLIERS' | translate }}</p>
+        <p class="text-2xl font-extrabold mt-1 text-gray-800">{{ o.suppliersTracked }}</p>
+      </div>
+    </div>
+
+    @if (onlyOneSupplier()) {
+      <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+        <span>{{ 'PRICES.ONE_SUPPLIER_HINT' | translate }}</span>
+        <a routerLink="/invoices/scan" class="shrink-0 font-semibold underline">{{ 'PRICES.UPLOAD_ANOTHER' | translate }}</a>
+      </div>
+    }
+
+    <!-- Dónde comprar más barato -->
+    @if (o.comparable.length) {
+      <section class="mb-8">
+        <h2 class="text-lg font-bold text-gray-800 mb-1">{{ 'PRICES.CHEAPEST_TITLE' | translate }}</h2>
+        <p class="text-sm text-gray-500 mb-3">{{ 'PRICES.CHEAPEST_HINT' | translate }}</p>
+        <div class="space-y-3">
+          @for (g of o.comparable; track g.key) {
+            <div class="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                <div>
+                  <h3 class="font-semibold text-gray-800">{{ g.name }} <span class="text-sm font-normal text-gray-400">· {{ g.unit }}</span></h3>
+                  @if (g.spreadPercent) {
+                    <p class="text-xs text-gray-500">{{ 'PRICES.SPREAD' | translate: { pct: num(g.spreadPercent, 0) } }}</p>
+                  }
+                </div>
+                <button type="button" (click)="orderCheapest(g)"
+                  class="self-start sm:self-auto px-3 py-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg">
+                  {{ 'PRICES.ORDER_CHEAPEST' | translate }}
+                </button>
+              </div>
+              <ul class="divide-y divide-gray-100">
+                @for (offer of g.offers; track offer.productUuid) {
+                  <li class="py-2 flex items-center justify-between gap-3 text-sm">
+                    <div class="min-w-0">
+                      <p class="font-medium truncate" [class]="offer.cheapest ? 'text-emerald-700' : 'text-gray-700'">
+                        @if (offer.cheapest) { <span aria-hidden="true">✓ </span> }{{ offer.supplierName }}
+                      </p>
+                      <p class="text-xs text-gray-400 truncate">{{ offer.productName }} · {{ 'PRICES.AS_OF' | translate: { date: date(offer.latestDate) } }}</p>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <p class="font-semibold" [class]="offer.cheapest ? 'text-emerald-700' : 'text-gray-800'">{{ money(offer.latestPrice) }}<span class="text-xs font-normal text-gray-400">/{{ offer.unit }}</span></p>
+                      @if (extraPercent(g, offer); as extra) {
+                        <p class="text-xs text-amber-700">+{{ num(extra, 0) }} %</p>
+                      } @else if (offer.cheapest) {
+                        <p class="text-xs text-emerald-600">{{ 'PRICES.CHEAPEST' | translate }}</p>
+                      }
+                    </div>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Subidas de precio -->
+    @if (o.alerts.length) {
+      <section class="mb-8">
+        <h2 class="text-lg font-bold text-gray-800 mb-1">{{ 'PRICES.ALERTS_TITLE' | translate }}</h2>
+        <p class="text-sm text-gray-500 mb-3">{{ 'PRICES.ALERTS_HINT' | translate }}</p>
+        <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+          @for (a of o.alerts; track a.productUuid) {
+            <div class="p-4 flex items-center justify-between gap-3 text-sm">
+              <div class="min-w-0">
+                <p class="font-medium text-gray-800 truncate">{{ a.productName }}</p>
+                <p class="text-xs text-gray-500 truncate">{{ a.supplierName }}</p>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-gray-800"><span class="text-gray-400 line-through mr-1">{{ money(a.previousPrice) }}</span> {{ money(a.latestPrice) }}</p>
+                <p class="text-xs font-semibold text-red-600">+{{ num(a.changePercent) }} % · {{ date(a.previousDate) }} → {{ date(a.latestDate) }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Productos con un solo proveedor -->
+    @if (o.singleSupplier.length) {
+      <section class="mb-8">
+        <button type="button" (click)="showSingle.set(!showSingle())" class="text-sm font-semibold text-gray-600 hover:text-gray-900">
+          {{ (showSingle() ? 'PRICES.SINGLE_HIDE' : 'PRICES.SINGLE_SHOW') | translate: { count: o.singleSupplier.length } }}
+        </button>
+        @if (showSingle()) {
+          <p class="text-xs text-gray-500 mt-1 mb-2">{{ 'PRICES.SINGLE_HINT' | translate }}</p>
+          <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+            @for (g of o.singleSupplier; track g.key) {
+              <div class="px-4 py-2.5 flex items-center justify-between text-sm">
+                <span class="text-gray-700">{{ g.name }} <span class="text-gray-400">· {{ g.offers[0].supplierName }}</span></span>
+                <span class="font-medium text-gray-800">{{ money(g.offers[0].latestPrice) }}/{{ g.unit }}</span>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <p class="text-xs text-gray-400">{{ 'PRICES.DISCLAIMER' | translate }}</p>
+  }
+</div>

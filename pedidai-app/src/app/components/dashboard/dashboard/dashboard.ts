@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
-import { DecimalPipe, DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { DecimalPipe } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReportService } from '../../../services/report';
 import { OrderService } from '../../../services/order';
 import { SupplierService } from '../../../services/supplier';
@@ -11,10 +11,16 @@ import { DashboardResponse } from '../../../models/dashboard.model';
 import { OrderResponse } from '../../../models/order.model';
 import { AiSuggestion } from '../../../models/ai.model';
 import { MyPlan } from '../../../models/company.model';
+import { PriceService } from '../../../services/price';
+import { AuthService } from '../../../services/auth';
+import { LanguageService } from '../../../services/language.service';
+import { UserResponse } from '../../../models/user.model';
+import { PriceOverview } from '../../../models/price.model';
+import { formatDate, formatMoney } from '../../../shared/format';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DecimalPipe, DatePipe, TranslateModule],
+  imports: [RouterLink, DecimalPipe, TranslateModule],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
@@ -23,6 +29,17 @@ export class Dashboard implements OnInit {
   private supplierService = inject(SupplierService);
   private ai = inject(AiService);
   private companyService = inject(CompanyService);
+  private priceService = inject(PriceService);
+  private auth = inject(AuthService);
+  private language = inject(LanguageService);
+  private translate = inject(TranslateService);
+  private route = inject(ActivatedRoute);
+
+  me = signal<UserResponse | null>(this.auth.getCurrentUser());
+  prices = signal<PriceOverview | null>(null);
+  verificationSent = signal(false);
+  /** Recién registrado: se muestra la bienvenida en los primeros pasos. */
+  welcome = signal(this.route.snapshot.queryParamMap.has('welcome'));
 
   stats = signal<DashboardResponse | null>(null);
   recentOrders = signal<OrderResponse[]>([]);
@@ -51,19 +68,19 @@ export class Dashboard implements OnInit {
     const plan = this.myPlan();
     if (!plan?.trialEndsAt) return null;
     const d = new Date(plan.trialEndsAt);
-    return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return formatDate(plan.trialEndsAt, this.language.current());
   });
 
   ngOnInit() {
+    this.auth.refreshMe().subscribe({ next: u => this.me.set(u), error: () => { /* se mantiene el usuario guardado */ } });
+    this.priceService.overview(90).subscribe({ next: p => this.prices.set(p), error: () => { /* sin resumen de precios */ } });
     this.reports.getDashboard().subscribe({
       next: (data) => {
-        console.log('Dashboard stats:', data);
         this.stats.set(data ?? null);
         this.loadingStats.set(false);
       },
       error: (err) => {
-        console.error('Dashboard stats error:', err);
-        this.statsError.set('Error al cargar estadísticas');
+        this.statsError.set(this.translate.instant('DASHBOARD.STATS_ERROR'));
         this.loadingStats.set(false);
       }
     });
@@ -79,12 +96,10 @@ export class Dashboard implements OnInit {
 
     this.orders.filter({ size: 5, sortBy: 'createdAt', sortDir: 'desc' }).subscribe({
       next: (data) => {
-        console.log('Recent orders:', data);
         this.recentOrders.set(data?.content ?? []);
         this.loadingOrders.set(false);
       },
       error: (err) => {
-        console.error('Recent orders error:', err);
         this.recentOrders.set([]);
         this.loadingOrders.set(false);
       }
@@ -97,16 +112,25 @@ export class Dashboard implements OnInit {
 
     this.ai.suggestOrders().subscribe({
       next: (data) => {
-        console.log('AI suggestions:', data);
         this.suggestions.set(Array.isArray(data) ? data : []);
         this.loadingSuggestions.set(false);
       },
       error: (err) => {
-        console.error('AI suggestions error:', err);
-        this.suggestionsError.set('Servicio IA no disponible');
+        this.suggestionsError.set(this.translate.instant('DASHBOARD.SUGGESTIONS_ERROR'));
         this.loadingSuggestions.set(false);
       }
     });
+  }
+
+  resendVerification() {
+    this.auth.resendMyVerification().subscribe({
+      next: () => this.verificationSent.set(true),
+      error: () => this.verificationSent.set(true),
+    });
+  }
+
+  money(v: number | null | undefined) {
+    return formatMoney(v, this.language.current());
   }
 
   getSupplierName(uuid: string): string {

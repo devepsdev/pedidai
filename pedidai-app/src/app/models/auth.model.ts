@@ -11,17 +11,11 @@ export interface LoginResponse {
   user: UserResponse;
 }
 
+/** Alta con lo mínimo para empezar la prueba; el resto de datos se completan después. */
 export interface RegisterRequest {
   companyName: string;
-  taxId: string;
-  companyEmail: string;
-  companyPhone?: string;
-  companyAddress?: string;
-  companyCity?: string;
-  companyPostalCode?: string;
+  adminFirstName: string;
   adminEmail: string;
   adminPassword: string;
-  adminFirstName: string;
-  adminLastName: string;
-  adminPhone?: string;
+  acceptTerms: boolean;
 }

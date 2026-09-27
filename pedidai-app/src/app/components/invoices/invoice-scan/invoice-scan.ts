@@ -1,25 +1,41 @@
 import { Component, inject, OnDestroy, OnInit, computed, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { RouterLink } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { InvoiceService } from '../../../services/invoice';
 import { SupplierService } from '../../../services/supplier';
-import {
-  InvoiceConfirmRequestDTO,
-  InvoiceProductConfirmDTO,
-  InvoiceScanResultDTO,
-} from '../../../models/invoice.model';
+import { LanguageService } from '../../../services/language.service';
+import { InvoiceConfirmRequestDTO, InvoiceLineStatus, InvoiceScanResultDTO } from '../../../models/invoice.model';
 import { SupplierResponse } from '../../../models/supplier.model';
+import { formatMoney } from '../../../shared/format';
+
+/** Línea del albarán que el usuario puede revisar y corregir antes de guardarla. */
+interface EditableLine {
+  selected: boolean;
+  name: string;
+  genericName: string;
+  quantity: number | null;
+  unit: string;
+  unitPrice: number | null;
+  status: InvoiceLineStatus;
+  matchedProductUuid?: string;
+  previousPrice?: number;
+}
+
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+const MAX_BYTES = 10 * 1024 * 1024;
 
 @Component({
   selector: 'app-invoice-scan',
-  imports: [DecimalPipe, TranslateModule],
+  imports: [RouterLink, TranslateModule],
   templateUrl: './invoice-scan.html',
 })
 export class InvoiceScan implements OnInit, OnDestroy {
   private invoiceService = inject(InvoiceService);
   private supplierService = inject(SupplierService);
   private sanitizer = inject(DomSanitizer);
+  private translate = inject(TranslateService);
+  private language = inject(LanguageService);
 
   step = signal<1 | 2 | 3>(1);
   selectedFile = signal<File | null>(null);
@@ -28,80 +44,75 @@ export class InvoiceScan implements OnInit, OnDestroy {
   isDragOver = signal(false);
 
   suppliers = signal<SupplierResponse[]>([]);
-  selectedSupplierUuid = signal('');
+  preselectedSupplierUuid = signal('');
 
   scanResult = signal<InvoiceScanResultDTO | null>(null);
-  checkedProducts = signal<boolean[]>([]);
-  manualSupplierUuid = signal('');
+  lines = signal<EditableLine[]>([]);
+  /** '' = crear un proveedor nuevo con los datos detectados. */
+  supplierUuid = signal('');
+  newSupplierName = signal('');
+  newSupplierEmail = signal('');
+  invoiceDate = signal('');
+  invoiceNumber = signal('');
 
   loading = signal(false);
   error = signal('');
-
-  confirmResult = signal<{ created: number; updated: number; skipped: number } | null>(null);
+  confirmResult = signal<InvoiceScanResultDTO | null>(null);
 
   private objectUrl: string | null = null;
 
-  selectedCount = computed(() => this.checkedProducts().filter(Boolean).length);
-  totalCount = computed(() => this.checkedProducts().length);
-  allChecked = computed(() => this.totalCount() > 0 && this.selectedCount() === this.totalCount());
-
-  effectiveSupplierUuid = computed(() => {
-    const r = this.scanResult();
-    return r?.matchedSupplierUuid ?? this.manualSupplierUuid();
-  });
+  selectedCount = computed(() => this.lines().filter(l => l.selected).length);
+  allSelected = computed(() => this.lines().length > 0 && this.lines().every(l => l.selected));
+  increases = computed(() => this.lines().filter(l => l.selected && this.change(l) !== null && this.change(l)! > 0).length);
 
   ngOnInit() {
-    this.supplierService.getAll(0, 200, 'name', 'asc').subscribe({
-      next: d => this.suppliers.set(d.content),
-      error: () => {},
-    });
+    this.loadSuppliers();
   }
 
   ngOnDestroy() {
     this.revokeObjectUrl();
   }
 
-  private revokeObjectUrl() {
-    if (this.objectUrl) {
-      URL.revokeObjectURL(this.objectUrl);
-      this.objectUrl = null;
-    }
+  private loadSuppliers() {
+    this.supplierService.getAll(0, 200, 'name', 'asc').subscribe({
+      next: d => this.suppliers.set(d.content),
+      error: () => { /* el selector queda vacío: se puede crear el proveedor */ },
+    });
   }
+
+  // ───────── Paso 1: archivo ─────────
 
   onDragOver(e: DragEvent) {
     e.preventDefault();
-    e.stopPropagation();
     this.isDragOver.set(true);
   }
 
   onDragLeave(e: DragEvent) {
     e.preventDefault();
-    e.stopPropagation();
     this.isDragOver.set(false);
   }
 
   onDrop(e: DragEvent) {
     e.preventDefault();
-    e.stopPropagation();
     this.isDragOver.set(false);
     const file = e.dataTransfer?.files[0];
     if (file) this.processFile(file);
   }
 
   onFileSelected(e: Event) {
-    const file = (e.target as HTMLInputElement).files?.[0];
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (file) this.processFile(file);
-    (e.target as HTMLInputElement).value = '';
+    input.value = '';
   }
 
   private processFile(file: File) {
-    const allowed = ['image/jpeg', 'image/png', 'image/bmp', 'application/pdf'];
-    if (!allowed.includes(file.type)) {
-      this.error.set('Format no permès. Utilitza JPEG, PNG, BMP o PDF.');
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      this.error.set(this.translate.instant('INVOICE_SCAN.ERR_FORMAT'));
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      this.error.set('El fitxer supera els 10 MB màxims permesos.');
+    if (file.size > MAX_BYTES) {
+      this.error.set(this.translate.instant('INVOICE_SCAN.ERR_SIZE'));
       return;
     }
     this.error.set('');
@@ -117,70 +128,98 @@ export class InvoiceScan implements OnInit, OnDestroy {
     if (!file || this.loading()) return;
     this.loading.set(true);
     this.error.set('');
-    const supp = this.selectedSupplierUuid() || undefined;
-    this.invoiceService.scanInvoice(file, supp).subscribe({
+    this.invoiceService.scanInvoice(file, this.preselectedSupplierUuid() || undefined).subscribe({
       next: resp => {
         const data = resp.data;
         this.scanResult.set(data);
-        this.checkedProducts.set(data.products.map(() => true));
-        this.manualSupplierUuid.set(data.matchedSupplierUuid ?? '');
+        this.lines.set(data.products.map(p => ({
+          selected: p.unitPrice != null,
+          name: p.name,
+          genericName: p.genericName ?? '',
+          quantity: p.quantity ?? null,
+          unit: p.unit ?? '',
+          unitPrice: p.unitPrice ?? null,
+          status: p.status,
+          matchedProductUuid: p.matchedProductUuid,
+          previousPrice: p.previousPrice,
+        })));
+        this.supplierUuid.set(data.matchedSupplierUuid ?? '');
+        this.newSupplierName.set(data.detectedSupplierName ?? '');
+        this.newSupplierEmail.set('');
+        this.invoiceDate.set(data.invoiceDate ?? new Date().toISOString().slice(0, 10));
+        this.invoiceNumber.set(data.invoiceNumber ?? '');
         this.loading.set(false);
         this.step.set(2);
       },
       error: err => {
-        this.error.set(err?.error?.message ?? 'Error en escanejar la factura. Torna-ho a intentar.');
+        this.error.set(err?.error?.message ?? this.translate.instant('INVOICE_SCAN.ERR_SCAN'));
         this.loading.set(false);
       },
     });
   }
 
-  toggleProduct(i: number) {
-    const arr = [...this.checkedProducts()];
-    arr[i] = !arr[i];
-    this.checkedProducts.set(arr);
+  // ───────── Paso 2: revisión ─────────
+
+  updateLine(i: number, patch: Partial<EditableLine>) {
+    this.lines.update(ls => ls.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
   }
 
   toggleAll() {
-    const all = this.allChecked();
-    this.checkedProducts.set(this.checkedProducts().map(() => !all));
+    const all = this.allSelected();
+    this.lines.update(ls => ls.map(l => ({ ...l, selected: !all })));
+  }
+
+  /** Variación del precio escrito respecto al último conocido, en %. */
+  change(line: EditableLine): number | null {
+    if (line.previousPrice == null || line.unitPrice == null || line.previousPrice === 0) return null;
+    const pct = ((line.unitPrice - line.previousPrice) / line.previousPrice) * 100;
+    return Math.abs(pct) < 0.05 ? 0 : pct;
   }
 
   confirm() {
-    const result = this.scanResult();
-    const suppUuid = this.effectiveSupplierUuid();
-    if (!result) return;
-    if (!suppUuid) {
-      this.error.set('Selecciona un proveïdor per continuar.');
+    const selected = this.lines().filter(l => l.selected);
+    if (!selected.length) {
+      this.error.set(this.translate.instant('INVOICE_SCAN.ERR_NO_LINES'));
       return;
     }
-    const products: InvoiceProductConfirmDTO[] = result.products
-      .filter((_, i) => this.checkedProducts()[i])
-      .map(p => ({
-        name: p.name,
-        matchedProductUuid: p.matchedProductUuid,
-        unitPrice: p.unitPrice,
-        action: p.action,
-      }));
-    if (!products.length) {
-      this.error.set('Selecciona almenys un producte per confirmar.');
+    if (selected.some(l => l.unitPrice == null || l.unitPrice < 0 || !l.name.trim())) {
+      this.error.set(this.translate.instant('INVOICE_SCAN.ERR_MISSING_PRICE'));
       return;
     }
-    const request: InvoiceConfirmRequestDTO = { supplierUuid: suppUuid, products };
+    const creatingSupplier = !this.supplierUuid();
+    if (creatingSupplier && !this.newSupplierName().trim()) {
+      this.error.set(this.translate.instant('INVOICE_SCAN.ERR_SUPPLIER'));
+      return;
+    }
+
+    const request: InvoiceConfirmRequestDTO = {
+      ...(creatingSupplier
+        ? { newSupplier: { name: this.newSupplierName().trim(), email: this.newSupplierEmail().trim() || undefined,
+            phone: this.scanResult()?.detectedSupplierPhone } }
+        : { supplierUuid: this.supplierUuid() }),
+      invoiceNumber: this.invoiceNumber().trim() || undefined,
+      invoiceDate: this.invoiceDate() || undefined,
+      products: selected.map(l => ({
+        name: l.name.trim(),
+        genericName: l.genericName.trim() || undefined,
+        quantity: l.quantity ?? undefined,
+        unit: l.unit.trim() || undefined,
+        unitPrice: l.unitPrice!,
+        matchedProductUuid: creatingSupplier ? undefined : l.matchedProductUuid,
+      })),
+    };
+
     this.loading.set(true);
     this.error.set('');
     this.invoiceService.confirmInvoice(request).subscribe({
-      next: () => {
-        const sel = result.products.filter((_, i) => this.checkedProducts()[i]);
-        this.confirmResult.set({
-          created: sel.filter(p => p.action === 'CREATED').length,
-          updated: sel.filter(p => p.action === 'UPDATED').length,
-          skipped: sel.filter(p => p.action === 'SKIPPED').length,
-        });
+      next: resp => {
+        this.confirmResult.set(resp.data);
         this.loading.set(false);
         this.step.set(3);
+        this.loadSuppliers();
       },
       error: err => {
-        this.error.set(err?.error?.message ?? 'Error en confirmar la importació. Torna-ho a intentar.');
+        this.error.set(err?.error?.message ?? this.translate.instant('INVOICE_SCAN.ERR_CONFIRM'));
         this.loading.set(false);
       },
     });
@@ -192,22 +231,25 @@ export class InvoiceScan implements OnInit, OnDestroy {
     this.revokeObjectUrl();
     this.previewUrl.set(null);
     this.isPdf.set(false);
-    this.selectedSupplierUuid.set('');
+    this.preselectedSupplierUuid.set('');
     this.scanResult.set(null);
-    this.checkedProducts.set([]);
-    this.manualSupplierUuid.set('');
+    this.lines.set([]);
     this.error.set('');
     this.confirmResult.set(null);
   }
 
-  actionBadgeClass(action: string): string {
-    const base = 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ';
-    if (action === 'CREATED') return base + 'bg-emerald-100 text-emerald-700';
-    if (action === 'UPDATED') return base + 'bg-orange-100 text-orange-700';
-    return base + 'bg-slate-100 text-slate-500';
+  money(v: number | null | undefined) {
+    return formatMoney(v, this.language.current());
   }
 
   formatFileSize(bytes: number): string {
-    return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  }
+
+  private revokeObjectUrl() {
+    if (this.objectUrl) {
+      URL.revokeObjectURL(this.objectUrl);
+      this.objectUrl = null;
+    }
   }
 }

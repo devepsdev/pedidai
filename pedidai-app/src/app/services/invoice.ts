@@ -17,7 +17,7 @@ export class InvoiceService {
     return this.api.postFile<ApiResponse<InvoiceScanResultDTO>>('/invoices/scan', formData);
   }
 
-  confirmInvoice(request: InvoiceConfirmRequestDTO): Observable<ApiResponse<unknown>> {
-    return this.api.post<ApiResponse<unknown>>('/invoices/confirm', request);
+  confirmInvoice(request: InvoiceConfirmRequestDTO): Observable<ApiResponse<InvoiceScanResultDTO>> {
+    return this.api.post<ApiResponse<InvoiceScanResultDTO>>('/invoices/confirm', request);
   }
 }

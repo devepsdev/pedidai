@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserService } from '../../../services/user';
 import { UserResponse } from '../../../models/user.model';
 
@@ -11,6 +11,7 @@ import { UserResponse } from '../../../models/user.model';
   templateUrl: './user-list.html',
 })
 export class UserList implements OnInit {
+  private translate = inject(TranslateService);
   private userService = inject(UserService);
   private router = inject(Router);
 
@@ -58,7 +59,7 @@ export class UserList implements OnInit {
 
       this.userService.filter(params).subscribe({
         next: (data) => { this.setData(data); },
-        error: () => { this.error.set('Error al cargar usuarios'); this.loading.set(false); },
+        error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_USERS')); this.loading.set(false); },
       });
     } else {
       const text = this.searchText().trim();
@@ -68,7 +69,7 @@ export class UserList implements OnInit {
 
       obs.subscribe({
         next: (data) => { this.setData(data); },
-        error: () => { this.error.set('Error al cargar usuarios'); this.loading.set(false); },
+        error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_USERS')); this.loading.set(false); },
       });
     }
   }
@@ -164,7 +165,7 @@ export class UserList implements OnInit {
       next: (updated) => {
         this.users.update(list => list.map(u => (u.uuid === updated.uuid ? updated : u)));
       },
-      error: () => this.error.set('Error al cambiar el estado'),
+      error: () => this.error.set(this.translate.instant('ERRORS.CHANGE_STATUS')),
     });
   }
 }

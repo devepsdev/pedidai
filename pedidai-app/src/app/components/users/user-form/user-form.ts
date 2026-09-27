@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserService } from '../../../services/user';
 import { UserRequest } from '../../../models/user.model';
 
@@ -11,6 +11,7 @@ import { UserRequest } from '../../../models/user.model';
   templateUrl: './user-form.html',
 })
 export class UserForm implements OnInit {
+  private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -49,7 +50,7 @@ export class UserForm implements OnInit {
           this.loading.set(false);
         },
         error: () => {
-          this.error.set('Error al cargar el usuario');
+          this.error.set(this.translate.instant('ERRORS.LOAD_USER'));
           this.loading.set(false);
         },
       });
@@ -88,7 +89,7 @@ export class UserForm implements OnInit {
       },
       error: (err) => {
         const msg = err?.error?.message;
-        this.error.set(msg || 'Error al guardar el usuario');
+        this.error.set(msg || this.translate.instant('ERRORS.SAVE_USER'));
         this.saving.set(false);
       },
     });

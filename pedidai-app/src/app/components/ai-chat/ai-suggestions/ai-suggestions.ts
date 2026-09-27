@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AiService } from '../../../services/ai';
 import { OrderService } from '../../../services/order';
 import { AiSuggestion } from '../../../models/ai.model';
@@ -10,6 +10,7 @@ import { AiSuggestion } from '../../../models/ai.model';
   templateUrl: './ai-suggestions.html',
 })
 export class AiSuggestions implements OnInit {
+  private translate = inject(TranslateService);
   private ai = inject(AiService);
   private orderService = inject(OrderService);
 
@@ -24,7 +25,7 @@ export class AiSuggestions implements OnInit {
   ngOnInit() {
     this.ai.suggestOrders().subscribe({
       next: (data) => { this.suggestions.set(data ?? []); this.loading.set(false); },
-      error: () => { this.error.set('Servicio IA no disponible'); this.loading.set(false); }
+      error: () => { this.error.set(this.translate.instant('ERRORS.AI_UNAVAILABLE')); this.loading.set(false); }
     });
   }
 

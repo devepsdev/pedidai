@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SupplierService } from '../../../services/supplier';
 import { SupplierResponse } from '../../../models/supplier.model';
 
@@ -11,6 +11,7 @@ import { SupplierResponse } from '../../../models/supplier.model';
   templateUrl: './supplier-list.html',
 })
 export class SupplierList implements OnInit {
+  private translate = inject(TranslateService);
   private supplierService = inject(SupplierService);
   private router = inject(Router);
 
@@ -58,7 +59,7 @@ export class SupplierList implements OnInit {
 
       this.supplierService.filter(params).subscribe({
         next: (data) => { this.setData(data); },
-        error: () => { this.error.set('Error al cargar proveedores'); this.loading.set(false); },
+        error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_SUPPLIERS')); this.loading.set(false); },
       });
     } else {
       const text = this.searchText().trim();
@@ -68,7 +69,7 @@ export class SupplierList implements OnInit {
 
       obs.subscribe({
         next: (data) => { this.setData(data); },
-        error: () => { this.error.set('Error al cargar proveedores'); this.loading.set(false); },
+        error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_SUPPLIERS')); this.loading.set(false); },
       });
     }
   }
@@ -152,7 +153,7 @@ export class SupplierList implements OnInit {
       next: (updated) => {
         this.suppliers.update(list => list.map(s => s.uuid === updated.uuid ? updated : s));
       },
-      error: () => this.error.set('Error al cambiar el estado'),
+      error: () => this.error.set(this.translate.instant('ERRORS.CHANGE_STATUS')),
     });
   }
 

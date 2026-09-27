@@ -4,7 +4,7 @@
     <h1 class="text-2xl font-bold text-gray-800">{{ 'ORDERS.TITLE' | translate }}</h1>
     <button
       (click)="newOrder()"
-      class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm">
+      class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
       </svg>
@@ -38,7 +38,7 @@
         </button>
         <button
           (click)="toggleAdvanced()"
-          class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+          class="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 010 2H4a1 1 0 01-1-1zM6 9h12M9 14h6M11 19h2"/>
           </svg>
@@ -153,7 +153,7 @@
 
   @if (loading()) {
     <!-- Skeleton desktop table -->
-    <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
           <tr class="bg-gray-50 border-b border-gray-200">
@@ -198,7 +198,7 @@
     </div>
   } @else {
     <!-- Desktop table -->
-    <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
           <tr class="bg-gray-50 border-b border-gray-200">
@@ -377,7 +377,7 @@
           </div>
           <div class="flex justify-between">
             <span class="text-gray-500">{{ 'ORDERS.SEND_MODAL.LINES' | translate }}</span>
-            <span class="font-medium text-gray-800">{{ order.items?.length ?? 0 }} {{ 'ORDERS.SEND_MODAL.PRODUCTS' | translate }}</span>
+            <span class="font-medium text-gray-800">{{ order.items.length }} {{ 'ORDERS.SEND_MODAL.PRODUCTS' | translate }}</span>
           </div>
           @if (order.deliveryDate) {
             <div class="flex justify-between">

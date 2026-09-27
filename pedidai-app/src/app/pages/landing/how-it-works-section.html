@@ -1,44 +1,25 @@
-<section id="how-it-works" class="py-20 bg-slate-50">
-  <div class="max-w-7xl mx-auto px-6 lg:px-8">
-    <div class="text-center mb-14">
-      <p class="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-2">{{ 'LANDING.HOW_IT_WORKS.LABEL' | translate }}</p>
-      <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900">{{ 'LANDING.HOW_IT_WORKS.TITLE' | translate }}</h2>
-      <p class="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">{{ 'LANDING.HOW_IT_WORKS.SUBTITLE' | translate }}</p>
+<section id="how-it-works" class="py-16 sm:py-20 bg-white scroll-mt-16">
+  <div class="max-w-6xl mx-auto px-5 lg:px-8">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900">{{ 'LANDING.HOW.TITLE' | translate }}</h2>
+      <p class="mt-3 text-lg text-gray-500 max-w-2xl mx-auto">{{ 'LANDING.HOW.SUBTITLE' | translate }}</p>
     </div>
 
-    <!-- Steps -->
-    <div class="relative">
-      <!-- Connector line (desktop) -->
-      <div class="hidden lg:block absolute top-16 left-1/2 -translate-x-1/2 w-2/3 h-0.5 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-200"></div>
+    <ol class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      @for (step of [1, 2, 3]; track step) {
+        <li class="relative bg-slate-50 rounded-2xl p-6 border border-slate-100">
+          <span class="w-11 h-11 bg-emerald-500 text-slate-950 text-lg font-extrabold rounded-xl flex items-center justify-center mb-4">{{ step }}</span>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">{{ 'LANDING.HOW.STEP' + step + '_TITLE' | translate }}</h3>
+          <p class="text-gray-600 leading-relaxed">{{ 'LANDING.HOW.STEP' + step + '_TEXT' | translate }}</p>
+        </li>
+      }
+    </ol>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-8">
-        <!-- Step 1 -->
-        <div class="relative flex flex-col items-center text-center">
-          <div class="w-14 h-14 bg-blue-600 text-white text-xl font-extrabold rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/30 relative z-10">
-            1
-          </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">{{ 'LANDING.HOW_IT_WORKS.STEP1_TITLE' | translate }}</h3>
-          <p class="text-gray-500 leading-relaxed">{{ 'LANDING.HOW_IT_WORKS.STEP1_TEXT' | translate }}</p>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="relative flex flex-col items-center text-center">
-          <div class="w-14 h-14 bg-blue-600 text-white text-xl font-extrabold rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/30 relative z-10">
-            2
-          </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">{{ 'LANDING.HOW_IT_WORKS.STEP2_TITLE' | translate }}</h3>
-          <p class="text-gray-500 leading-relaxed">{{ 'LANDING.HOW_IT_WORKS.STEP2_TEXT' | translate }}</p>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="relative flex flex-col items-center text-center">
-          <div class="w-14 h-14 bg-blue-600 text-white text-xl font-extrabold rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/30 relative z-10">
-            3
-          </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-3">{{ 'LANDING.HOW_IT_WORKS.STEP3_TITLE' | translate }}</h3>
-          <p class="text-gray-500 leading-relaxed">{{ 'LANDING.HOW_IT_WORKS.STEP3_TEXT' | translate }}</p>
-        </div>
-      </div>
+    <div class="mt-10 text-center">
+      <a routerLink="/register"
+        class="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition-colors">
+        {{ 'CTA.TRIAL' | translate }}
+      </a>
     </div>
   </div>
 </section>

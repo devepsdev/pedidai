@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReportService } from '../../../services/report';
 import { GlobalReport } from '../../../models/dashboard.model';
 
@@ -12,6 +12,7 @@ type QuickRange = 'LAST_WEEK' | 'LAST_MONTH' | 'LAST_YEAR' | '';
   templateUrl: './reports.html',
 })
 export class Reports implements OnInit {
+  private translate = inject(TranslateService);
   private reportService = inject(ReportService);
 
   report = signal<GlobalReport | null>(null);
@@ -73,7 +74,7 @@ export class Reports implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Error al generar el informe');
+        this.error.set(this.translate.instant('ERRORS.REPORT'));
         this.loading.set(false);
       },
     });
@@ -93,7 +94,7 @@ export class Reports implements OnInit {
         this.exporting.set(false);
       },
       error: () => {
-        this.error.set('Error al exportar el PDF');
+        this.error.set(this.translate.instant('ERRORS.EXPORT_PDF'));
         this.exporting.set(false);
       },
     });
