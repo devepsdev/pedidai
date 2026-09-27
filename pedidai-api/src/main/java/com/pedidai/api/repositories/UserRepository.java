@@ -89,4 +89,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     int deleteByCompanyId(@Param("companyId") Long companyId);
 
     Optional<User> findFirstByCompany_IdAndRoleOrderByIdAsc(Long companyId, User.UserRole role);
+
+    boolean existsByCompany_IdAndRole(Long companyId, User.UserRole role);
 }

@@ -12,6 +12,7 @@ public interface SuperAdminService {
     CompanySummaryDTO updateCompanyStatus(String uuid, String status);
     Page<UserAdminDTO> getUsers(String search, String role, String companyUuid, Pageable pageable);
     List<MonthlyStatsDTO> getMonthlyStats();
-    CompanySummaryDTO extendTrial(String uuid, int months);
+    /** Amplia la prova {@code days} dies des del final actual (o des d'avui si ja ha acabat). */
+    CompanySummaryDTO extendTrial(String uuid, int days);
     CompanySummaryDTO activateCompany(String uuid, String plan);
 }

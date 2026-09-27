@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ExtendTrialDTO {
 
-    @NotNull(message = "{validation.months.required}")
-    @Min(value = 1, message = "{validation.months.min}")
-    @Max(value = 24, message = "{validation.months.max}")
-    private Integer months;
+    @NotNull(message = "{validation.days.required}")
+    @Min(value = 1, message = "{validation.days.min}")
+    @Max(value = 90, message = "{validation.days.max}")
+    private Integer days;
 }

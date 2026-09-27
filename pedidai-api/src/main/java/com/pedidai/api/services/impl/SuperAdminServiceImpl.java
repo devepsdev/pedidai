@@ -2,6 +2,7 @@ package com.pedidai.api.services.impl;
 
 import com.pedidai.api.dto.*;
 import com.pedidai.api.entities.*;
+import com.pedidai.api.exceptions.BadRequestException;
 import com.pedidai.api.exceptions.ResourceNotFoundException;
 import com.pedidai.api.repositories.*;
 import com.pedidai.api.services.SuperAdminService;
@@ -175,11 +176,19 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
     @Override
     @Transactional
-    public CompanySummaryDTO extendTrial(String uuid, int months) {
+    public CompanySummaryDTO extendTrial(String uuid, int days) {
         Company company = companyRepository.findByUuid(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("error.company.notFound"));
-        // Si ya tenía trial, extender desde hoy; si no tenía, iniciar desde hoy
-        company.setTrialEndsAt(LocalDateTime.now().plusMonths(months));
+        // La compte de la plataforma i els clients de pagament no tenen prova: tornarien a caducar
+        if (userRepository.existsByCompany_IdAndRole(company.getId(), User.UserRole.SUPER_ADMIN)) {
+            throw new BadRequestException("error.company.platformAccount");
+        }
+        if (company.getTrialEndsAt() == null) {
+            throw new BadRequestException("error.company.alreadyPaid");
+        }
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime from = company.getTrialEndsAt().isAfter(now) ? company.getTrialEndsAt() : now;
+        company.setTrialEndsAt(from.plusDays(days));
         // Si estaba INACTIVE por trial expirado, la reactivamos
         if (company.getStatus() == Company.CompanyStatus.INACTIVE) {
             company.setStatus(Company.CompanyStatus.ACTIVE);

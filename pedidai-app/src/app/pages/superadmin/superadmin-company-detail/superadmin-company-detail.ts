@@ -75,12 +75,17 @@ export class SuperadminCompanyDetail implements OnInit {
            'bg-slate-600/50 text-slate-400';
   }
 
-  extendTrial(months: number = 3) {
+  /** La cuenta de la plataforma (tiene un SUPER_ADMIN) no tiene prueba ni plan. */
+  isPlatform(c: { users: { role: string }[] }): boolean {
+    return c.users.some(u => u.role === 'SUPER_ADMIN');
+  }
+
+  extendTrial(days: number = 14) {
     const c = this.company();
     if (!c) return;
     this.actionSaving.set(true);
     this.actionError.set('');
-    this.svc.extendTrial(c.uuid, months).subscribe({
+    this.svc.extendTrial(c.uuid, days).subscribe({
       next: updated => {
         this.company.update(prev => prev ? {
           ...prev,

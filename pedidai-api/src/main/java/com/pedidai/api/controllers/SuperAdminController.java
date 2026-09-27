@@ -90,7 +90,7 @@ public class SuperAdminController {
             @PathVariable String uuid,
             @Valid @RequestBody ExtendTrialDTO dto) {
         return ResponseEntity.ok(ApiResponseDTO.success(
-                superAdminService.extendTrial(uuid, dto.getMonths()),
+                superAdminService.extendTrial(uuid, dto.getDays()),
                 "success.company.trialExtended"));
     }
 

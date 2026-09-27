@@ -144,9 +144,9 @@ export class SuperAdminService {
     );
   }
 
-  extendTrial(uuid: string, months: number): Observable<CompanySummary> {
+  extendTrial(uuid: string, days: number): Observable<CompanySummary> {
     return this.api.patch<ApiResponse<CompanySummary>>(
-      `/superadmin/companies/${uuid}/extend-trial`, { months }
+      `/superadmin/companies/${uuid}/extend-trial`, { days }
     ).pipe(map(r => r.data));
   }
 
