@@ -125,7 +125,7 @@ pedidai/
 └── pedidai-db/           # Esquema SQL, migraciones y documentación de tablas
 
 orderflow/                # Repositorio aparte
-├── mcp-server/           # Asistente de pedidos por chat (Express + DeepSeek + herramientas)
+├── assistant/            # Asistente de pedidos por chat (Express + DeepSeek + herramientas)
 ├── n8n-workflows/        # Flujos de n8n: aviso de registro nuevo y resumen diario
 └── docker-compose.yml    # Levanta el asistente y n8n
 ```
@@ -298,7 +298,7 @@ npx ng build                    # producción → dist/pedidai-app/browser
 ### 8.4. Asistente y n8n (opcional)
 
 ```bash
-cd orderflow/mcp-server
+cd orderflow/assistant
 cp .env.example .env            # PEDIDAI_API_URL=http://localhost:8085/api y DEEPSEEK_API_KEY
 npm install && npm start        # http://127.0.0.1:3201/health
 ```
@@ -328,7 +328,7 @@ nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` �
 2. **Migraciones nuevas** de `pedidai-db/migrations/`, si las hay.
 3. **API:** `./mvnw -DskipTests package`, copiar el jar a `target/` y `sudo systemctl restart pedidai-api`.
 4. **Web:** `npx ng build` y copiar `dist/pedidai-app/browser/` a `/var/www/pedidai.es` (sin borrar `.well-known/`).
-5. **Asistente y n8n:** en `/opt/apps/orderflow`, `git fetch && git merge --ff-only origin/main`; después `sudo docker compose up -d --build mcp-bridge` (asistente) o `sudo docker compose up -d n8n`.
+5. **Asistente y n8n:** en `/opt/apps/orderflow`, `git fetch && git merge --ff-only origin/main`; después `sudo docker compose up -d --build assistant` (asistente) o `sudo docker compose up -d n8n`.
 6. **Comprobar:** `https://pedidai.es/api/users/me` debe responder 401 sin token y `https://pedidai.es/ai/health` `{"status":"ok"}`.
 
 ---
