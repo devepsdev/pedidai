@@ -24,7 +24,7 @@
     "INVOICE_SCAN": "Subir albarán",
     "AI_SECTION": "Inteligencia IA",
     "AI_CHAT": "Pedir por chat",
-    "AI_SUGGESTIONS": "Sugerencias IA",
+    "AI_SUGGESTIONS": "Sugerencias de pedido",
     "MANAGEMENT": "Gestión",
     "REPORTS": "Informes",
     "COMPANY": "Empresa",
@@ -131,7 +131,7 @@
     "NO_RECENT_ORDERS": "No hay pedidos recientes",
     "ANALYZING": "Analizando...",
     "ALL_UP_TO_DATE": "✓ Todo al día, no hay pedidos urgentes",
-    "AI_SUGGESTIONS": "Sugerencias IA",
+    "AI_SUGGESTIONS": "Sugerencias de pedido",
     "SEE_ALL_SUGGESTIONS": "Ver todas",
     "NAME": "Nombre",
     "SUPPLIER": "Proveedor",
@@ -542,8 +542,8 @@
   },
   "AI": {
     "SUGGESTIONS": {
-      "TITLE": "Sugerencias IA",
-      "SUBTITLE": "Pedidos recomendados por el análisis inteligente",
+      "TITLE": "Sugerencias de pedido",
+      "SUBTITLE": "Productos que sueles pedir, con el proveedor más barato según tus albaranes",
       "ALL_UP_TO_DATE": "Todo al día",
       "ALL_UP_TO_DATE_SUB": "No hay pedidos urgentes recomendados",
       "URGENCY_HIGH": "Urgente",
@@ -559,7 +559,7 @@
       "CONFIRM_FROM": "de",
       "CANCEL": "Cancelar",
       "CONFIRM": "Confirmar",
-      "ERROR": "Servicio IA no disponible"
+      "ERROR": "No se han podido cargar las sugerencias"
     },
     "CHAT": {
       "TITLE": "Pedir por chat",

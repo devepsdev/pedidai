@@ -24,7 +24,7 @@
     "INVOICE_SCAN": "Pujar albarà",
     "AI_SECTION": "Intel·ligència IA",
     "AI_CHAT": "Demanar per xat",
-    "AI_SUGGESTIONS": "Suggeriments IA",
+    "AI_SUGGESTIONS": "Suggeriments de comanda",
     "MANAGEMENT": "Gestió",
     "REPORTS": "Informes",
     "COMPANY": "Empresa",
@@ -131,7 +131,7 @@
     "NO_RECENT_ORDERS": "No hi ha comandes recents",
     "ANALYZING": "Analitzant...",
     "ALL_UP_TO_DATE": "✓ Tot al dia, no hi ha comandes urgents",
-    "AI_SUGGESTIONS": "Suggeriments IA",
+    "AI_SUGGESTIONS": "Suggeriments de comanda",
     "SEE_ALL_SUGGESTIONS": "Veure totes",
     "NAME": "Nom",
     "SUPPLIER": "Proveïdor",
@@ -542,8 +542,8 @@
   },
   "AI": {
     "SUGGESTIONS": {
-      "TITLE": "Suggeriments IA",
-      "SUBTITLE": "Comandes recomanades per l'anàlisi intel·ligent",
+      "TITLE": "Suggeriments de comanda",
+      "SUBTITLE": "Productes que acostumes a demanar, amb el proveïdor més barat segons els teus albarans",
       "ALL_UP_TO_DATE": "Tot al dia",
       "ALL_UP_TO_DATE_SUB": "No hi ha comandes urgents recomanades",
       "URGENCY_HIGH": "Urgent",
@@ -559,7 +559,7 @@
       "CONFIRM_FROM": "de",
       "CANCEL": "Cancel·lar",
       "CONFIRM": "Confirmar",
-      "ERROR": "Servei IA no disponible"
+      "ERROR": "No s’han pogut carregar els suggeriments"
     },
     "CHAT": {
       "TITLE": "Demanar per xat",

@@ -93,7 +93,7 @@ pedidai-app/
 │   │   ├── app.routes.ts        # Definición de rutas
 │   │   ├── app.config.ts        # Configuración Angular
 │   │   ├── components/          # Componentes funcionales
-│   │   │   ├── ai-chat/         # Chat IA y sugerencias IA
+│   │   │   ├── ai-chat/         # Chat IA y sugerencias de pedido
 │   │   │   ├── auth/            # Login, registro, verificación
 │   │   │   ├── company/         # Configuración empresa
 │   │   │   ├── dashboard/       # Panel de control
