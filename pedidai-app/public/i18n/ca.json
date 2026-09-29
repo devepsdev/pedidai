@@ -618,15 +618,76 @@
       "LAST_30_DAYS": "Últims 30 dies",
       "ORDERS_CHART": "Comandes per mes",
       "TOP_COMPANIES": "Top empreses per activitat",
-      "SEE_ALL": "Veure totes"
+      "SEE_ALL": "Veure totes",
+      "ACTIVE_SHORT": "{{n}} actives",
+      "INACTIVE_SHORT": "{{n}} inactives",
+      "SUSPENDED_SHORT": "{{n}} suspeses",
+      "ADMINS": "{{n}} administradors",
+      "REGULAR_USERS": "{{n}} usuaris",
+      "MRR": "MRR potencial:",
+      "ORDERS_COUNT": "{{n}} comandes",
+      "NO_DATA": "Sense dades"
     },
     "COMPANIES": {
       "TITLE": "Empreses",
       "SEARCH_PH": "Cercar per nom o CIF...",
-      "ALL_STATUSES": "Tots els estats"
+      "ALL_STATUSES": "Tots els estats",
+      "EMPTY": "Sense empreses",
+      "COUNT": "{{n}} empreses"
     },
     "USERS": {
-      "TITLE": "Usuaris"
+      "TITLE": "Usuaris",
+      "SEARCH_PH": "Cerca per nom o email…",
+      "ALL_ROLES": "Tots els rols",
+      "EMPTY": "Sense usuaris",
+      "COUNT": "{{n}} usuaris"
+    },
+    "BACK_DASHBOARD": "← Tauler",
+    "LOADING": "Carregant…",
+    "STATUS": {
+      "ACTIVE": "Activa",
+      "INACTIVE": "Inactiva",
+      "SUSPENDED": "Suspesa",
+      "PENDING": "Pendent"
+    },
+    "ROLE": {
+      "ADMIN": "Administrador",
+      "USER": "Usuari",
+      "SUPER_ADMIN": "Super Admin"
+    },
+    "COL": {
+      "COMPANY": "Empresa",
+      "TAX_ID": "CIF",
+      "CITY": "Ciutat",
+      "STATUS": "Estat",
+      "USERS": "Usuaris",
+      "ORDERS": "Comandes",
+      "TRIAL": "Prova",
+      "CREATED": "Registre",
+      "USER": "Usuari",
+      "EMAIL": "Email",
+      "ROLE": "Rol",
+      "ACTIVE": "Actiu"
+    },
+    "DETAIL": {
+      "BACK": "← Empreses",
+      "CHANGE_STATUS": "Canviar l’estat",
+      "PLATFORM": "Compte de la plataforma",
+      "PAID": "Client de pagament",
+      "EXTEND": "+14 dies de prova",
+      "EXTEND_HINT": "Afegeix 14 dies al final de la prova (o des d’avui si ja ha acabat)",
+      "ACTIVATE": "Activar el pla de pagament",
+      "ACTIVATE_HINT": "Marca l’empresa com a client de pagament, sense data de fi",
+      "TRIAL_UNTIL": "Prova fins",
+      "TOTAL_ORDERS": "Comandes totals",
+      "USERS": "Usuaris ({{n}})",
+      "INACTIVE_USER": "Inactiu",
+      "RECENT_ORDERS": "Darreres comandes",
+      "NO_ORDERS": "Sense comandes",
+      "MODAL_TITLE": "Canviar l’estat de l’empresa",
+      "CANCEL": "Cancel·lar",
+      "CONFIRM": "Confirmar",
+      "SAVING": "Desant…"
     }
   },
   "about": {

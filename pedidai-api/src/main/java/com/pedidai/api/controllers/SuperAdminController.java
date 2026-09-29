@@ -36,7 +36,7 @@ public class SuperAdminController {
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = Pages.of(page, size, Sort.by("createdAt").descending());
         Page<CompanySummaryDTO> result = superAdminService.getCompanies(search, status, pageable);
         return ResponseEntity.ok(ApiResponseDTO.success(
                 PagedResponseDTO.of(result),
@@ -69,7 +69,7 @@ public class SuperAdminController {
             @RequestParam(required = false) String companyUuid,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = Pages.of(page, size, Sort.by("createdAt").descending());
         Page<UserAdminDTO> result = superAdminService.getUsers(search, role, companyUuid, pageable);
         return ResponseEntity.ok(ApiResponseDTO.success(
                 PagedResponseDTO.of(result),

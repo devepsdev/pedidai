@@ -618,15 +618,76 @@
       "LAST_30_DAYS": "Últimos 30 días",
       "ORDERS_CHART": "Pedidos por mes",
       "TOP_COMPANIES": "Top empresas por actividad",
-      "SEE_ALL": "Ver todas"
+      "SEE_ALL": "Ver todas",
+      "ACTIVE_SHORT": "{{n}} activas",
+      "INACTIVE_SHORT": "{{n}} inactivas",
+      "SUSPENDED_SHORT": "{{n}} suspendidas",
+      "ADMINS": "{{n}} administradores",
+      "REGULAR_USERS": "{{n}} usuarios",
+      "MRR": "MRR potencial:",
+      "ORDERS_COUNT": "{{n}} pedidos",
+      "NO_DATA": "Sin datos"
     },
     "COMPANIES": {
       "TITLE": "Empresas",
       "SEARCH_PH": "Buscar por nombre o CIF...",
-      "ALL_STATUSES": "Todos los estados"
+      "ALL_STATUSES": "Todos los estados",
+      "EMPTY": "Sin empresas",
+      "COUNT": "{{n}} empresas"
     },
     "USERS": {
-      "TITLE": "Usuarios"
+      "TITLE": "Usuarios",
+      "SEARCH_PH": "Buscar por nombre o email…",
+      "ALL_ROLES": "Todos los roles",
+      "EMPTY": "Sin usuarios",
+      "COUNT": "{{n}} usuarios"
+    },
+    "BACK_DASHBOARD": "← Dashboard",
+    "LOADING": "Cargando…",
+    "STATUS": {
+      "ACTIVE": "Activa",
+      "INACTIVE": "Inactiva",
+      "SUSPENDED": "Suspendida",
+      "PENDING": "Pendiente"
+    },
+    "ROLE": {
+      "ADMIN": "Administrador",
+      "USER": "Usuario",
+      "SUPER_ADMIN": "Super Admin"
+    },
+    "COL": {
+      "COMPANY": "Empresa",
+      "TAX_ID": "CIF",
+      "CITY": "Ciudad",
+      "STATUS": "Estado",
+      "USERS": "Usuarios",
+      "ORDERS": "Pedidos",
+      "TRIAL": "Prueba",
+      "CREATED": "Registro",
+      "USER": "Usuario",
+      "EMAIL": "Email",
+      "ROLE": "Rol",
+      "ACTIVE": "Activo"
+    },
+    "DETAIL": {
+      "BACK": "← Empresas",
+      "CHANGE_STATUS": "Cambiar estado",
+      "PLATFORM": "Cuenta de la plataforma",
+      "PAID": "Cliente de pago",
+      "EXTEND": "+14 días de prueba",
+      "EXTEND_HINT": "Añade 14 días al final de la prueba (o desde hoy si ya ha terminado)",
+      "ACTIVATE": "Activar plan de pago",
+      "ACTIVATE_HINT": "Marca la empresa como cliente de pago, sin fecha de fin",
+      "TRIAL_UNTIL": "Prueba hasta",
+      "TOTAL_ORDERS": "Pedidos totales",
+      "USERS": "Usuarios ({{n}})",
+      "INACTIVE_USER": "Inactivo",
+      "RECENT_ORDERS": "Últimos pedidos",
+      "NO_ORDERS": "Sin pedidos",
+      "MODAL_TITLE": "Cambiar el estado de la empresa",
+      "CANCEL": "Cancelar",
+      "CONFIRM": "Confirmar",
+      "SAVING": "Guardando…"
     }
   },
   "about": {

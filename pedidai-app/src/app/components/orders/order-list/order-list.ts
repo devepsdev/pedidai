@@ -54,8 +54,6 @@ export class OrderList implements OnInit {
     { value: '', label: 'ORDERS.STATUS_ALL' },
     { value: 'PENDING', label: 'ORDERS.STATUS_PENDING' },
     { value: 'SENT', label: 'ORDERS.STATUS_SENT' },
-    { value: 'CONFIRMED', label: 'ORDERS.STATUS_CONFIRMED' },
-    { value: 'COMPLETED', label: 'ORDERS.STATUS_COMPLETED' },
     { value: 'CANCELLED', label: 'ORDERS.STATUS_CANCELLED' },
   ];
 
@@ -237,19 +235,6 @@ export class OrderList implements OnInit {
     return map[status] ?? 'bg-gray-100 text-gray-600';
   }
 
-  statusLabel(status: string): string {
-    const map: Record<string, string> = {
-      PENDING: 'Pendiente',
-      SENT: 'Enviado',
-      CONFIRMED: 'Confirmado',
-      COMPLETED: 'Completado',
-      CANCELLED: 'Cancelado',
-      REJECTED: 'Rechazado',
-      DRAFT: 'Borrador',
-      DELETED: 'Eliminado',
-    };
-    return map[status] ?? status;
-  }
 
   formatDate(dateStr: string): string {
     if (!dateStr) return '—';

@@ -74,13 +74,6 @@ export class SuperadminCompanies implements OnInit {
     }
   }
 
-  statusLabel(status: string): string {
-    const map: Record<string, string> = {
-      ACTIVE: 'Activa', INACTIVE: 'Inactiva', SUSPENDED: 'Suspendida', PENDING: 'Pendiente'
-    };
-    return map[status] ?? status;
-  }
-
   pages(): number[] {
     return Array.from({ length: this.totalPages() }, (_, i) => i);
   }

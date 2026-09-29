@@ -5,7 +5,6 @@ import com.pedidai.api.services.ProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -65,7 +64,7 @@ public class ProductController {
                 Sort.by(searchDTO.getSortBy()).ascending();
 
         // Crear Pageable segons el DTO
-        Pageable pageable = PageRequest.of(
+        Pageable pageable = Pages.of(
                 searchDTO.getPage(),
                 searchDTO.getSize(),
                 sort
@@ -88,7 +87,7 @@ public class ProductController {
                 Sort.by(searchDTO.getSortBy()).descending() :
                 Sort.by(searchDTO.getSortBy()).ascending();
 
-        Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
+        Pageable pageable = Pages.of(searchDTO.getPage(), searchDTO.getSize(), sort);
 
         Page<ProductResponseDTO> products = productService.searchProducts(searchDTO, pageable);
 
@@ -105,7 +104,7 @@ public class ProductController {
                 Sort.by(filterDTO.getSortBy()).descending() :
                 Sort.by(filterDTO.getSortBy()).ascending();
 
-        Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), sort);
+        Pageable pageable = Pages.of(filterDTO.getPage(), filterDTO.getSize(), sort);
 
         Page<ProductResponseDTO> products = productService.filterProducts(filterDTO, pageable);
 

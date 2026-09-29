@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -39,7 +38,7 @@ public class OrderController {
                 Sort.by(filterDTO.getSortBy()).ascending();
 
         // Paginació
-        Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), sort);
+        Pageable pageable = Pages.of(filterDTO.getPage(), filterDTO.getSize(), sort);
         Page<OrderResponseDTO> orders = orderService.filterOrders(filterDTO, pageable);
         PagedResponseDTO<OrderResponseDTO> pagedResponse = PagedResponseDTO.of(orders);
 

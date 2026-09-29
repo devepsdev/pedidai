@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -27,7 +26,7 @@ public class UserController {
                 Sort.by(searchDTO.getSortBy()).descending() :
                 Sort.by(searchDTO.getSortBy()).ascending();
 
-        Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
+        Pageable pageable = Pages.of(searchDTO.getPage(), searchDTO.getSize(), sort);
 
         Page<UserResponseDTO> users = userService.getAllUsersPaginated(pageable);
         // Convertir Page a PagedResponseDTO per evitar warning de serialització
@@ -45,7 +44,7 @@ public class UserController {
                 Sort.by(searchDTO.getSortBy()).descending() :
                 Sort.by(searchDTO.getSortBy()).ascending();
 
-        Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
+        Pageable pageable = Pages.of(searchDTO.getPage(), searchDTO.getSize(), sort);
 
         Page<UserResponseDTO> users = userService.searchUsersByText(
                 searchDTO.getSearchText(), pageable);
@@ -65,7 +64,7 @@ public class UserController {
                 Sort.by(filterDTO.getSortBy()).descending() :
                 Sort.by(filterDTO.getSortBy()).ascending();
 
-        Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), sort);
+        Pageable pageable = Pages.of(filterDTO.getPage(), filterDTO.getSize(), sort);
 
         Page<UserResponseDTO> users = userService.searchUsersWithFilters(
                 filterDTO, pageable);

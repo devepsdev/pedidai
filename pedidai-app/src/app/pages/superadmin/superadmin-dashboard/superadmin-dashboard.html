@@ -21,9 +21,9 @@
         <p class="text-xs text-slate-400 mb-1">{{ 'SUPERADMIN.DASHBOARD.TOTAL_COMPANIES' | translate }}</p>
         <p class="text-3xl font-extrabold text-white">{{ d.totalCompanies }}</p>
         <div class="flex gap-2 mt-2 text-xs">
-          <span class="text-green-400">{{ d.activeCompanies }} act.</span>
-          <span class="text-gray-400">{{ d.inactiveCompanies }} inact.</span>
-          <span class="text-red-400">{{ d.suspendedCompanies }} susp.</span>
+          <span class="text-green-400">{{ 'SUPERADMIN.DASHBOARD.ACTIVE_SHORT' | translate: { n: d.activeCompanies } }}</span>
+          <span class="text-gray-400">{{ 'SUPERADMIN.DASHBOARD.INACTIVE_SHORT' | translate: { n: d.inactiveCompanies } }}</span>
+          <span class="text-red-400">{{ 'SUPERADMIN.DASHBOARD.SUSPENDED_SHORT' | translate: { n: d.suspendedCompanies } }}</span>
         </div>
       </div>
       <!-- Usuarios -->
@@ -31,8 +31,8 @@
         <p class="text-xs text-slate-400 mb-1">{{ 'SUPERADMIN.DASHBOARD.TOTAL_USERS' | translate }}</p>
         <p class="text-3xl font-extrabold text-white">{{ d.totalUsers }}</p>
         <div class="flex gap-2 mt-2 text-xs">
-          <span class="text-blue-400">{{ d.totalAdmins }} admins</span>
-          <span class="text-slate-400">{{ d.totalRegularUsers }} users</span>
+          <span class="text-blue-400">{{ 'SUPERADMIN.DASHBOARD.ADMINS' | translate: { n: d.totalAdmins } }}</span>
+          <span class="text-slate-400">{{ 'SUPERADMIN.DASHBOARD.REGULAR_USERS' | translate: { n: d.totalRegularUsers } }}</span>
         </div>
       </div>
       <!-- Pedidos 30d -->
@@ -45,7 +45,7 @@
       <div class="bg-slate-800 rounded-xl p-5 border-l-4 border-emerald-500">
         <p class="text-xs text-slate-400 mb-1">{{ 'SUPERADMIN.DASHBOARD.SPENT_30D' | translate }}</p>
         <p class="text-3xl font-extrabold text-white">{{ d.totalSpent30d | currency:'EUR':'symbol':'1.0-0' }}</p>
-        <p class="text-xs text-slate-500 mt-2">MRR pot.: {{ d.potentialMRR | currency:'EUR':'symbol':'1.0-0' }}</p>
+        <p class="text-xs text-slate-500 mt-2">{{ 'SUPERADMIN.DASHBOARD.MRR' | translate }} {{ d.potentialMRR | currency:'EUR':'symbol':'1.0-0' }}</p>
       </div>
     </div>
 
@@ -81,12 +81,12 @@
             <a [routerLink]="['/superadmin/companies', company.companyUuid]"
                class="font-medium text-white hover:text-cyan-300 transition-colors">{{ company.companyName }}</a>
             <div class="flex gap-6 text-slate-400 text-xs">
-              <span>{{ company.orderCount }} pedidos</span>
+              <span>{{ 'SUPERADMIN.DASHBOARD.ORDERS_COUNT' | translate: { n: company.orderCount } }}</span>
               <span>{{ company.totalSpent | currency:'EUR':'symbol':'1.0-0' }}</span>
             </div>
           </div>
         } @empty {
-          <div class="px-5 py-8 text-center text-slate-500 text-sm">Sin datos</div>
+          <div class="px-5 py-8 text-center text-slate-500 text-sm">{{ 'SUPERADMIN.DASHBOARD.NO_DATA' | translate }}</div>
         }
       </div>
     </div>

@@ -1,5 +1,7 @@
 package com.pedidai.api.security;
 
+import org.springframework.test.util.ReflectionTestUtils;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,10 +55,12 @@ class SecurityConfigTest {
     }
 
     @Test
-    @DisplayName("CORS hauria de permetre dominis especificats")
+    @DisplayName("CORS permet només els orígens configurats")
     void corsConfiguration_ShouldAllowSpecifiedDomains() {
-        // Given
+        // Given: configuració de producció (sense localhost)
         SecurityConfig securityConfig = new SecurityConfig();
+        ReflectionTestUtils.setField(securityConfig, "allowedOrigins",
+                List.of("https://pedidai.es", "https://www.pedidai.es", "https://pedidai.com", "https://www.pedidai.com"));
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI("/api/test");
 
@@ -66,7 +70,7 @@ class SecurityConfigTest {
 
         // Then
         assertThat(corsConfig).isNotNull();
-        assertThat(corsConfig.getAllowedOriginPatterns()).contains("http://localhost:5173*");
+        assertThat(corsConfig.getAllowedOriginPatterns()).noneMatch(o -> o.contains("localhost"));
         assertThat(corsConfig.getAllowedOriginPatterns()).contains("https://pedidai.es", "https://www.pedidai.es", "https://pedidai.com", "https://www.pedidai.com");
         assertThat(corsConfig.getAllowedMethods()).contains("GET", "POST", "PUT", "DELETE");
         assertThat(corsConfig.getAllowCredentials()).isTrue();

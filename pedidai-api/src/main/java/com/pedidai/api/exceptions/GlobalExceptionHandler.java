@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -86,6 +88,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({HttpMessageNotReadableException.class, MissingServletRequestParameterException.class,
             MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ApiResponseDTO<Void>> handleMalformedRequest(Exception ex) {
+        return error(HttpStatus.BAD_REQUEST, messages.get("error.malformedRequest"));
+    }
+
+    /** Ordenació per un camp que no existeix (p. ej. sortBy=xyz). */
+    @ExceptionHandler({PropertyReferenceException.class, InvalidDataAccessApiUsageException.class})
+    public ResponseEntity<ApiResponseDTO<Void>> handleInvalidSort(Exception ex) {
+        log.warn("Petició amb ordenació o ús de dades no vàlid: {}", ex.getMessage());
         return error(HttpStatus.BAD_REQUEST, messages.get("error.malformedRequest"));
     }
 

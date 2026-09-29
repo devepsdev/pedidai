@@ -112,19 +112,6 @@ export class OrderDetail implements OnInit {
     return map[status] ?? 'bg-gray-100 text-gray-600';
   }
 
-  statusLabel(status: string): string {
-    const map: Record<string, string> = {
-      PENDING: 'Pendiente',
-      SENT: 'Enviado',
-      CONFIRMED: 'Confirmado',
-      COMPLETED: 'Completado',
-      CANCELLED: 'Cancelado',
-      REJECTED: 'Rechazado',
-      DRAFT: 'Borrador',
-      DELETED: 'Eliminado',
-    };
-    return map[status] ?? status;
-  }
 
   formatDate(dateStr: string): string {
     if (!dateStr) return '—';

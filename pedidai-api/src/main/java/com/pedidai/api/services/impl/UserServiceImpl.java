@@ -360,6 +360,10 @@ public class UserServiceImpl implements UserService {
         }
         user.setIsDeleted(true);
         user.setIsActive(false);
+        // L'email queda lliure per tornar-lo a donar d'alta i no es conserva una dada personal que ja no cal
+        user.setEmail("esborrat-" + user.getUuid() + "@invalid");
+        user.setEmailVerificationToken(null);
+        user.setPasswordResetToken(null);
         userRepository.save(user);
     }
 

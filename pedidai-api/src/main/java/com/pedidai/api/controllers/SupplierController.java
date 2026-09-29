@@ -4,7 +4,6 @@ import com.pedidai.api.dto.*;
 import com.pedidai.api.services.SupplierService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -28,7 +27,7 @@ public class SupplierController {
                 Sort.by(searchDTO.getSortBy()).descending() :
                 Sort.by(searchDTO.getSortBy()).ascending();
 
-        Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
+        Pageable pageable = Pages.of(searchDTO.getPage(), searchDTO.getSize(), sort);
 
         Page<SupplierResponseDTO> suppliers = supplierService.getAllSuppliersPaginated(pageable);
         // Convertir Page a PagedResponseDTO per evitar warning de serialització
@@ -54,7 +53,7 @@ public class SupplierController {
                 Sort.by(searchDTO.getSortBy()).descending() :
                 Sort.by(searchDTO.getSortBy()).ascending();
 
-        Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), sort);
+        Pageable pageable = Pages.of(searchDTO.getPage(), searchDTO.getSize(), sort);
 
         Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersByText(
                 searchDTO.getSearchText(), pageable);
@@ -74,7 +73,7 @@ public class SupplierController {
                 Sort.by(filterDTO.getSortBy()).descending() :
                 Sort.by(filterDTO.getSortBy()).ascending();
 
-        Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), sort);
+        Pageable pageable = Pages.of(filterDTO.getPage(), filterDTO.getSize(), sort);
 
         Page<SupplierResponseDTO> suppliers = supplierService.searchSuppliersWithFilters(
                 filterDTO, pageable);

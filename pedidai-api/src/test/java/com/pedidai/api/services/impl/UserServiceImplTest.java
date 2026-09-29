@@ -220,6 +220,22 @@ class UserServiceImplTest {
 
             assertThatThrownBy(() -> service.deleteUser("admin-uuid")).hasMessage("error.user.cannotDeleteSelf");
         }
+
+        @Test
+        @DisplayName("esborrar un usuari allibera el seu email")
+        void deleteFreesEmail() {
+            User worker = User.builder().id(9L).uuid("worker-uuid").email("pere@bar.test").company(admin.getCompany())
+                    .role(User.UserRole.USER).isActive(true).isDeleted(false).emailVerificationToken("t").build();
+            when(userRepository.findByUuidAndCompany_Id("worker-uuid", 1L)).thenReturn(Optional.of(worker));
+
+            service.deleteUser("worker-uuid");
+
+            assertThat(worker.getIsDeleted()).isTrue();
+            assertThat(worker.getIsActive()).isFalse();
+            assertThat(worker.getEmail()).isEqualTo("esborrat-worker-uuid@invalid");
+            assertThat(worker.getEmailVerificationToken()).isNull();
+            verify(userRepository).save(worker);
+        }
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.pedidai.api.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,6 +18,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -25,6 +27,10 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    /** Orígens permesos (CORS). En producció només els dominis públics, sense localhost. */
+    @Value("${app.cors.allowed-origins}")
+    private List<String> allowedOrigins;
 
     /**
      * Proporciona un bean de PasswordEncoder per encriptar contrasenyes.
@@ -49,7 +55,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173*", "http://localhost:4200*", "https://pedidai.es", "https://www.pedidai.es", "https://pedidai.com", "https://www.pedidai.com"));
+        config.setAllowedOriginPatterns(allowedOrigins);
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);
