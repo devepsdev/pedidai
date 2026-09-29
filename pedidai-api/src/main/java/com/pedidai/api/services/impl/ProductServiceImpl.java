@@ -90,7 +90,10 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(dto.getDescription());
         product.setVolume(dto.getVolume());
         product.setUnit(dto.getUnit());
-        product.setImageUrl(validImageUrl(dto.getImageUrl()));
+        // La imatge es puja a part: sense imageUrl a la petició es conserva la que hi havia ("" la treu)
+        if (dto.getImageUrl() != null) {
+            product.setImageUrl(validImageUrl(dto.getImageUrl()));
+        }
         product = productRepository.save(product);
 
         // Un canvi manual de preu també queda a l'historial i passa a ser el preu vigent

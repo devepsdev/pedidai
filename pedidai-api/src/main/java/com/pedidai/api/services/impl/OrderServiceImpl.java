@@ -154,6 +154,18 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    public OrderResponseDTO cancelOrder(String orderUuid) {
+        Order order = findOwned(orderUuid, currentUser.companyId());
+        // Una comanda ja enviada l'ha rebuda el proveïdor: cancel·lar-la aquí no l'avisaria
+        if (order.getStatus() != Order.OrderStatus.PENDING) {
+            throw new BadRequestException("error.order.notCancellable");
+        }
+        order.setStatus(Order.OrderStatus.CANCELLED);
+        return mapToResponseDTO(orderRepository.save(order));
+    }
+
+    @Override
+    @Transactional
     public OrderResponseDTO updateOrder(String uuid, OrderRequestDTO dto) {
         User user = currentUser.get();
         Long companyId = CurrentUser.companyOf(user).getId();

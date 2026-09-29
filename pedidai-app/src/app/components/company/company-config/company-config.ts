@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CompanyService } from '../../../services/company';
 import { CompanyRequest } from '../../../models/company.model';
+import { apiError } from '../../../shared/api-error';
 
 @Component({
   selector: 'app-company-config',
@@ -85,8 +86,8 @@ export class CompanyConfig implements OnInit {
         this.editMode.set(false);
         setTimeout(() => this.success.set(false), 3000);
       },
-      error: () => {
-        this.error.set(this.translate.instant('ERRORS.SAVE_CHANGES'));
+      error: (err) => {
+        this.error.set(apiError(err, this.translate.instant('ERRORS.SAVE_CHANGES')));
         this.saving.set(false);
       },
     });

@@ -4,6 +4,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DatePipe, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SuperAdminService, CompanyDetail } from '../../../services/super-admin.service';
+import { apiError } from '../../../shared/api-error';
 
 @Component({
   selector: 'app-superadmin-company-detail',
@@ -94,8 +95,8 @@ export class SuperadminCompanyDetail implements OnInit {
         } : prev);
         this.actionSaving.set(false);
       },
-      error: () => {
-        this.actionError.set(this.translate.instant('ERRORS.EXTEND_TRIAL'));
+      error: (err) => {
+        this.actionError.set(apiError(err, this.translate.instant('ERRORS.EXTEND_TRIAL')));
         this.actionSaving.set(false);
       }
     });
@@ -115,8 +116,8 @@ export class SuperadminCompanyDetail implements OnInit {
         } : prev);
         this.actionSaving.set(false);
       },
-      error: () => {
-        this.actionError.set(this.translate.instant('ERRORS.ACTIVATE_PLAN'));
+      error: (err) => {
+        this.actionError.set(apiError(err, this.translate.instant('ERRORS.ACTIVATE_PLAN')));
         this.actionSaving.set(false);
       }
     });

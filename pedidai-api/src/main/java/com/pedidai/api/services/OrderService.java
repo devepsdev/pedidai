@@ -14,6 +14,9 @@ public interface OrderService {
 
     OrderResponseDTO deleteOrder(String uuid);
 
+    /** Cancel·la una comanda pendent (encara no enviada al proveïdor). */
+    OrderResponseDTO cancelOrder(String uuid);
+
     OrderResponseDTO updateOrder(String uuid, OrderRequestDTO dto);
 
     OrderResponseDTO sendOrder(String orderUuid);

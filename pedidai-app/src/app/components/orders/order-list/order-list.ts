@@ -6,6 +6,7 @@ import { OrderService } from '../../../services/order';
 import { SupplierService } from '../../../services/supplier';
 import { OrderResponse } from '../../../models/order.model';
 import { SupplierResponse } from '../../../models/supplier.model';
+import { apiError } from '../../../shared/api-error';
 
 @Component({
   selector: 'app-order-list',
@@ -210,8 +211,8 @@ export class OrderList implements OnInit {
         this.sendingUuid.set('');
         this.pendingOrder.set(null);
       },
-      error: () => {
-        this.error.set(this.translate.instant('ERRORS.SEND_ORDER'));
+      error: (err) => {
+        this.error.set(apiError(err, this.translate.instant('ERRORS.SEND_ORDER')));
         this.sendingUuid.set('');
         this.pendingOrder.set(null);
       },

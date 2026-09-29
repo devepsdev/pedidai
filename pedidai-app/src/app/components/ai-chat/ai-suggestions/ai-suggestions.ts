@@ -3,6 +3,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AiService } from '../../../services/ai';
 import { OrderService } from '../../../services/order';
 import { AiSuggestion } from '../../../models/ai.model';
+import { apiError } from '../../../shared/api-error';
 
 @Component({
   selector: 'app-ai-suggestions',
@@ -15,6 +16,8 @@ export class AiSuggestions implements OnInit {
   private orderService = inject(OrderService);
 
   suggestions = signal<AiSuggestion[]>([]);
+  /** Error al crear un pedido desde una sugerencia: se muestra sin ocultar la lista. */
+  createError = signal('');
   loading = signal(true);
   error = signal('');
 
@@ -46,6 +49,7 @@ export class AiSuggestions implements OnInit {
     const s = this.suggestions()[index];
     this.closeConfirm();
     this.creatingIndex.set(index);
+    this.createError.set('');
 
     this.orderService.create({
       supplierUuid: s.supplier_uuid ?? '',
@@ -58,7 +62,10 @@ export class AiSuggestions implements OnInit {
         this.createdUuids.set(new Set([...this.createdUuids(), index]));
         this.creatingIndex.set(null);
       },
-      error: () => { this.creatingIndex.set(null); }
+      error: (err) => {
+        this.creatingIndex.set(null);
+        this.createError.set(apiError(err, this.translate.instant('ERRORS.CREATE_ORDER')));
+      }
     });
   }
 }

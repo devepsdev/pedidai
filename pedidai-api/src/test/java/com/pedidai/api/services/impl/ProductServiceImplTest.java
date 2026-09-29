@@ -75,6 +75,21 @@ class ProductServiceImplTest {
     }
 
     @Test
+    @DisplayName("editar un producte sense imageUrl conserva la imatge; amb \"\" la treu")
+    void updateKeepsImageUnlessSent() {
+        Product product = Product.builder().id(3L).uuid("p1").name("Tomàquet").price(new BigDecimal("1.55"))
+                .imageUrl("/api/img/productes/a.jpg").supplier(supplier).build();
+        when(productRepository.findByUuidAndSupplier_Company_Id("p1", 1L)).thenReturn(Optional.of(product));
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        service.updateProduct("p1", ProductRequestDTO.builder().supplierUuid("s1").name("Tomàquet").price(new BigDecimal("1.55")).build());
+        assertThat(product.getImageUrl()).isEqualTo("/api/img/productes/a.jpg");
+
+        service.updateProduct("p1", ProductRequestDTO.builder().supplierUuid("s1").name("Tomàquet").price(new BigDecimal("1.55")).imageUrl("").build());
+        assertThat(product.getImageUrl()).isNull();
+    }
+
+    @Test
     @DisplayName("els productes d'una altra empresa són invisibles")
     void otherCompanyProduct() {
         when(productRepository.findByUuidAndSupplier_Company_Id("p-altre", 1L)).thenReturn(Optional.empty());

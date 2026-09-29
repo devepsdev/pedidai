@@ -71,12 +71,13 @@
       "PASSWORD_LABEL": "Nueva contraseña",
       "CONFIRM_LABEL": "Confirmar contraseña",
       "PASSWORD_REQUIRED": "La contraseña es obligatoria",
-      "PASSWORD_MIN": "Mínimo 8 caracteres con mayúscula, número y carácter especial",
+      "PASSWORD_MIN": "Mínimo 8 caracteres, con alguna letra y algún número.",
       "PASSWORD_MISMATCH": "Las contraseñas no coinciden",
       "SUBMIT": "Cambiar contraseña",
       "SUCCESS_TITLE": "Contraseña actualizada",
       "SUCCESS_MSG": "Tu contraseña se ha restablecido correctamente.",
-      "GO_LOGIN": "Iniciar sesión"
+      "GO_LOGIN": "Iniciar sesión",
+      "REQUEST_AGAIN": "Solicitar otro enlace"
     },
     "VERIFY": {
       "VERIFYING": "Verificando tu cuenta...",
@@ -893,6 +894,25 @@
     "LOAD_USERS": "No se han podido cargar los usuarios.",
     "EXTEND_TRIAL": "No se ha podido ampliar la prueba.",
     "ACTIVATE_PLAN": "No se ha podido activar el plan.",
-    "LOAD_DASHBOARD": "No se ha podido cargar el panel."
+    "LOAD_DASHBOARD": "No se ha podido cargar el panel.",
+    "RECOVER_ERROR": "No se ha podido enviar el correo. Comprueba la dirección y vuelve a intentarlo.",
+    "CREATE_ORDER": "No se ha podido crear el pedido.",
+    "UPDATE_ORDER": "No se ha podido actualizar el pedido."
+  },
+  "ACCOUNT": {
+    "TITLE": "Mi cuenta",
+    "SUBTITLE": "Tus datos y tu contraseña.",
+    "NAME": "Nombre",
+    "EMAIL": "Email",
+    "ROLE": "Rol",
+    "PASSWORD_TITLE": "Cambiar la contraseña",
+    "CURRENT_PASSWORD": "Contraseña actual",
+    "CURRENT_REQUIRED": "Escribe tu contraseña actual.",
+    "NEW_PASSWORD": "Nueva contraseña",
+    "CONFIRM_PASSWORD": "Repite la nueva contraseña",
+    "SAVE": "Cambiar contraseña",
+    "SAVING": "Guardando…",
+    "SUCCESS": "Contraseña cambiada.",
+    "ERROR": "No se ha podido cambiar la contraseña."
   }
 }

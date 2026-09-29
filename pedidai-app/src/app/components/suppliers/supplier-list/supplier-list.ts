@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SupplierService } from '../../../services/supplier';
 import { SupplierResponse } from '../../../models/supplier.model';
+import { apiError } from '../../../shared/api-error';
 
 @Component({
   selector: 'app-supplier-list',
@@ -153,7 +154,7 @@ export class SupplierList implements OnInit {
       next: (updated) => {
         this.suppliers.update(list => list.map(s => s.uuid === updated.uuid ? updated : s));
       },
-      error: () => this.error.set(this.translate.instant('ERRORS.CHANGE_STATUS')),
+      error: (err) => this.error.set(apiError(err, this.translate.instant('ERRORS.CHANGE_STATUS'))),
     });
   }
 

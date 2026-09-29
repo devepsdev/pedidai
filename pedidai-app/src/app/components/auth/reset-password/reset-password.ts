@@ -3,6 +3,7 @@ import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, Validati
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../services/auth';
+import { apiError } from '../../../shared/api-error';
 
 function passwordsMatch(control: AbstractControl): ValidationErrors | null {
   const pw = control.get('password')?.value;
@@ -50,7 +51,7 @@ export class ResetPassword implements OnInit {
     this.error.set('');
     this.auth.resetPassword(this.token(), this.pw!.value!).subscribe({
       next: () => { this.loading.set(false); this.success.set(true); },
-      error: () => { this.loading.set(false); this.error.set(this.translate.instant('ERRORS.INVALID_RESET_LINK')); },
+      error: (err) => { this.loading.set(false); this.error.set(apiError(err, this.translate.instant('ERRORS.INVALID_RESET_LINK'))); },
     });
   }
 }

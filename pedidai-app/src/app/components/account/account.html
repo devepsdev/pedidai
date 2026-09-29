@@ -1,0 +1,70 @@
+<div class="p-4 md:p-6">
+  <div class="max-w-2xl mx-auto space-y-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">{{ 'ACCOUNT.TITLE' | translate }}</h1>
+      <p class="text-sm text-gray-500 mt-1">{{ 'ACCOUNT.SUBTITLE' | translate }}</p>
+    </div>
+
+    @if (user) {
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+          <div>
+            <dt class="text-gray-500">{{ 'ACCOUNT.NAME' | translate }}</dt>
+            <dd class="font-medium text-gray-900 mt-1">{{ user.firstName }} {{ user.lastName }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-500">{{ 'ACCOUNT.EMAIL' | translate }}</dt>
+            <dd class="font-medium text-gray-900 mt-1 break-all">{{ user.email }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-500">{{ 'ACCOUNT.ROLE' | translate }}</dt>
+            <dd class="font-medium text-gray-900 mt-1">{{ roleLabel() }}</dd>
+          </div>
+        </dl>
+      </div>
+    }
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-800">{{ 'ACCOUNT.PASSWORD_TITLE' | translate }}</h2>
+      <p class="text-sm text-gray-500 mt-1 mb-5">{{ 'AUTH.REGISTER.PASSWORD_HINT' | translate }}</p>
+
+      @if (success()) {
+        <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg">{{ 'ACCOUNT.SUCCESS' | translate }}</div>
+      }
+      @if (error()) {
+        <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{{ error() }}</div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="changePassword()" class="space-y-4">
+        <div>
+          <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1">{{ 'ACCOUNT.CURRENT_PASSWORD' | translate }}</label>
+          <input id="currentPassword" type="password" formControlName="currentPassword" autocomplete="current-password"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          @if (form.get('currentPassword')?.invalid && form.get('currentPassword')?.touched) {
+            <p class="mt-1 text-xs text-red-500">{{ 'ACCOUNT.CURRENT_REQUIRED' | translate }}</p>
+          }
+        </div>
+        <div>
+          <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">{{ 'ACCOUNT.NEW_PASSWORD' | translate }}</label>
+          <input id="newPassword" type="password" formControlName="newPassword" autocomplete="new-password"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          @if (form.get('newPassword')?.invalid && form.get('newPassword')?.touched) {
+            <p class="mt-1 text-xs text-red-500">{{ 'AUTH.REGISTER.PASSWORD_HINT' | translate }}</p>
+          }
+        </div>
+        <div>
+          <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">{{ 'ACCOUNT.CONFIRM_PASSWORD' | translate }}</label>
+          <input id="confirmPassword" type="password" formControlName="confirmPassword" autocomplete="new-password"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          @if (mismatch) {
+            <p class="mt-1 text-xs text-red-500">{{ 'AUTH.RESET.PASSWORD_MISMATCH' | translate }}</p>
+          }
+        </div>
+        <button type="submit" [disabled]="saving()"
+          class="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
+          {{ (saving() ? 'ACCOUNT.SAVING' : 'ACCOUNT.SAVE') | translate }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

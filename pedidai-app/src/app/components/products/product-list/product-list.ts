@@ -6,6 +6,7 @@ import { ProductService } from '../../../services/product';
 import { SupplierService } from '../../../services/supplier';
 import { ProductResponse } from '../../../models/product.model';
 import { SupplierResponse } from '../../../models/supplier.model';
+import { apiError } from '../../../shared/api-error';
 
 @Component({
   selector: 'app-product-list',
@@ -167,7 +168,7 @@ export class ProductList implements OnInit {
       next: (updated) => {
         this.products.update(list => list.map(p => p.uuid === updated.uuid ? updated : p));
       },
-      error: () => this.error.set(this.translate.instant('ERRORS.DEACTIVATE_PRODUCT')),
+      error: (err) => this.error.set(apiError(err, this.translate.instant('ERRORS.DEACTIVATE_PRODUCT'))),
     });
   }
 

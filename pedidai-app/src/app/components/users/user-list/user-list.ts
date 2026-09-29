@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserService } from '../../../services/user';
 import { UserResponse } from '../../../models/user.model';
+import { apiError } from '../../../shared/api-error';
 
 @Component({
   selector: 'app-user-list',
@@ -165,7 +166,7 @@ export class UserList implements OnInit {
       next: (updated) => {
         this.users.update(list => list.map(u => (u.uuid === updated.uuid ? updated : u)));
       },
-      error: () => this.error.set(this.translate.instant('ERRORS.CHANGE_STATUS')),
+      error: (err) => this.error.set(apiError(err, this.translate.instant('ERRORS.CHANGE_STATUS'))),
     });
   }
 }

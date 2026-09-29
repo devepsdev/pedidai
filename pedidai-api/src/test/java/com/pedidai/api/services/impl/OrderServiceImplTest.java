@@ -160,4 +160,26 @@ class OrderServiceImplTest {
         assertThatThrownBy(() -> service.sendOrder("o-altre")).isInstanceOf(ResourceNotFoundException.class);
         assertThatThrownBy(() -> service.deleteOrder("o-altre")).isInstanceOf(ResourceNotFoundException.class);
     }
+
+    @Test
+    @DisplayName("una comanda pendent es pot cancel·lar")
+    void cancelPendingOrder() {
+        Order order = pendingOrder();
+        when(orderRepository.findByUuidAndCompany_Id("o1", 1L)).thenReturn(Optional.of(order));
+        when(orderRepository.save(order)).thenReturn(order);
+
+        assertThat(service.cancelOrder("o1").getStatus()).isEqualTo("CANCELLED");
+        verifyNoInteractions(notificationService);
+    }
+
+    @Test
+    @DisplayName("una comanda ja enviada no es pot cancel·lar")
+    void cannotCancelSentOrder() {
+        Order order = pendingOrder();
+        order.setStatus(Order.OrderStatus.SENT);
+        when(orderRepository.findByUuidAndCompany_Id("o1", 1L)).thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> service.cancelOrder("o1")).hasMessage("error.order.notCancellable");
+        verify(orderRepository, never()).save(any());
+    }
 }

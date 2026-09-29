@@ -4,6 +4,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { OrderService } from '../../../services/order';
 import { SupplierService } from '../../../services/supplier';
 import { OrderResponse } from '../../../models/order.model';
+import { apiError } from '../../../shared/api-error';
 
 @Component({
   selector: 'app-order-detail',
@@ -54,8 +55,8 @@ export class OrderDetail implements OnInit {
         this.order.set(updated);
         this.sending.set(false);
       },
-      error: () => {
-        this.error.set(this.translate.instant('ERRORS.SEND_ORDER'));
+      error: (err) => {
+        this.error.set(apiError(err, this.translate.instant('ERRORS.SEND_ORDER')));
         this.sending.set(false);
       },
     });
@@ -86,8 +87,8 @@ export class OrderDetail implements OnInit {
         this.order.set(updated);
         this.cancelling.set(false);
       },
-      error: () => {
-        this.error.set(this.translate.instant('ERRORS.CANCEL_ORDER'));
+      error: (err) => {
+        this.error.set(apiError(err, this.translate.instant('ERRORS.CANCEL_ORDER')));
         this.cancelling.set(false);
       },
     });

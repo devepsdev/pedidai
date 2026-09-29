@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserService } from '../../../services/user';
 import { UserRequest } from '../../../models/user.model';
+import { apiError } from '../../../shared/api-error';
 
 @Component({
   selector: 'app-user-form',
@@ -89,7 +90,7 @@ export class UserForm implements OnInit {
       },
       error: (err) => {
         const msg = err?.error?.message;
-        this.error.set(msg || this.translate.instant('ERRORS.SAVE_USER'));
+        this.error.set(msg || apiError(err, this.translate.instant('ERRORS.SAVE_USER')));
         this.saving.set(false);
       },
     });

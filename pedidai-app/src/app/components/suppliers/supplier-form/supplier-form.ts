@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SupplierService } from '../../../services/supplier';
 import { SupplierRequest } from '../../../models/supplier.model';
+import { apiError } from '../../../shared/api-error';
 
 @Component({
   selector: 'app-supplier-form',
@@ -85,8 +86,8 @@ export class SupplierForm implements OnInit {
         this.saving.set(false);
         this.router.navigate(['/suppliers']);
       },
-      error: () => {
-        this.error.set(this.translate.instant('ERRORS.SAVE_SUPPLIER'));
+      error: (err) => {
+        this.error.set(apiError(err, this.translate.instant('ERRORS.SAVE_SUPPLIER')));
         this.saving.set(false);
       }
     });

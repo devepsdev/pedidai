@@ -38,6 +38,12 @@ export class UserService {
       .pipe(map(r => r.data));
   }
 
+  /** Cambia la contraseña del propio usuario (la API solo lo permite sobre uno mismo). */
+  changePassword(uuid: string, currentPassword: string, newPassword: string): Observable<void> {
+    return this.api.patch<ApiResponse<void>>(`/users/${uuid}/change-password`, { currentPassword, newPassword })
+      .pipe(map(() => undefined));
+  }
+
   toggleStatus(uuid: string, isActive: boolean): Observable<UserResponse> {
     return this.api.patch<ApiResponse<UserResponse>>(`/users/${uuid}/status?isActive=${isActive}`)
       .pipe(map(r => r.data));

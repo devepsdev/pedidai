@@ -8,6 +8,7 @@ import { ProductService } from '../../../services/product';
 import { SupplierResponse } from '../../../models/supplier.model';
 import { ProductResponse } from '../../../models/product.model';
 import { OrderItemRequest } from '../../../models/order.model';
+import { apiError } from '../../../shared/api-error';
 
 interface CartItem {
   productUuid: string;
@@ -198,8 +199,8 @@ export class OrderCreate implements OnInit {
         this.saving.set(false);
         this.router.navigate(['/orders', order.uuid]);
       },
-      error: () => {
-        this.error.set(uuid ? 'Error al actualizar el pedido' : 'Error al crear el pedido');
+      error: (err) => {
+        this.error.set(apiError(err, this.translate.instant(uuid ? 'ERRORS.UPDATE_ORDER' : 'ERRORS.CREATE_ORDER')));
         this.saving.set(false);
       },
     });

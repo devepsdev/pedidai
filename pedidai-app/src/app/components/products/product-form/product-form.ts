@@ -6,6 +6,7 @@ import { ProductService } from '../../../services/product';
 import { SupplierService } from '../../../services/supplier';
 import { SupplierResponse } from '../../../models/supplier.model';
 import { ProductRequest, ProductResponse } from '../../../models/product.model';
+import { apiError } from '../../../shared/api-error';
 
 const UNITS = ['kg', 'L', 'unitat', 'capsa', 'paquet', 'litre', 'dotzena'];
 
@@ -111,8 +112,8 @@ export class ProductForm implements OnInit {
               this.uploadingImage.set(false);
               this.router.navigate(['/products']);
             },
-            error: () => {
-              this.error.set(this.translate.instant('ERRORS.UPLOAD_IMAGE'));
+            error: (err) => {
+              this.error.set(apiError(err, this.translate.instant('ERRORS.UPLOAD_IMAGE')));
               this.uploadingImage.set(false);
             }
           });
@@ -120,8 +121,8 @@ export class ProductForm implements OnInit {
           this.router.navigate(['/products']);
         }
       },
-      error: () => {
-        this.error.set(this.translate.instant('ERRORS.SAVE_PRODUCT'));
+      error: (err) => {
+        this.error.set(apiError(err, this.translate.instant('ERRORS.SAVE_PRODUCT')));
         this.saving.set(false);
       }
     });

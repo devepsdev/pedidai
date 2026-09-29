@@ -36,6 +36,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', loadComponent: () => import('./components/dashboard/dashboard/dashboard').then(m => m.Dashboard) },
+      { path: 'account', loadComponent: () => import('./components/account/account').then(m => m.Account) },
       { path: 'prices', loadComponent: () => import('./components/prices/prices').then(m => m.Prices) },
       { path: 'suppliers', loadComponent: () => import('./components/suppliers/supplier-list/supplier-list').then(m => m.SupplierList) },
       { path: 'suppliers/new', loadComponent: () => import('./components/suppliers/supplier-form/supplier-form').then(m => m.SupplierForm) },

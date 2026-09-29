@@ -43,10 +43,11 @@ export class ProductService {
       .pipe(map(r => r.data));
   }
 
-  uploadImage(uuid: string, file: File): Observable<ProductResponse> {
+  /** Sube la imagen de un producto existente y devuelve su URL. */
+  uploadImage(uuid: string, file: File): Observable<string> {
     const fd = new FormData();
-    fd.append('file', file);
-    return this.api.postFile<ApiResponse<ProductResponse>>(`/products/${uuid}/image`, fd)
+    fd.append('image', file);
+    return this.api.postFile<ApiResponse<string>>(`/products/upload/${uuid}`, fd)
       .pipe(map(r => r.data));
   }
 }

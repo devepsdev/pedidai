@@ -1,7 +1,7 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../services/auth';
 
 @Component({
@@ -13,6 +13,7 @@ import { AuthService } from '../../../services/auth';
 export class RecoverPassword {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
+  private translate = inject(TranslateService);
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -30,7 +31,7 @@ export class RecoverPassword {
     this.error.set('');
     this.auth.forgotPassword(this.email!.value!).subscribe({
       next: () => { this.loading.set(false); this.success.set(true); },
-      error: () => { this.loading.set(false); this.error.set('Error en enviar el correu. Comprova l\'adreça i torna-ho a intentar.'); },
+      error: () => { this.loading.set(false); this.error.set(this.translate.instant('ERRORS.RECOVER_ERROR')); },
     });
   }
 }

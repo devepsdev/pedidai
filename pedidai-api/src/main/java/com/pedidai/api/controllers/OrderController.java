@@ -73,6 +73,12 @@ public class OrderController {
                 ApiResponseDTO.success(deletedOrder, "success.order.deleted"));
     }
 
+    @PatchMapping("/{uuid}/cancel")
+    public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> cancelOrder(
+            @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid) {
+        return ResponseEntity.ok(ApiResponseDTO.success(orderService.cancelOrder(uuid), "success.order.cancelled"));
+    }
+
     @PutMapping("/update/{uuid}")
     public ResponseEntity<ApiResponseDTO<OrderResponseDTO>> updateOrder(
             @PathVariable @NotBlank String uuid,

@@ -71,12 +71,13 @@
       "PASSWORD_LABEL": "Nova contrasenya",
       "CONFIRM_LABEL": "Confirmar contrasenya",
       "PASSWORD_REQUIRED": "La contrasenya és obligatòria",
-      "PASSWORD_MIN": "Mínim 8 caràcters amb majúscula, número i caràcter especial",
+      "PASSWORD_MIN": "Mínim 8 caràcters, amb alguna lletra i algun número.",
       "PASSWORD_MISMATCH": "Les contrasenyes no coincideixen",
       "SUBMIT": "Canviar contrasenya",
       "SUCCESS_TITLE": "Contrasenya actualitzada",
       "SUCCESS_MSG": "La teva contrasenya s'ha restablert correctament.",
-      "GO_LOGIN": "Iniciar sessió"
+      "GO_LOGIN": "Iniciar sessió",
+      "REQUEST_AGAIN": "Demanar un altre enllaç"
     },
     "VERIFY": {
       "VERIFYING": "Verificant el teu compte...",
@@ -893,6 +894,25 @@
     "LOAD_USERS": "No s’han pogut carregar els usuaris.",
     "EXTEND_TRIAL": "No s’ha pogut ampliar la prova.",
     "ACTIVATE_PLAN": "No s’ha pogut activar el pla.",
-    "LOAD_DASHBOARD": "No s’ha pogut carregar el tauler."
+    "LOAD_DASHBOARD": "No s’ha pogut carregar el tauler.",
+    "RECOVER_ERROR": "No s’ha pogut enviar el correu. Comprova l’adreça i torna-ho a provar.",
+    "CREATE_ORDER": "No s’ha pogut crear la comanda.",
+    "UPDATE_ORDER": "No s’ha pogut actualitzar la comanda."
+  },
+  "ACCOUNT": {
+    "TITLE": "El meu compte",
+    "SUBTITLE": "Les teves dades i la teva contrasenya.",
+    "NAME": "Nom",
+    "EMAIL": "Email",
+    "ROLE": "Rol",
+    "PASSWORD_TITLE": "Canviar la contrasenya",
+    "CURRENT_PASSWORD": "Contrasenya actual",
+    "CURRENT_REQUIRED": "Escriu la teva contrasenya actual.",
+    "NEW_PASSWORD": "Nova contrasenya",
+    "CONFIRM_PASSWORD": "Repeteix la nova contrasenya",
+    "SAVE": "Canviar la contrasenya",
+    "SAVING": "Desant…",
+    "SUCCESS": "Contrasenya canviada.",
+    "ERROR": "No s’ha pogut canviar la contrasenya."
   }
 }

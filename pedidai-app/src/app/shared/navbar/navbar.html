@@ -34,7 +34,7 @@
     @if (user) {
       <span class="hidden sm:inline text-sm text-gray-600 truncate max-w-[180px]">
         {{ user.firstName }} {{ user.lastName }}
-        <span class="ml-1 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{{ user.role }}</span>
+        <span class="ml-1 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{{ user.role === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : ((user.role === 'ADMIN' ? 'USERS.FORM.ROLE_ADMIN' : 'USERS.FORM.ROLE_USER') | translate) }}</span>
       </span>
     }
 
