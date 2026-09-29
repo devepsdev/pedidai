@@ -173,9 +173,9 @@ Cada precio observado de un producto: la base de la comparativa entre proveedore
 | `supplier_id` | BIGINT | FK → `suppliers` | Proveedor |
 | `user_id` | BIGINT | FK → `users` | Usuario que lo crea |
 | `name` | VARCHAR(255) | NOT NULL | Nombre del pedido |
-| `status` | ENUM | DEFAULT `PENDING` | `PENDING`, `SENT`, `CONFIRMED`, `REJECTED`, `COMPLETED`, `CANCELLED`, `DELETED` |
+| `status` | ENUM | DEFAULT `PENDING` | `PENDING` (preparado, sin enviar), `SENT`, `CONFIRMED`, `REJECTED`, `COMPLETED`, `CANCELLED`, `DELETED` (baja lógica) |
 | `total_amount` | DECIMAL(10,2) | DEFAULT 0 | Total |
-| `notes` | TEXT | | Observaciones para el proveedor |
+| `notes` | TEXT | | Observaciones para el proveedor (se incluyen en el email del pedido) |
 | `delivery_date` | DATE | | Fecha de entrega prevista |
 
 ### `order_items`
@@ -189,6 +189,21 @@ Cada precio observado de un producto: la base de la comparativa entre proveedore
 | `subtotal` | DECIMAL(10,2) | NOT NULL | `quantity × unit_price` |
 | `notes` | TEXT | | Observaciones de la línea |
 | `created_at` | TIMESTAMP | | Fecha de creación |
+
+---
+
+## Uso de los datos por funcionalidad
+
+| Funcionalidad | Tablas y campos | Cómo se usan |
+| --- | --- | --- |
+| Lectura de albaranes | `products`, `price_history` (`source = INVOICE`) | Cada línea confirmada crea o actualiza el producto del proveedor y añade una entrada al historial con la fecha del albarán. |
+| Comparativa de precios y avisos de subidas | `price_history`, `products.canonical_name`, `suppliers.is_active`, `products.is_active` | Agrupa por nombre genérico y unidad, toma el último precio de cada proveedor y compara el último precio de cada producto con el del albarán anterior de otra fecha para detectar subidas (≥ 2 %). |
+| Sugerencias de pedido | `orders`, `order_items`, `price_history` | Análisis de consumo de los últimos 180 días sobre los pedidos `PENDING`, `SENT`, `CONFIRMED` y `COMPLETED`: productos pedidos varias veces, cantidad media por pedido y proveedor más barato. Sin IA. El pedido creado desde una sugerencia es `PENDING` y se llama «Reposición: <producto>». |
+| Pedidos por chat | `suppliers`, `products`, `price_history`, `orders`, `order_items` | El asistente consulta proveedores y precios con la sesión del usuario y crea pedidos `PENDING`; nunca los envía. |
+| Envío al proveedor | `orders` (`status`, `notes`), `order_items`, `suppliers.email`, `users.email_verified` | Solo con el email verificado; el pedido pasa a `SENT` y las notas se incluyen en el email al proveedor. |
+| Prueba gratuita y plan | `companies.trial_ends_at`, `companies.status` | Al registrarse, `trial_ends_at` = alta + 14 días. Al acabar la prueba, el siguiente acceso marca la empresa `INACTIVE`. El plan de pago deja `trial_ends_at` en `NULL`. |
+| Alertas al equipo (n8n) | `companies.created_at`, `companies.trial_ends_at`, `users`, `price_history.source`, `orders.created_at` | Aviso de cada registro y resumen diario: registros nuevos, pruebas que acaban en 3 días, pruebas vencidas, borrados en menos de 7 días, líneas de albarán leídas y pedidos creados. |
+| Borrado de conservación | Todas | Ver [Claves foráneas y borrado](#claves-foráneas-y-borrado). |
 
 ---
 
