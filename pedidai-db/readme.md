@@ -113,7 +113,7 @@ Empresas cliente (cada local es una empresa).
 | `phone` | VARCHAR(50) | | Teléfono |
 | `language` | VARCHAR(2) | NOT NULL, DEFAULT `es` | Idioma de la interfaz, los emails y los PDF (`es` / `ca`) |
 | `is_active` | BOOLEAN | DEFAULT TRUE | Cuenta activa |
-| `is_deleted` | BOOLEAN | DEFAULT FALSE | Baja lógica |
+| `is_deleted` | BOOLEAN | DEFAULT FALSE | Baja lógica; al borrar, el email se sustituye por `esborrat-<uuid>@invalid` y queda libre |
 | `email_verified` | BOOLEAN | DEFAULT FALSE | Necesario para enviar pedidos a proveedores |
 | `email_verification_token` / `_expires` | VARCHAR / TIMESTAMP | | Verificación de email (48 h) |
 | `password_reset_token` / `_expires` | VARCHAR / TIMESTAMP | | Recuperación de contraseña |
@@ -173,7 +173,7 @@ Cada precio observado de un producto: la base de la comparativa entre proveedore
 | `supplier_id` | BIGINT | FK → `suppliers` | Proveedor |
 | `user_id` | BIGINT | FK → `users` | Usuario que lo crea |
 | `name` | VARCHAR(255) | NOT NULL | Nombre del pedido |
-| `status` | ENUM | DEFAULT `PENDING` | `PENDING` (preparado, sin enviar), `SENT`, `CONFIRMED`, `REJECTED`, `COMPLETED`, `CANCELLED`, `DELETED` (baja lógica) |
+| `status` | ENUM | DEFAULT `PENDING` | `PENDING` (preparado, sin enviar), `SENT` (enviado), `CANCELLED` (cancelado antes de enviarse), `DELETED` (baja lógica). `CONFIRMED`, `REJECTED` y `COMPLETED` están reservados: la aplicación todavía no los asigna |
 | `total_amount` | DECIMAL(10,2) | DEFAULT 0 | Total |
 | `notes` | TEXT | | Observaciones para el proveedor (se incluyen en el email del pedido) |
 | `delivery_date` | DATE | | Fecha de entrega prevista |
@@ -200,7 +200,7 @@ Cada precio observado de un producto: la base de la comparativa entre proveedore
 | Comparativa de precios y avisos de subidas | `price_history`, `products.canonical_name`, `suppliers.is_active`, `products.is_active` | Agrupa por nombre genérico y unidad, toma el último precio de cada proveedor y compara el último precio de cada producto con el del albarán anterior de otra fecha para detectar subidas (≥ 2 %). |
 | Sugerencias de pedido | `orders`, `order_items`, `price_history` | Análisis de consumo de los últimos 180 días sobre los pedidos `PENDING`, `SENT`, `CONFIRMED` y `COMPLETED`: productos pedidos varias veces, cantidad media por pedido y proveedor más barato. Sin IA. El pedido creado desde una sugerencia es `PENDING` y se llama «Reposición: <producto>». |
 | Pedidos por chat | `suppliers`, `products`, `price_history`, `orders`, `order_items` | El asistente consulta proveedores y precios con la sesión del usuario y crea pedidos `PENDING`; nunca los envía. |
-| Envío al proveedor | `orders` (`status`, `notes`), `order_items`, `suppliers.email`, `users.email_verified` | Solo con el email verificado; el pedido pasa a `SENT` y las notas se incluyen en el email al proveedor. |
+| Envío al proveedor | `orders` (`status`, `notes`), `order_items`, `suppliers.email`, `users.email_verified` | Solo con el email verificado; el pedido pasa a `SENT` y las notas se incluyen en el email al proveedor. Un pedido pendiente se puede cancelar (`CANCELLED`). |
 | Prueba gratuita y plan | `companies.trial_ends_at`, `companies.status` | Al registrarse, `trial_ends_at` = alta + 14 días. Al acabar la prueba, el siguiente acceso marca la empresa `INACTIVE`. El plan de pago deja `trial_ends_at` en `NULL`. |
 | Alertas al equipo (n8n) | `companies.created_at`, `companies.trial_ends_at`, `users`, `price_history.source`, `orders.created_at` | Aviso de cada registro y resumen diario: registros nuevos, pruebas que acaban en 3 días, pruebas vencidas, borrados en menos de 7 días, líneas de albarán leídas y pedidos creados. |
 | Borrado de conservación | Todas | Ver [Claves foráneas y borrado](#claves-foráneas-y-borrado). |

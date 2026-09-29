@@ -12,7 +12,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 - **API (Swagger):** [pedidai.es/swagger-ui.html](https://pedidai.es/swagger-ui.html)
 - **Repositorios:** [devepsdev/pedidai](https://github.com/devepsdev/pedidai) (web, API y base de datos) y [devepsdev/orderflow](https://github.com/devepsdev/orderflow) (asistente de pedidos por chat y automatizaciones con n8n)
 
-**Versión:** 2.1.0 · **Última actualización:** 29 de septiembre de 2026
+**Versión:** 2.2.0 · **Última actualización:** 29 de septiembre de 2026
 
 ---
 
@@ -86,17 +86,19 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 - **Mis precios:** comparativa del mismo producto entre proveedores, avisos de subidas (≥ 2 %) y estimación de lo pagado de más.
 - **Asistente IA por chat:** prepara pedidos al proveedor más barato a partir de una frase.
 - **Sugerencias de pedido:** productos que el cliente pide con frecuencia (últimos 180 días), con urgencia según la frecuencia y si ya se han pedido en las últimas 48 h, cantidad habitual y el proveedor más barato según el historial de precios. Se calculan con reglas a partir del análisis de consumo (`GET /api/orders/consumption-analysis`), sin IA; el usuario crea el pedido pendiente con un clic. También aparecen en el panel de inicio.
-- **Pedidos:** creación manual o por chat, envío al proveedor **por email** (la respuesta del proveedor llega al email del cliente) y seguimiento de estado (`PENDING → SENT → CONFIRMED / REJECTED / COMPLETED / CANCELLED`).
+- **Pedidos:** creación manual o por chat, envío al proveedor **por email** (la respuesta del proveedor llega al email del cliente) y cancelación mientras están pendientes. Estados en uso: `PENDING` → `SENT`, o `PENDING` → `CANCELLED` (`CONFIRMED`, `REJECTED` y `COMPLETED` existen en el modelo, pero todavía no hay forma de asignarlos).
 - **Proveedores y productos**, con búsqueda y filtros.
 - **Dos tipos de usuario por empresa:**
   - **Usuario:** trabaja con los pedidos: albaranes, *Mis precios*, chat, sugerencias, pedidos, proveedores y productos.
   - **Administrador:** todo lo anterior y además la sección **Gestión**: informes, datos de la empresa y usuarios del equipo (alta de usuarios y administradores).
 - **Informes** por periodo con exportación a PDF.
+- **Mi cuenta:** cada usuario ve sus datos y cambia su contraseña.
+- **Errores comprensibles:** las pantallas muestran el motivo que devuelve la API (p. ej. «verifica tu email antes de enviar pedidos») en lugar de un error genérico.
 - **Bilingüe castellano/catalán en todo:** pantallas, errores de la API, emails y PDF, según el idioma de cada usuario.
 
 ### Para la plataforma
 
-- **Panel SUPER_ADMIN:** empresas, usuarios, estadísticas; ampliar la prueba o activar el plan de pago.
+- **Panel SUPER_ADMIN** (bilingüe): empresas, usuarios, estadísticas y cambio de estado de una empresa (incluido `SUSPENDED`). En empresas en prueba, **+14 días de prueba** (se suman al final de la prueba actual) y **activar el plan de pago**; no se permite en clientes de pago ni en la cuenta de la plataforma.
 - **Fin de la prueba:** al acabar, la cuenta queda inactiva hasta que se contrata (no se cobra nada automáticamente).
 - **Alertas por email al equipo (n8n):** aviso inmediato de cada registro nuevo y resumen diario de la actividad.
 - **Borrado automático:** cada día a las 03:30 (hora de Madrid) se eliminan las empresas cuya prueba terminó hace **más de 30 días** sin contratar, con todos sus datos e imágenes. Nunca se borran clientes de pago ni la cuenta SUPER_ADMIN (`DataRetentionServiceImpl`).
@@ -162,7 +164,7 @@ Rutas principales:
 ### 4.2. Backend (`pedidai-api/src/main/java/com/pedidai/api`)
 
 ```text
-controllers/    # Endpoints REST (ver sección 5)
+controllers/    # Endpoints REST (ver sección 5); Pages acota la paginación
 services/impl/  # Lógica de negocio; cada consulta se limita a la empresa del usuario
 repositories/   # Acceso a datos (Spring Data JPA)
 entities/       # Company, User, Supplier, Product, PriceHistory, Order, OrderItem
@@ -181,6 +183,8 @@ Capas: `Petición HTTP → JwtAuthenticationFilter → Controller → Service �
 
 Todas las rutas empiezan por `/api` y, salvo las marcadas como públicas, necesitan la cabecera `Authorization: Bearer <token>`. Las respuestas siguen el formato `{ success, message, data }`, con el mensaje en el idioma de la cabecera `Accept-Language` (`es` o `ca`). Documentación interactiva en `/swagger-ui.html`.
 
+Los listados paginados (`page`, `size`, `sortBy`, `sortDir`) devuelven como máximo 200 elementos por página; ordenar por un campo que no existe responde 400.
+
 | Recurso | Endpoints |
 | --- | --- |
 | `/auth` (públicos) | `POST /login`, `/forgot-password`, `/reset-password`, `/verify-email`, `/resend-verification` |
@@ -190,7 +194,7 @@ Todas las rutas empiezan por `/api` y, salvo las marcadas como públicas, necesi
 | `/products` | `POST /create`, `GET /{uuid}`, `PUT /{uuid}`, `PATCH /deactivate/{uuid}`, `GET /search`, `GET /filter`, `GET /compare-prices`, `POST /upload/{uuid}`, `POST /upload-temp` |
 | `/invoices` | `POST /scan` (imagen o PDF), `POST /confirm` |
 | `/prices` | `GET /overview?days=` — comparativa, alertas y estimación de ahorro |
-| `/orders` | `POST /create`, `GET /` (filtros), `GET /{uuid}`, `PUT /update/{uuid}`, `POST /{uuid}/send`, `PATCH /delete/{uuid}`, `GET /consumption-analysis` |
+| `/orders` | `POST /create`, `GET /` (filtros), `GET /{uuid}`, `PUT /update/{uuid}`, `POST /{uuid}/send`, `PATCH /{uuid}/cancel` (solo pendientes), `PATCH /delete/{uuid}`, `GET /consumption-analysis` |
 | `/reports` | `GET /dashboard`, `GET /global`, `GET /global/pdf` |
 | `/superadmin` | `GET /dashboard`, `/companies`, `/companies/{uuid}`, `/users`, `/stats/monthly`; `PATCH /companies/{uuid}/status`, `/extend-trial`, `/activate` |
 
@@ -233,6 +237,10 @@ Detalle de columnas en [`pedidai-db/readme.md`](pedidai-db/readme.md).
 - **Emails a proveedores** sin HTML inyectable; imágenes validadas por contenido y guardadas con nombre aleatorio.
 - **IA:** a DeepSeek solo se envía el texto necesario (el OCR se hace en nuestro servidor). Está explicado en la política de privacidad.
 - **Endpoints internos** (`/api/internal/`): solo responden a peticiones locales que no pasan por nginx, y nginx además los bloquea; los webhooks de n8n tampoco son accesibles desde fuera.
+- **Cabeceras de seguridad** en toda la web (HSTS, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`) desde un *snippet* de nginx, sin duplicarlas con las de Spring; nginx no muestra su versión.
+- **La API solo escucha en `127.0.0.1`** (`SERVER_ADDRESS`); desde fuera solo se llega a través de nginx.
+- **CORS:** en producción solo los dominios públicos (`CORS_ALLOWED_ORIGINS`), sin `localhost`.
+- **Usuarios borrados:** baja lógica y email anonimizado, que queda libre para volver a darlo de alta.
 - **Logs** en nivel INFO, sin consultas SQL y con los emails enmascarados.
 - **Conservación:** datos de pruebas no contratadas borrados automáticamente a los 30 días.
 
@@ -275,7 +283,9 @@ export MAIL_USER_PEDIDAI=correo@ejemplo.com
 export MAIL_PASS_PEDIDAI=contraseña_de_aplicación
 export JWT_SECRET=un_secreto_largo_y_aleatorio
 export DEEPSEEK_API_KEY=tu_api_key
-# Opcional: aviso a n8n de cada registro nuevo (vacío = desactivado)
+# Opcionales: orígenes CORS (por defecto los dominios públicos y localhost:4200)
+# export CORS_ALLOWED_ORIGINS=https://pedidai.es,http://localhost:4200
+# Aviso a n8n de cada registro nuevo (vacío = desactivado)
 export N8N_NEW_COMPANY_WEBHOOK=http://127.0.0.1:5678/webhook/pedidai-nuevo-registro
 ```
 
@@ -319,12 +329,12 @@ Todo corre en un VPS Ubuntu:
 | --- | --- |
 | Web (Angular) | `/var/www/pedidai.es`, servida por nginx |
 | API (Spring Boot) | `/opt/apps/pedidai/pedidai-api/target/*.jar`, servicio `pedidai-api.service` (puerto 8085, solo local) |
-| Secretos de la API | `/opt/apps/pedidai/.env` (permisos `600`, cargado con `EnvironmentFile=`) |
+| Configuración y secretos de la API | `/opt/apps/pedidai/.env` (permisos `600`, cargado con `EnvironmentFile=`): credenciales, `JWT_SECRET`, `DEEPSEEK_API_KEY`, `SERVER_ADDRESS=127.0.0.1`, `CORS_ALLOWED_ORIGINS` y `N8N_NEW_COMPANY_WEBHOOK` |
 | Imágenes de productos | `/opt/apps/pedidai/pedidai-api/img/productes/` |
 | Asistente y n8n | `/opt/apps/orderflow`, con `docker compose`, red `host` y escuchando solo en local (asistente en `127.0.0.1:3201`, n8n en `127.0.0.1:5678`) |
 | Base de datos | MySQL local, `pedidai_db` |
 
-nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` → `localhost:8085`, `/ai/` → `localhost:3201/` y `/n8n/` → `localhost:5678/`. nginx bloquea `/api/internal/` y los webhooks de n8n. El cortafuegos (`ufw`) solo deja pasar HTTP/HTTPS y SSH.
+nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` → `localhost:8085`, `/ai/` → `localhost:3201/` y `/n8n/` → `localhost:5678/`. nginx bloquea `/api/internal/` y los webhooks de n8n, y añade las cabeceras de seguridad (`/etc/nginx/snippets/pedidai-security-headers.conf`). El cortafuegos (`ufw`) solo deja pasar HTTP/HTTPS y SSH.
 
 ### Pasos de una actualización
 

@@ -30,12 +30,13 @@ Aplicación web de [PedidAI](https://pedidai.es) para **bares y restaurantes**: 
 | `/prices` | Mis precios: comparativa del mismo producto entre proveedores, subidas de precio y estimación de lo pagado de más |
 | `/ai` | Pedir por chat: el asistente prepara pedidos pendientes al proveedor más barato |
 | `/ai/suggestions` | Sugerencias de pedido: productos habituales con urgencia, cantidad y proveedor más barato; crean un pedido pendiente con un clic |
-| `/orders` | Pedidos: listado con filtros, creación, edición, detalle y envío al proveedor |
+| `/orders` | Pedidos: listado con filtros, creación, edición, detalle, envío al proveedor y cancelación de los pendientes |
 | `/suppliers`, `/products` | Proveedores y catálogo, con búsqueda y filtros |
 | `/reports` | Informes por periodo con exportación a PDF (solo administrador) |
 | `/company` | Datos de la empresa y plan (solo administrador) |
 | `/users` | Usuarios del equipo: alta de usuarios y administradores (solo administrador) |
-| `/superadmin/…` | Panel de la plataforma (solo SUPER_ADMIN): empresas, usuarios, estadísticas, ampliar la prueba 14 días o activar el plan de pago |
+| `/account` | Mi cuenta: datos del usuario y cambio de contraseña (todos los usuarios; se abre desde el usuario al pie del menú lateral) |
+| `/superadmin/…` | Panel de la plataforma (solo SUPER_ADMIN, bilingüe): empresas, usuarios, estadísticas, cambio de estado, ampliar la prueba 14 días o activar el plan de pago |
 
 Todas las rutas se cargan bajo demanda (`loadComponent`). Las rutas desconocidas redirigen a la landing.
 
@@ -64,6 +65,8 @@ Componente ──► Servicio (services/) ──► HttpClient ──► jwt-int
 - **Guards:** `auth-guard` protege la zona privada, `admin.guard` la sección Gestión y `super-admin.guard` el panel de la plataforma.
 - **Idioma:** `LanguageService` guarda el idioma elegido, cambia las traducciones y lo sincroniza con el perfil del usuario (`PATCH /api/users/me/language`), para que emails y PDF lleguen en el mismo idioma.
 - **Analítica:** `AnalyticsService` aplica el consentimiento de cookies y, al registrarse un usuario, envía el evento `sign_up` a Analytics y la conversión a Google Ads, cada uno solo si se ha aceptado su categoría.
+- **Errores:** en las acciones (guardar, enviar, cancelar, subir imagen…) `apiError()` (`shared/api-error.ts`) muestra el mensaje traducido que devuelve la API; si no hay uno útil (sin conexión o error 5xx), el texto genérico de `ERRORS.*`.
+- **Imágenes de producto:** se suben aparte (`POST /api/products/upload/{uuid}`, campo `image`) después de guardar el producto; al editar el producto se conserva la imagen existente.
 - **Textos en varias líneas:** el pipe `lines` parte las traducciones por `\n` para mostrar frases completas por línea en pantallas grandes.
 
 ---
@@ -83,6 +86,7 @@ pedidai-app/
 │       ├── app.routes.ts        # Rutas (lazy loading)
 │       ├── app.config.ts        # Zoneless, router, HttpClient con interceptores, traducciones
 │       ├── components/
+│       │   ├── account/         # Mi cuenta
 │       │   ├── ai-chat/         # Chat de pedidos y sugerencias de pedido
 │       │   ├── auth/            # Login, registro, verificación, recuperación de contraseña
 │       │   ├── company/         # Datos de la empresa
@@ -101,7 +105,7 @@ pedidai-app/
 │       ├── pages/               # Landing, sobre nosotros, contacto, legales, superadmin
 │       ├── services/            # API, auth, pedidos, precios, albaranes, asistente, idioma, analítica…
 │       └── shared/              # Sidebar, navbar, footer, alertas, modales, paginación,
-│                                # aviso de cookies, pipe lines, utilidades de formato
+│                                # aviso de cookies, pipe lines, api-error, utilidades de formato
 ├── proxy.conf.json              # /ai → asistente en 127.0.0.1:3201 (ng serve)
 └── angular.json
 ```
