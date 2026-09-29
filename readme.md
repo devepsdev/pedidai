@@ -72,7 +72,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 | MySQL | Persistencia (`pedidai_db`). |
 | `orderflow/mcp-server` | Asistente de pedidos por chat: Express + *function calling* de DeepSeek. Cada herramienta llama a la API con el token del usuario, por lo que tiene sus mismos permisos. Crea pedidos en estado `PENDING`; el envío siempre lo confirma el usuario desde la web. Sigue el enfoque de MCP, pero no usa el SDK oficial. |
 | Docker | Ejecuta el asistente y n8n (`docker compose` en `orderflow`). |
-| n8n | Automatización de flujos; desplegado pero sin flujos activos. |
+| n8n | Automatización de flujos. |
 
 ## 2. Funcionalidades
 
