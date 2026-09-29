@@ -85,8 +85,8 @@ public class ReportServiceImpl implements ReportService {
     @Transactional
     public ReportGlobalResponseDTO globalInfo(PeriodRequestDTO dto) {
 
-        // Recuperem informació de l'usuari i la companyia
-        Long companyId = currentUser.companyId();
+        // Informes de despesa: només l'administrador de l'empresa (el tauler d'inici és per a tothom)
+        Long companyId = CurrentUser.companyOf(currentUser.requireAdmin()).getId();
 
         // Recuperar llistat de comandes
         List<Order> orders = orderRepository.getOrdersByCompanyIdAndPeriodWithOrderItems(companyId, dto.getDataInicial(), dto.getDataFinal());

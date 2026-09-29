@@ -32,12 +32,23 @@ Aplicación web de [PedidAI](https://pedidai.es) para **bares y restaurantes**: 
 | `/ai/suggestions` | Sugerencias de pedido: productos habituales con urgencia, cantidad y proveedor más barato; crean un pedido pendiente con un clic |
 | `/orders` | Pedidos: listado con filtros, creación, edición, detalle y envío al proveedor |
 | `/suppliers`, `/products` | Proveedores y catálogo, con búsqueda y filtros |
-| `/users` | Usuarios del equipo (administrador) |
-| `/reports` | Informes por periodo con exportación a PDF |
-| `/company` | Datos de la empresa y plan |
+| `/reports` | Informes por periodo con exportación a PDF (solo administrador) |
+| `/company` | Datos de la empresa y plan (solo administrador) |
+| `/users` | Usuarios del equipo: alta de usuarios y administradores (solo administrador) |
 | `/superadmin/…` | Panel de la plataforma (solo SUPER_ADMIN): empresas, usuarios, estadísticas, ampliar la prueba 14 días o activar el plan de pago |
 
 Todas las rutas se cargan bajo demanda (`loadComponent`). Las rutas desconocidas redirigen a la landing.
+
+### Tipos de usuario
+
+Cada empresa puede tener dos tipos de usuario:
+
+| Rol | Menú |
+| --- | --- |
+| `USER` | Inicio, Mis precios, Subir albarán, Pedir por chat, Pedidos, Proveedores, Productos y Sugerencias de pedido |
+| `ADMIN` | Todo lo anterior y la sección **Gestión**: Informes, Empresa y Usuarios |
+
+La sección Gestión solo se muestra al administrador y sus rutas están protegidas con `admin.guard`; la API aplica las mismas restricciones. La cuenta de la plataforma (`SUPER_ADMIN`) ve además el panel de administración de PedidAI.
 
 ---
 
@@ -50,7 +61,7 @@ Componente ──► Servicio (services/) ──► HttpClient ──► jwt-int
 
 - **Estado:** *signals* en los componentes; token JWT y usuario en `localStorage`.
 - **Interceptores:** `jwt-interceptor` añade `Authorization: Bearer <token>` y `Accept-Language` (`es`/`ca`) a las peticiones a la API y al asistente; `error-interceptor` cierra la sesión si la API responde 401.
-- **Guards:** `auth-guard` protege la zona privada y `super-admin.guard` el panel de la plataforma.
+- **Guards:** `auth-guard` protege la zona privada, `admin.guard` la sección Gestión y `super-admin.guard` el panel de la plataforma.
 - **Idioma:** `LanguageService` guarda el idioma elegido, cambia las traducciones y lo sincroniza con el perfil del usuario (`PATCH /api/users/me/language`), para que emails y PDF lleguen en el mismo idioma.
 - **Analítica:** `AnalyticsService` aplica el consentimiento de cookies y, al registrarse un usuario, envía el evento `sign_up` a Analytics y la conversión a Google Ads, cada uno solo si se ha aceptado su categoría.
 - **Textos en varias líneas:** el pipe `lines` parte las traducciones por `\n` para mostrar frases completas por línea en pantallas grandes.
@@ -83,7 +94,7 @@ pedidai-app/
 │       │   ├── reports/         # Informes y PDF
 │       │   ├── suppliers/       # Proveedores
 │       │   └── users/           # Usuarios del equipo
-│       ├── guards/              # auth-guard, super-admin.guard
+│       ├── guards/              # auth-guard, admin.guard, super-admin.guard
 │       ├── interceptors/        # jwt-interceptor, error-interceptor
 │       ├── layouts/             # public-layout y private-layout
 │       ├── models/              # Interfaces TypeScript

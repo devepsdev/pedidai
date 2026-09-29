@@ -130,8 +130,7 @@ class ReportServiceImplTest {
     @Test
     @DisplayName("Comprova retorn d'informació global (informe)")
     void globalInfo_success() {
-        // Mock userRepository
-        when(currentUser.companyId()).thenReturn(testCompany.getId());
+        when(currentUser.requireAdmin()).thenReturn(testUser);
 
         // Crear orders i items
         Order order1 = Order.builder()
@@ -171,14 +170,14 @@ class ReportServiceImplTest {
         assertThat(dto.getDespesaProveidors()).hasSize(1);
         assertThat(dto.getTopProductes()).hasSize(1);
 
-        verify(currentUser).companyId();
+        verify(currentUser).requireAdmin();
         verify(orderRepository).getOrdersByCompanyIdAndPeriodWithOrderItems(eq(testCompany.getId()), eq(periodDTO.getDataInicial()), eq(periodDTO.getDataFinal()));
     }
 
     @Test
-    @DisplayName("Comprova excepció d'usuari no trobat")
-    void globalInfo_userNotFound_throws() {
-        when(currentUser.companyId()).thenThrow(new ForbiddenException("error.auth.required"));
+    @DisplayName("Un usuari que no és administrador no pot veure els informes")
+    void globalInfo_notAdmin_throws() {
+        when(currentUser.requireAdmin()).thenThrow(new ForbiddenException("error.user.adminRequired"));
 
         PeriodRequestDTO periodDTO = PeriodRequestDTO.builder()
                 .dataInicial(LocalDateTime.now().minusDays(30))
@@ -186,9 +185,10 @@ class ReportServiceImplTest {
                 .build();
 
         assertThatThrownBy(() -> reportService.globalInfo(periodDTO))
-                .isInstanceOf(ForbiddenException.class);
+                .isInstanceOf(ForbiddenException.class)
+                .hasMessage("error.user.adminRequired");
 
-        verify(currentUser).companyId();
+        verify(currentUser).requireAdmin();
         verifyNoInteractions(orderRepository);
     }
 }

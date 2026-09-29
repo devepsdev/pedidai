@@ -87,7 +87,10 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 - **Asistente IA por chat:** prepara pedidos al proveedor más barato a partir de una frase.
 - **Sugerencias de pedido:** productos que el cliente pide con frecuencia (últimos 180 días), con urgencia según la frecuencia y si ya se han pedido en las últimas 48 h, cantidad habitual y el proveedor más barato según el historial de precios. Se calculan con reglas a partir del análisis de consumo (`GET /api/orders/consumption-analysis`), sin IA; el usuario crea el pedido pendiente con un clic. También aparecen en el panel de inicio.
 - **Pedidos:** creación manual o por chat, envío al proveedor **por email** (la respuesta del proveedor llega al email del cliente) y seguimiento de estado (`PENDING → SENT → CONFIRMED / REJECTED / COMPLETED / CANCELLED`).
-- **Proveedores, productos y usuarios** del equipo, con búsqueda y filtros.
+- **Proveedores y productos**, con búsqueda y filtros.
+- **Dos tipos de usuario por empresa:**
+  - **Usuario:** trabaja con los pedidos: albaranes, *Mis precios*, chat, sugerencias, pedidos, proveedores y productos.
+  - **Administrador:** todo lo anterior y además la sección **Gestión**: informes, datos de la empresa y usuarios del equipo (alta de usuarios y administradores).
 - **Informes** por periodo con exportación a PDF.
 - **Bilingüe castellano/catalán en todo:** pantallas, errores de la API, emails y PDF, según el idioma de cada usuario.
 
@@ -137,7 +140,7 @@ orderflow/                # Repositorio aparte
 app.routes.ts            # Rutas; cada página se carga bajo demanda (lazy loading)
 app.config.ts            # HttpClient, router, traducciones
 interceptors/            # jwt-interceptor: añade el token y el idioma (Accept-Language)
-guards/                  # Protegen la zona privada y el panel SUPER_ADMIN
+guards/                  # Zona privada, sección Gestión (ADMIN) y panel SUPER_ADMIN
 services/                # Llamadas HTTP a la API y al asistente; idioma; analítica
 layouts/                 # public-layout (web pública) y private-layout (aplicación)
 pages/                   # Landing, sobre nosotros, contacto, legales, superadmin
@@ -222,7 +225,7 @@ Detalle de columnas en [`pedidai-db/readme.md`](pedidai-db/readme.md).
 ## 7. Seguridad y privacidad
 
 - **Aislamiento por empresa:** cada consulta se filtra por la empresa del usuario autenticado (`CurrentUser`); no se puede leer ni modificar nada de otra empresa.
-- **Roles:** `USER`, `ADMIN` (gestiona su empresa) y `SUPER_ADMIN` (plataforma). Nadie puede asignarse un rol superior al suyo.
+- **Roles:** `USER` (pedidos), `ADMIN` (además informes, datos de la empresa y usuarios) y `SUPER_ADMIN` (plataforma). Los permisos se aplican en la API (`CurrentUser.requireAdmin()`) y la web oculta el menú y protege las rutas (`admin.guard`). Nadie puede asignarse un rol superior al suyo.
 - **JWT de 1 hora**; en cada petición se vuelve a comprobar en la base de datos que el usuario y la empresa siguen activos.
 - **Límites de uso:** intentos de login, registros por IP, recuperación de contraseña y lecturas de albaranes por día.
 - **Contraseñas:** mínimo 8 caracteres con letras y números, guardadas con BCrypt.

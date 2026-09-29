@@ -18,6 +18,11 @@ export class Sidebar implements OnInit, OnDestroy {
 
   get user() { return this.auth.getCurrentUser(); }
 
+  /** Administrador de la empresa: ve la sección «Gestión». */
+  get isAdmin(): boolean {
+    return this.user?.role === 'ADMIN';
+  }
+
   get isSuperAdmin(): boolean {
     return this.user?.role === 'SUPER_ADMIN';
   }

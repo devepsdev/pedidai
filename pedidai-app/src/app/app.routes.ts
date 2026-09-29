@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth-guard';
 import { superAdminGuard } from './guards/super-admin.guard';
+import { adminGuard } from './guards/admin.guard';
 import { PublicLayoutComponent } from './layouts/public-layout/public-layout';
 import { Landing } from './pages/landing/landing';
 import { Register } from './components/auth/register/register';
@@ -46,11 +47,11 @@ export const routes: Routes = [
       { path: 'orders/new', loadComponent: () => import('./components/orders/order-create/order-create').then(m => m.OrderCreate) },
       { path: 'orders/:uuid/edit', loadComponent: () => import('./components/orders/order-create/order-create').then(m => m.OrderCreate) },
       { path: 'orders/:uuid', loadComponent: () => import('./components/orders/order-detail/order-detail').then(m => m.OrderDetail) },
-      { path: 'users', loadComponent: () => import('./components/users/user-list/user-list').then(m => m.UserList) },
-      { path: 'users/new', loadComponent: () => import('./components/users/user-form/user-form').then(m => m.UserForm) },
-      { path: 'users/:uuid', loadComponent: () => import('./components/users/user-form/user-form').then(m => m.UserForm) },
-      { path: 'reports', loadComponent: () => import('./components/reports/reports/reports').then(m => m.Reports) },
-      { path: 'company', loadComponent: () => import('./components/company/company-config/company-config').then(m => m.CompanyConfig) },
+      { path: 'users', canActivate: [adminGuard], loadComponent: () => import('./components/users/user-list/user-list').then(m => m.UserList) },
+      { path: 'users/new', canActivate: [adminGuard], loadComponent: () => import('./components/users/user-form/user-form').then(m => m.UserForm) },
+      { path: 'users/:uuid', canActivate: [adminGuard], loadComponent: () => import('./components/users/user-form/user-form').then(m => m.UserForm) },
+      { path: 'reports', canActivate: [adminGuard], loadComponent: () => import('./components/reports/reports/reports').then(m => m.Reports) },
+      { path: 'company', canActivate: [adminGuard], loadComponent: () => import('./components/company/company-config/company-config').then(m => m.CompanyConfig) },
       { path: 'invoices/scan', loadComponent: () => import('./components/invoices/invoice-scan/invoice-scan').then(m => m.InvoiceScan) },
       { path: 'ai', loadComponent: () => import('./components/ai-chat/ai-chat/ai-chat').then(m => m.AiChat) },
       { path: 'ai/suggestions', loadComponent: () => import('./components/ai-chat/ai-suggestions/ai-suggestions').then(m => m.AiSuggestions) },
