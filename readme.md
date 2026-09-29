@@ -10,9 +10,9 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 
 - **Web:** [pedidai.es](https://pedidai.es/)
 - **API (Swagger):** [pedidai.es/swagger-ui.html](https://pedidai.es/swagger-ui.html)
-- **Repositorios:** [devepsdev/pedidai](https://github.com/devepsdev/pedidai) (web, API y base de datos) y [devepsdev/orderflow](https://github.com/devepsdev/orderflow) (asistente de pedidos por chat)
+- **Repositorios:** [devepsdev/pedidai](https://github.com/devepsdev/pedidai) (web, API y base de datos) y [devepsdev/orderflow](https://github.com/devepsdev/orderflow) (asistente de pedidos por chat y automatizaciones con n8n)
 
-**Versión:** 2.0.0 · **Última actualización:** 27 de septiembre de 2026
+**Versión:** 2.1.0 · **Última actualización:** 29 de septiembre de 2026
 
 ---
 
@@ -58,10 +58,12 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
    (ficheros de Angular)   :8085            :3201 ──► DeepSeek
                             │  ▲               │
                             │  └───────────────┘  REST con el token
-                            ▼                     del propio usuario
+                            │                     del propio usuario
+                            ▼
                           MySQL
 
-   n8n (Docker, :5678, /n8n/)
+   Spring Boot ── webhook (registro nuevo) ──► n8n (Docker, :5678) ──► SMTP ──► email al equipo
+   n8n ── GET /api/internal/daily-summary (8:00) ──► Spring Boot
 ```
 
 | Componente | Responsabilidad |
@@ -70,9 +72,9 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 | nginx | HTTPS y proxy inverso: `/` → Angular, `/api` → Spring Boot, `/ai/` → asistente, `/n8n/` → n8n. |
 | `pedidai-api` (Spring Boot) | Lógica de negocio, autenticación JWT, aislamiento por empresa, emails (SMTP), PDF y lectura de albaranes (Tesseract + DeepSeek). Único acceso a MySQL. |
 | MySQL | Persistencia (`pedidai_db`). |
-| `orderflow/mcp-server` | Asistente de pedidos por chat: Express + *function calling* de DeepSeek. Cada herramienta llama a la API con el token del usuario, por lo que tiene sus mismos permisos. Crea pedidos en estado `PENDING`; el envío siempre lo confirma el usuario desde la web. Sigue el enfoque de MCP, pero no usa el SDK oficial. |
+| Asistente de pedidos (`orderflow`) | Chat de pedidos: Express + *function calling* de DeepSeek. Cada herramienta llama a la API con el token del usuario, por lo que tiene sus mismos permisos. Crea pedidos en estado `PENDING`; el envío siempre lo confirma el usuario desde la web. |
+| n8n (`orderflow`) | Emails informativos al equipo: aviso de cada registro nuevo (webhook que llama la API tras el alta) y resumen diario a las 8:00 con registros, pruebas que acaban, pruebas vencidas, borrados próximos y actividad (lee `GET /api/internal/daily-summary`). |
 | Docker | Ejecuta el asistente y n8n (`docker compose` en `orderflow`). |
-| n8n | Automatización de flujos. |
 
 ## 2. Funcionalidades
 
@@ -92,6 +94,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 
 - **Panel SUPER_ADMIN:** empresas, usuarios, estadísticas; ampliar la prueba o activar el plan de pago.
 - **Fin de la prueba:** al acabar, la cuenta queda inactiva hasta que se contrata (no se cobra nada automáticamente).
+- **Alertas por email al equipo (n8n):** aviso inmediato de cada registro nuevo y resumen diario de la actividad.
 - **Borrado automático:** cada día a las 03:30 (hora de Madrid) se eliminan las empresas cuya prueba terminó hace **más de 30 días** sin contratar, con todos sus datos e imágenes. Nunca se borran clientes de pago ni la cuenta SUPER_ADMIN (`DataRetentionServiceImpl`).
 - **Landing para campañas:** precio visible (39 €/mes, lanzamiento 29 €/mes), calculadora de ahorro de ejemplo, FAQ y un único botón «Pruébalo gratis 14 días».
 - **Cookies con consentimiento** (Consent Mode v2 de Google): Analytics y Ads solo se cargan si el usuario acepta.
@@ -107,8 +110,8 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 | Backend | Java 25, Spring Boot 3.5 (Web, Data JPA, Security, Validation, Mail), JJWT, OpenPDF, SpringDoc (Swagger) |
 | Base de datos | MySQL 8 (InnoDB, `utf8mb4`); H2 en memoria para los tests |
 | IA | Tesseract OCR (castellano + catalán) en el servidor; DeepSeek para estructurar albaranes y para el chat |
-| Asistente | Node.js 20 + Express 5 (`orderflow/mcp-server`), en Docker |
-| Automatización | n8n en Docker (instalado, sin flujos en uso) |
+| Asistente | Node.js 20 + Express 5, en Docker |
+| Automatización | n8n 2 en Docker: emails informativos al equipo (webhook + tarea diaria + SMTP) |
 | Servidor | VPS Ubuntu, nginx (HTTPS con Let's Encrypt), systemd, ufw |
 
 ---
@@ -122,8 +125,8 @@ pedidai/
 └── pedidai-db/           # Esquema SQL, migraciones y documentación de tablas
 
 orderflow/                # Repositorio aparte
-├── mcp-server/           # Asistente de chat (Express + DeepSeek + herramientas)
-├── n8n-workflows/        # Flujos de ejemplo para n8n (no importados en producción)
+├── mcp-server/           # Asistente de pedidos por chat (Express + DeepSeek + herramientas)
+├── n8n-workflows/        # Flujos de n8n: aviso de registro nuevo y resumen diario
 └── docker-compose.yml    # Levanta el asistente y n8n
 ```
 
@@ -189,6 +192,8 @@ Todas las rutas empiezan por `/api` y, salvo las marcadas como públicas, necesi
 
 Asistente (`/ai`, servido por `orderflow`): `GET /health`, `POST /process-order`, `POST /suggest-orders`. Todos menos `/health` exigen el token del usuario.
 
+Interno (solo desde el propio servidor, para n8n): `GET /api/internal/daily-summary?hours=24`.
+
 ---
 
 ## 6. Base de datos
@@ -223,6 +228,7 @@ Detalle de columnas en [`pedidai-db/readme.md`](pedidai-db/readme.md).
 - **Errores sin detalles internos** y mensajes que no revelan si un email existe.
 - **Emails a proveedores** sin HTML inyectable; imágenes validadas por contenido y guardadas con nombre aleatorio.
 - **IA:** a DeepSeek solo se envía el texto necesario (el OCR se hace en nuestro servidor). Está explicado en la política de privacidad.
+- **Endpoints internos** (`/api/internal/`): solo responden a peticiones locales que no pasan por nginx, y nginx además los bloquea; los webhooks de n8n tampoco son accesibles desde fuera.
 - **Logs** en nivel INFO, sin consultas SQL y con los emails enmascarados.
 - **Conservación:** datos de pruebas no contratadas borrados automáticamente a los 30 días.
 
@@ -265,6 +271,8 @@ export MAIL_USER_PEDIDAI=correo@ejemplo.com
 export MAIL_PASS_PEDIDAI=contraseña_de_aplicación
 export JWT_SECRET=un_secreto_largo_y_aleatorio
 export DEEPSEEK_API_KEY=tu_api_key
+# Opcional: aviso a n8n de cada registro nuevo (vacío = desactivado)
+export N8N_NEW_COMPANY_WEBHOOK=http://127.0.0.1:5678/webhook/pedidai-nuevo-registro
 ```
 
 ```bash
@@ -287,13 +295,15 @@ npx ng build                    # producción → dist/pedidai-app/browser
 
 `src/environments/environment.ts` apunta a `http://localhost:8085/api`. `proxy.conf.json` redirige `/ai` al asistente en `127.0.0.1:3201`.
 
-### 8.4. Asistente (opcional)
+### 8.4. Asistente y n8n (opcional)
 
 ```bash
 cd orderflow/mcp-server
 cp .env.example .env            # PEDIDAI_API_URL=http://localhost:8085/api y DEEPSEEK_API_KEY
 npm install && npm start        # http://127.0.0.1:3201/health
 ```
+
+n8n se levanta con `docker compose up -d n8n` en `orderflow`; los flujos se importan desde `orderflow/n8n-workflows/` y necesitan una credencial SMTP (ver el README de `orderflow`).
 
 ---
 
@@ -307,10 +317,10 @@ Todo corre en un VPS Ubuntu:
 | API (Spring Boot) | `/opt/apps/pedidai/pedidai-api/target/*.jar`, servicio `pedidai-api.service` (puerto 8085, solo local) |
 | Secretos de la API | `/opt/apps/pedidai/.env` (permisos `600`, cargado con `EnvironmentFile=`) |
 | Imágenes de productos | `/opt/apps/pedidai/pedidai-api/img/productes/` |
-| Asistente y n8n | `/opt/apps/orderflow`, con `docker compose` (asistente en `127.0.0.1:3201`) |
+| Asistente y n8n | `/opt/apps/orderflow`, con `docker compose`, red `host` y escuchando solo en local (asistente en `127.0.0.1:3201`, n8n en `127.0.0.1:5678`) |
 | Base de datos | MySQL local, `pedidai_db` |
 
-nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` → `localhost:8085`, `/ai/` → `localhost:3201/` y `/n8n/` → `localhost:5678/`. El cortafuegos (`ufw`) solo deja pasar HTTP/HTTPS y SSH.
+nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` → `localhost:8085`, `/ai/` → `localhost:3201/` y `/n8n/` → `localhost:5678/`. nginx bloquea `/api/internal/` y los webhooks de n8n. El cortafuegos (`ufw`) solo deja pasar HTTP/HTTPS y SSH.
 
 ### Pasos de una actualización
 
@@ -318,7 +328,7 @@ nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` �
 2. **Migraciones nuevas** de `pedidai-db/migrations/`, si las hay.
 3. **API:** `./mvnw -DskipTests package`, copiar el jar a `target/` y `sudo systemctl restart pedidai-api`.
 4. **Web:** `npx ng build` y copiar `dist/pedidai-app/browser/` a `/var/www/pedidai.es` (sin borrar `.well-known/`).
-5. **Asistente:** en `/opt/apps/orderflow`, `git fetch && git merge --ff-only origin/main` y `sudo docker compose up -d --build mcp-bridge`.
+5. **Asistente y n8n:** en `/opt/apps/orderflow`, `git fetch && git merge --ff-only origin/main`; después `sudo docker compose up -d --build mcp-bridge` (asistente) o `sudo docker compose up -d n8n`.
 6. **Comprobar:** `https://pedidai.es/api/users/me` debe responder 401 sin token y `https://pedidai.es/ai/health` `{"status":"ok"}`.
 
 ---
@@ -332,6 +342,7 @@ nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` �
 | La lectura de albaranes falla | Tesseract no instalado o sin los idiomas `spa`/`cat`; revisa `app.ocr.tesseract-command`. |
 | El chat responde 401 | Sesión caducada (el token dura 1 hora): vuelve a entrar. |
 | Tras desplegar se ven textos antiguos | Caché del navegador: recarga forzando (Ctrl+F5). En producción `index.html` e `/i18n/` ya se sirven con `no-cache`. |
+| No llegan las alertas de n8n | Flujo sin publicar o credencial SMTP incorrecta en n8n; comprueba también `N8N_NEW_COMPANY_WEBHOOK` en el `.env` de la API. |
 | No llegan los emails | Revisa `MAIL_USER_PEDIDAI` / `MAIL_PASS_PEDIDAI` (contraseña de aplicación) y los logs: `journalctl -u pedidai-api`. |
 
 ---
