@@ -49,8 +49,9 @@ export class AiSuggestions implements OnInit {
 
     this.orderService.create({
       supplierUuid: s.supplier_uuid ?? '',
-      name: `Pedido sugerido: ${s.product}`,
-      notes: `Sugerencia IA - Ahorro estimado: ${s.estimated_savings_percent ?? 0}%`,
+      // Las notas llegan al proveedor en el email del pedido: no se le indica que es una sugerencia ni el ahorro
+      name: this.translate.instant('AI.SUGGESTIONS.ORDER_NAME', { product: s.product }),
+      notes: '',
       items: s.product_uuid ? [{ productUuid: s.product_uuid, quantity: s.quantity }] : []
     }).subscribe({
       next: () => {

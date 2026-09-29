@@ -51,7 +51,7 @@
           } @else {
             <button
               (click)="openConfirm($index)"
-              [disabled]="creatingIndex() === $index"
+              [disabled]="creatingIndex() === $index || !s.supplier_uuid || !s.product_uuid"
               class="mt-auto w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
             >
               @if (creatingIndex() === $index) { {{ 'AI.SUGGESTIONS.CREATING' | translate }} } @else { {{ 'AI.SUGGESTIONS.CREATE_ORDER' | translate }} }

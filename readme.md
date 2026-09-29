@@ -84,7 +84,8 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 - **Verificación de email** necesaria para enviar pedidos a proveedores.
 - **Lectura de albaranes y facturas** (foto o PDF) con OCR + IA, con revisión línea a línea antes de guardar.
 - **Mis precios:** comparativa del mismo producto entre proveedores, avisos de subidas (≥ 2 %) y estimación de lo pagado de más.
-- **Asistente IA por chat:** prepara pedidos al proveedor más barato y sugiere pedidos según el consumo.
+- **Asistente IA por chat:** prepara pedidos al proveedor más barato a partir de una frase.
+- **Sugerencias de pedido:** productos que el cliente pide con frecuencia (últimos 180 días), con urgencia según la frecuencia y si ya se han pedido en las últimas 48 h, cantidad habitual y el proveedor más barato según el historial de precios. Se calculan con reglas a partir del análisis de consumo (`GET /api/orders/consumption-analysis`), sin IA; el usuario crea el pedido pendiente con un clic. También aparecen en el panel de inicio.
 - **Pedidos:** creación manual o por chat, envío al proveedor **por email** (la respuesta del proveedor llega al email del cliente) y seguimiento de estado (`PENDING → SENT → CONFIRMED / REJECTED / COMPLETED / CANCELLED`).
 - **Proveedores, productos y usuarios** del equipo, con búsqueda y filtros.
 - **Informes** por periodo con exportación a PDF.
@@ -190,7 +191,7 @@ Todas las rutas empiezan por `/api` y, salvo las marcadas como públicas, necesi
 | `/reports` | `GET /dashboard`, `GET /global`, `GET /global/pdf` |
 | `/superadmin` | `GET /dashboard`, `/companies`, `/companies/{uuid}`, `/users`, `/stats/monthly`; `PATCH /companies/{uuid}/status`, `/extend-trial`, `/activate` |
 
-Asistente (`/ai`, servido por `orderflow`): `GET /health`, `POST /process-order`, `POST /suggest-orders`. Todos menos `/health` exigen el token del usuario.
+Asistente (`/ai`, servido por `orderflow`): `GET /health`, `POST /process-order`, `POST /suggest-orders` (sugerencias de pedido). Todos menos `/health` exigen el token del usuario.
 
 Interno (solo desde el propio servidor, para n8n): `GET /api/internal/daily-summary?hours=24`.
 
