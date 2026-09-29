@@ -18,16 +18,28 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 
 ## Índice
 
-1. [Arquitectura](#1-arquitectura)
-2. [Funcionalidades](#2-funcionalidades)
-3. [Tecnologías](#3-tecnologías)
-4. [Estructura del código](#4-estructura-del-código)
-5. [API REST](#5-api-rest)
-6. [Base de datos](#6-base-de-datos)
-7. [Seguridad y privacidad](#7-seguridad-y-privacidad)
-8. [Instalación en local](#8-instalación-en-local)
-9. [Despliegue en producción](#9-despliegue-en-producción)
-10. [Solución de problemas](#10-solución-de-problemas)
+- [PedidAI](#pedidai)
+  - [Índice](#índice)
+  - [1. Arquitectura](#1-arquitectura)
+  - [2. Funcionalidades](#2-funcionalidades)
+    - [Para el cliente (bar o restaurante)](#para-el-cliente-bar-o-restaurante)
+    - [Para la plataforma](#para-la-plataforma)
+  - [3. Tecnologías](#3-tecnologías)
+  - [4. Estructura del código](#4-estructura-del-código)
+    - [4.1. Frontend (`pedidai-app/src/app`)](#41-frontend-pedidai-appsrcapp)
+    - [4.2. Backend (`pedidai-api/src/main/java/com/pedidai/api`)](#42-backend-pedidai-apisrcmainjavacompedidaiapi)
+  - [5. API REST](#5-api-rest)
+  - [6. Base de datos](#6-base-de-datos)
+  - [7. Seguridad y privacidad](#7-seguridad-y-privacidad)
+  - [8. Instalación en local](#8-instalación-en-local)
+    - [Requisitos](#requisitos)
+    - [8.1. Base de datos](#81-base-de-datos)
+    - [8.2. Backend](#82-backend)
+    - [8.3. Frontend](#83-frontend)
+    - [8.4. Asistente (opcional)](#84-asistente-opcional)
+  - [9. Despliegue en producción](#9-despliegue-en-producción)
+    - [Pasos de una actualización](#pasos-de-una-actualización)
+  - [10. Solución de problemas](#10-solución-de-problemas)
 
 ---
 
@@ -49,7 +61,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
                             ▼                     del propio usuario
                           MySQL
 
-   n8n (Docker, :5678, /n8n/) ── instalado, sin flujos en uso
+   n8n (Docker, :5678, /n8n/)
 ```
 
 | Componente | Responsabilidad |
