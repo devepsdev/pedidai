@@ -12,7 +12,12 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.Year;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Locale;
 
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
@@ -25,6 +30,9 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
 @RequiredArgsConstructor
 @Slf4j
 public class EmailServiceImpl implements EmailService {
+
+    /** Adreça de contacte de PedidAI: rep les respostes als avisos de la prova. */
+    static final String CONTACT_EMAIL = "hola@pedidai.es";
 
     private final JavaMailSender mailSender;
     private final Messages messages;
@@ -140,6 +148,55 @@ public class EmailServiceImpl implements EmailService {
             log.error("Error en enviar la comanda '{}' a {}: {}", order.orderName(), maskEmail(order.to()), e.getMessage());
             throw new IllegalStateException("No s'ha pogut enviar el correu de la comanda", e);
         }
+    }
+
+    // ───────────────────────── Avisos de la prova gratuïta (síncrons) ─────────────────────────
+
+    @Override
+    public void sendTrialEndingSoon(TrialEmail trial, Locale locale) {
+        String end = longDate(trial.trialEnd(), locale);
+        String activity = trial.invoiceLines() > 0
+                ? infoBox(t(locale, "email.trial.activityTitle"),
+                        t(locale, "email.trial.activity", trial.invoiceLines(), trial.suppliers(), trial.orders()))
+                : paragraph(t(locale, "email.trial.noActivity"));
+        String body = greeting(locale, trial.userName())
+                + paragraph(t(locale, "email.trialSoon.intro", "<strong>" + htmlEscape(trial.companyName()) + "</strong>", end))
+                + activity
+                + paragraph(t(locale, "email.trial.price"))
+                + button(contactLink(locale, trial.companyName()), t(locale, "email.trial.button"))
+                + small(t(locale, "email.trial.noCharge"));
+        sendTrialEmail(trial.to(), t(locale, "email.trialSoon.subject", end), locale, t(locale, "email.trialSoon.title"), body);
+    }
+
+    @Override
+    public void sendTrialEnded(TrialEmail trial, Locale locale) {
+        String body = greeting(locale, trial.userName())
+                + paragraph(t(locale, "email.trialEnded.intro", "<strong>" + htmlEscape(trial.companyName()) + "</strong>",
+                        longDate(trial.trialEnd(), locale)))
+                + notice(t(locale, "email.trialEnded.deletion", longDate(trial.deletionDate(), locale)))
+                + paragraph(t(locale, "email.trial.price"))
+                + button(contactLink(locale, trial.companyName()), t(locale, "email.trial.button"))
+                + small(t(locale, "email.trial.noCharge"));
+        sendTrialEmail(trial.to(), t(locale, "email.trialEnded.subject"), locale, t(locale, "email.trialEnded.title"), body);
+    }
+
+    private void sendTrialEmail(String to, String subject, Locale locale, String title, String body) {
+        try {
+            send(to, CONTACT_EMAIL, subject, layout(locale, title, null, body, t(locale, "email.trial.footer")));
+        } catch (MessagingException e) {
+            log.error("No s'ha pogut enviar el correu '{}' a {}: {}", subject, maskEmail(to), e.getMessage());
+            throw new IllegalStateException("No s'ha pogut enviar l'avís de la prova", e);
+        }
+    }
+
+    /** Enllaç per contractar: un correu a PedidAI amb l'assumpte ja escrit. */
+    private String contactLink(Locale locale, String companyName) {
+        return "mailto:" + CONTACT_EMAIL + "?subject="
+                + URLEncoder.encode(t(locale, "email.trial.mailSubject", companyName), StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
+    private static String longDate(LocalDate date, Locale locale) {
+        return date == null ? "" : date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale));
     }
 
     // ───────────────────────── Plantilla ─────────────────────────

@@ -61,4 +61,6 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM Supplier s WHERE s.company.id = :companyId")
     int deleteByCompanyId(@Param("companyId") Long companyId);
+
+    long countByCompany_IdAndIsActiveTrue(Long companyId);
 }

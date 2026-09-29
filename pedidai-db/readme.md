@@ -19,7 +19,8 @@ pedidai-db/
 ├── pedidai_db_schema.sql          # Esquema base (solo estructura, sin datos)
 └── migrations/
     ├── 001_lanzamiento.sql        # CIF opcional, idioma del usuario, nombre genérico de producto, historial de precios
-    └── 002_empresa_suspendida.sql # Estado SUSPENDED en companies.status
+    ├── 002_empresa_suspendida.sql # Estado SUSPENDED en companies.status
+    └── 003_avisos_prueba.sql      # Fecha de envío de los avisos de la prueba al cliente
 ```
 
 Las migraciones se aplican **en orden** sobre el esquema base. Cada una se aplica una sola vez.
@@ -45,6 +46,7 @@ FLUSH PRIVILEGES;
 mysql -u pedidai_user -p pedidai_db < pedidai-db/pedidai_db_schema.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/001_lanzamiento.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/002_empresa_suspendida.sql
+mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/003_avisos_prueba.sql
 ```
 
 ### 3. Comprobación
@@ -100,6 +102,8 @@ Empresas cliente (cada local es una empresa).
 | `postal_code` | VARCHAR(20) | | Código postal |
 | `status` | ENUM | DEFAULT `PENDING` | `ACTIVE`, `INACTIVE` (prueba acabada sin contratar), `PENDING`, `SUSPENDED` (bloqueada por la plataforma) |
 | `trial_ends_at` | DATETIME | NULL | Fin de la prueba gratuita; `NULL` = cliente de pago |
+| `trial_reminder_sent_at` | DATETIME | NULL | Cuándo se envió el aviso «tu prueba acaba en 3 días» |
+| `trial_end_notified_at` | DATETIME | NULL | Cuándo se envió el aviso «tu prueba ha terminado» |
 
 ### `users`
 
@@ -202,6 +206,7 @@ Cada precio observado de un producto: la base de la comparativa entre proveedore
 | Pedidos por chat | `suppliers`, `products`, `price_history`, `orders`, `order_items` | El asistente consulta proveedores y precios con la sesión del usuario y crea pedidos `PENDING`; nunca los envía. |
 | Envío al proveedor | `orders` (`status`, `notes`), `order_items`, `suppliers.email`, `users.email_verified` | Solo con el email verificado; el pedido pasa a `SENT` y las notas se incluyen en el email al proveedor. Un pedido pendiente se puede cancelar (`CANCELLED`). |
 | Prueba gratuita y plan | `companies.trial_ends_at`, `companies.status` | Al registrarse, `trial_ends_at` = alta + 14 días. Al acabar la prueba, el siguiente acceso marca la empresa `INACTIVE`. El plan de pago deja `trial_ends_at` en `NULL`. |
+| Avisos de prueba al cliente | `companies.trial_ends_at`, `trial_reminder_sent_at`, `trial_end_notified_at`, `users` (administrador), `price_history`, `suppliers`, `orders` | Cada día a las 9:00: email 3 días antes del fin y al terminar, con la actividad de la prueba. Las dos columnas evitan repetirlos; ampliar la prueba las vacía. |
 | Alertas al equipo (n8n) | `companies.created_at`, `companies.trial_ends_at`, `users`, `price_history.source`, `orders.created_at` | Aviso de cada registro y resumen diario: registros nuevos, pruebas que acaban en 3 días, pruebas vencidas, borrados en menos de 7 días, líneas de albarán leídas y pedidos creados. |
 | Borrado de conservación | Todas | Ver [Claves foráneas y borrado](#claves-foráneas-y-borrado). |
 

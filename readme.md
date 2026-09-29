@@ -100,7 +100,8 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 
 - **Panel SUPER_ADMIN** (bilingüe): empresas, usuarios, estadísticas y cambio de estado de una empresa (incluido `SUSPENDED`). En empresas en prueba, **+14 días de prueba** (se suman al final de la prueba actual) y **activar el plan de pago**; no se permite en clientes de pago ni en la cuenta de la plataforma.
 - **Fin de la prueba:** al acabar, la cuenta queda inactiva hasta que se contrata (no se cobra nada automáticamente).
-- **Alertas por email al equipo (n8n):** aviso inmediato de cada registro nuevo y resumen diario de la actividad.
+- **Avisos al cliente sobre su prueba:** cada día a las 9:00 (hora de Madrid) la API envía al administrador de cada empresa en prueba un email 3 días antes del fin (con su actividad: líneas de albarán leídas, proveedores y pedidos) y otro cuando la prueba termina (cuenta en pausa y fecha de borrado de los datos). Cada aviso se envía una vez; si se amplía la prueba, se vuelven a enviar (`TrialNotificationServiceImpl`).
+- **Alertas por email al equipo (n8n):** aviso inmediato de cada registro nuevo, resumen diario de la actividad y **vigilancia cada 5 minutos** de la web, la API y el asistente (avisa solo cuando algo se cae o se recupera).
 - **Borrado automático:** cada día a las 03:30 (hora de Madrid) se eliminan las empresas cuya prueba terminó hace **más de 30 días** sin contratar, con todos sus datos e imágenes. Nunca se borran clientes de pago ni la cuenta SUPER_ADMIN (`DataRetentionServiceImpl`).
 - **Landing para campañas:** precio visible (39 €/mes, lanzamiento 29 €/mes), calculadora de ahorro de ejemplo, FAQ y un único botón «Pruébalo gratis 14 días».
 - **Cookies con consentimiento** (Consent Mode v2 de Google): Analytics y Ads solo se cargan si el usuario acepta.
@@ -270,6 +271,7 @@ GRANT ALL PRIVILEGES ON pedidai_db.* TO 'pedidai_user'@'localhost';
 mysql -u pedidai_user -p pedidai_db < pedidai-db/pedidai_db_schema.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/001_lanzamiento.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/002_empresa_suspendida.sql
+mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/003_avisos_prueba.sql
 ```
 
 ### 8.2. Backend

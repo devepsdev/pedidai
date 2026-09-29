@@ -58,6 +58,14 @@ public class Company {
     @Column(name = "trial_ends_at")
     private LocalDateTime trialEndsAt;
 
+    /** Quan s'ha enviat l'avís «la prova acaba aviat» (null = pendent). */
+    @Column(name = "trial_reminder_sent_at")
+    private LocalDateTime trialReminderSentAt;
+
+    /** Quan s'ha enviat l'avís «la prova ha acabat» (null = pendent). */
+    @Column(name = "trial_end_notified_at")
+    private LocalDateTime trialEndNotifiedAt;
+
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<User> users;
 

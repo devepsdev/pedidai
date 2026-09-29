@@ -98,4 +98,32 @@ class EmailServiceImplTest {
 
         assertThatCode(() -> service.sendEmailVerification("a@b.test", "t", "A", I18nConfig.CATALAN)).doesNotThrowAnyException();
     }
+
+    @Test
+    @DisplayName("avís de fi de prova: data en l'idioma, nom escapat i respostes a PedidAI")
+    void trialEndingSoonEmail() throws Exception {
+        var trial = new EmailService.TrialEmail("laura@bar.test", "Laura", "Bar <b>Prova</b>",
+                java.time.LocalDate.of(2026, 10, 12), java.time.LocalDate.of(2026, 11, 11), 12, 3, 2);
+
+        service.sendTrialEndingSoon(trial, I18nConfig.CATALAN);
+
+        MimeMessage message = sent();
+        assertThat(message.getSubject()).contains("12 d’octubre del 2026");
+        assertThat(message.getReplyTo()[0].toString()).isEqualTo("hola@pedidai.es");
+        String body = html(message);
+        assertThat(body).contains("Bar &lt;b&gt;Prova&lt;/b&gt;").doesNotContain("<b>Prova</b>");
+        assertThat(body).contains("Línies d’albarà llegides: 12").contains("mailto:hola@pedidai.es");
+    }
+
+    @Test
+    @DisplayName("avís de prova acabada en castellà amb la data d'esborrat")
+    void trialEndedEmail() throws Exception {
+        var trial = new EmailService.TrialEmail("laura@bar.test", "Laura", "Bar Prova",
+                java.time.LocalDate.of(2026, 10, 12), java.time.LocalDate.of(2026, 11, 11), 0, 0, 0);
+
+        service.sendTrialEnded(trial, I18nConfig.SPANISH);
+
+        String body = html(sent());
+        assertThat(body).contains("11 de noviembre de 2026").contains("no se ha cobrado nada");
+    }
 }

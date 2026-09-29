@@ -189,6 +189,9 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime from = company.getTrialEndsAt().isAfter(now) ? company.getTrialEndsAt() : now;
         company.setTrialEndsAt(from.plusDays(days));
+        // Nova data de fi: els avisos al client es tornen a enviar
+        company.setTrialReminderSentAt(null);
+        company.setTrialEndNotifiedAt(null);
         // Si estaba INACTIVE por trial expirado, la reactivamos
         if (company.getStatus() == Company.CompanyStatus.INACTIVE) {
             company.setStatus(Company.CompanyStatus.ACTIVE);
