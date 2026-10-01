@@ -7,6 +7,7 @@ export type AppLang = 'es' | 'ca';
 
 /**
  * Idioma de la aplicación (castellano o catalán).
+ * Un enlace con ?lang=es|ca manda y se recuerda.
  * Primera visita: el del navegador. Después: el que elija el usuario, que también se guarda
  * en su cuenta para que los emails y los PDF le lleguen en ese idioma.
  */
@@ -20,7 +21,12 @@ export class LanguageService {
   init(): void {
     this.translate.addLangs(['es', 'ca']);
     this.translate.setFallbackLang('es');
-    this.apply(this.stored() ?? this.fromBrowser());
+    const fromUrl = this.fromUrl();
+    if (fromUrl) {
+      this.use(fromUrl);
+    } else {
+      this.apply(this.stored() ?? this.fromBrowser());
+    }
   }
 
   /** Cambia el idioma; si hay sesión, lo guarda también en la cuenta. */
@@ -54,6 +60,12 @@ export class LanguageService {
     } catch {
       return null;
     }
+  }
+
+  /** Idioma forzado por enlace (?lang=ca), p. ej. desde los anuncios en catalán. */
+  private fromUrl(): AppLang | null {
+    const v = new URLSearchParams(location.search).get('lang');
+    return v === 'es' || v === 'ca' ? v : null;
   }
 
   private fromBrowser(): AppLang {
