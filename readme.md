@@ -235,6 +235,7 @@ Detalle de columnas en [`pedidai-db/readme.md`](pedidai-db/readme.md).
 - **Límites de uso:** intentos de login, registros por IP, recuperación de contraseña y lecturas de albaranes por día.
 - **Contraseñas:** mínimo 8 caracteres con letras y números, guardadas con BCrypt.
 - **Errores sin detalles internos** y mensajes que no revelan si un email existe.
+- **Correo saliente** como `PedidAI <hola@pedidai.es>` a través de Brevo, con DKIM de `pedidai.es` y DMARC; la recepción en `hola@` sigue en Cloudflare Email Routing.
 - **Emails a proveedores** sin HTML inyectable; imágenes validadas por contenido y guardadas con nombre aleatorio.
 - **IA:** se usa Mistral AI (UE), con el uso de los datos para entrenar desactivado; solo se envía el texto necesario (el OCR se hace en nuestro servidor). Está explicado en la política de privacidad.
 - **Endpoints internos** (`/api/internal/`): solo responden a peticiones locales que no pasan por nginx, y nginx además los bloquea; los webhooks de n8n tampoco son accesibles desde fuera.
@@ -281,8 +282,9 @@ Variables de entorno necesarias (nunca las subas al repositorio):
 ```bash
 export DB_USER_PEDIDAI=pedidai_user
 export DB_PASS_PEDIDAI=password_seguro
-export MAIL_USER_PEDIDAI=correo@ejemplo.com
+export MAIL_USER_PEDIDAI=correo@ejemplo.com          # SMTP de Gmail (por defecto)
 export MAIL_PASS_PEDIDAI=contraseña_de_aplicación
+# En producción el correo sale por Brevo: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM y MAIL_FROM_NAME
 export JWT_SECRET=un_secreto_largo_y_aleatorio
 export AI_API_KEY=tu_clave_de_mistral   # opcionales: AI_API_URL, AI_MODEL
 # Opcionales: orígenes CORS (por defecto los dominios públicos y localhost:4200)

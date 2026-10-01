@@ -37,8 +37,12 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
     private final Messages messages;
 
-    @Value("${spring.mail.username}")
+    /** Remitent dels correus (en producció, hola@pedidai.es autenticat amb DKIM a Brevo). */
+    @Value("${app.mail.from}")
     private String fromEmail;
+
+    @Value("${app.mail.from-name:PedidAI}")
+    private String fromName = "PedidAI";
 
     @Value("${app.frontend.url:https://pedidai.es}")
     private String frontendUrl;
@@ -204,7 +208,11 @@ public class EmailServiceImpl implements EmailService {
     private void send(String to, String replyTo, String subject, String html) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-        helper.setFrom(fromEmail);
+        try {
+            helper.setFrom(fromEmail, fromName);
+        } catch (java.io.UnsupportedEncodingException e) {
+            helper.setFrom(fromEmail);
+        }
         helper.setTo(to);
         if (replyTo != null && !replyTo.isBlank()) {
             helper.setReplyTo(replyTo);

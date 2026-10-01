@@ -73,7 +73,9 @@ Variables de entorno (en producción, en `/opt/apps/pedidai/.env`):
 | --- | --- | --- |
 | `DB_USER_PEDIDAI`, `DB_PASS_PEDIDAI` | Sí | Credenciales de MySQL |
 | `SPRING_DATASOURCE_URL` | No | URL de la base de datos (por defecto `localhost:3306/pedidai_db`) |
-| `MAIL_USER_PEDIDAI`, `MAIL_PASS_PEDIDAI` | Sí | Cuenta SMTP de envío |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Producción | SMTP de envío (Brevo: `smtp-relay.brevo.com`, 587). Se guardan con `sudo pedidai-set-smtp`, que las comprueba antes |
+| `MAIL_FROM`, `MAIL_FROM_NAME` | No | Remitente (`hola@pedidai.es`, `PedidAI`) |
+| `MAIL_USER_PEDIDAI`, `MAIL_PASS_PEDIDAI` | Respaldo | Cuenta de Gmail que se usa si no hay `SMTP_*` |
 | `JWT_SECRET` | Sí | Clave de firma de los tokens |
 | `AI_API_KEY` | Para la IA | Clave de la API de IA (Mistral AI) |
 | `AI_API_URL`, `AI_MODEL` | No | Por defecto `https://api.mistral.ai/v1` y `mistral-small-latest` |

@@ -126,4 +126,17 @@ class EmailServiceImplTest {
         String body = html(sent());
         assertThat(body).contains("11 de noviembre de 2026").contains("no se ha cobrado nada");
     }
+
+    @Test
+    @DisplayName("el remitent porta el nom de PedidAI")
+    void senderHasDisplayName() throws Exception {
+        ReflectionTestUtils.setField(service, "fromEmail", "hola@pedidai.test");
+        ReflectionTestUtils.setField(service, "fromName", "PedidAI");
+        var trial = new EmailService.TrialEmail("laura@bar.test", "Laura", "Bar Prova",
+                java.time.LocalDate.of(2026, 10, 12), java.time.LocalDate.of(2026, 11, 11), 0, 0, 0);
+
+        service.sendTrialEnded(trial, I18nConfig.SPANISH);
+
+        assertThat(sent().getFrom()[0].toString()).isEqualTo("PedidAI <hola@pedidai.test>");
+    }
 }
