@@ -57,7 +57,7 @@ public class SwaggerConfig {
                     - 🚚 Gestió integral de proveïdors
                     - 📦 Catàleg de productes amb comparativa de preus entre proveïdors
                     - 🛒 Sistema de comandes amb notificacions i anàlisi de consum
-                    - 🤖 Escaneig intel·ligent de factures amb IA (DeepSeek Vision)
+                    - 🤖 Lectura d’albarans amb OCR (Tesseract) i IA (Mistral)
                     - 📊 Sistema de reports i estadístiques
                     - 🔐 Autenticació JWT
                     - ✉️ Verificació d'email

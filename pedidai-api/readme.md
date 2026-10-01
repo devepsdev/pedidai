@@ -1,428 +1,233 @@
-# Pedidai - API REST Backend
+# PedidAI — API REST
 
-API REST desarrollada con Spring Boot para la gestión integral de la cadena de suministro B2B para pymes.
+API de [PedidAI](https://pedidai.es), la aplicación para bares y restaurantes que lee sus albaranes, compara lo que cobra cada proveedor y prepara los pedidos al más barato.
 
-**Versión:** 1.2
-**Framework:** Spring Boot 3.5.6
-**Lenguaje:** Java 25
-**Base de datos:** MySQL 8.0+
-**Autenticación:** JWT (JSON Web Tokens)
-
----
-
-## Descripción
-
-Pedidai Backend es una API REST que proporciona una plataforma completa para que las pymes gestionen sus proveedores, mantengan un catálogo de productos y envíen pedidos de forma eficiente. Incluye gestión multiempresa, autenticación JWT, verificación de email, recuperación de contraseña, sistema de notificaciones (email y WhatsApp), generación de informes en PDF e integración con IA para asistencia inteligente.
+| | |
+| --- | --- |
+| **Framework** | Spring Boot 3.5 |
+| **Lenguaje** | Java 25 |
+| **Base de datos** | MySQL 8 (H2 en memoria para los tests) |
+| **Autenticación** | JWT (HS512, 1 hora) |
+| **Idiomas** | Castellano y catalán (`Accept-Language`) |
+| **Documentación interactiva** | [pedidai.es/swagger-ui.html](https://pedidai.es/swagger-ui.html) |
 
 ---
 
-## Características Principales
+## Funcionalidades
 
-- **Gestión multi-entidad:** Empresas, usuarios, proveedores, productos y pedidos
-- **Catálogo de productos:** Gestión completa con imágenes y búsqueda avanzada
-- **Sistema de pedidos:** Creación, edición y envío con notificaciones por email y WhatsApp
-- **Notificaciones flexibles:** EMAIL, WHATSAPP o BOTH en el momento del envío
-- **Verificación de email:** Tokens con caducidad de 24 horas
-- **Autenticación JWT segura:** Tokens HS512 con caducidad de 1 hora
-- **Recuperación de contraseña:** Sistema completo con tokens de 1 hora
-- **Búsqueda avanzada:** Filtros múltiples con paginación y ordenación
-- **Informes y estadísticas:** Dashboard, reportes globales por período con exportación a PDF
-- **Integración con IA:** API DeepSeek Vision para asistencia inteligente y escaneo de facturas
-- **Gestión de errores centralizada:** Respuestas uniformes con códigos HTTP estándar
-- **Validaciones robustas:** Bean Validation con requisitos de contraseña compleja
-- **Documentación interactiva:** Swagger UI disponible en producción
+- **Multiempresa:** cada consulta se limita a la empresa del usuario autenticado.
+- **Registro con prueba gratuita de 14 días**, verificación de email y recuperación de contraseña.
+- **Lectura de albaranes:** OCR con Tesseract en el propio servidor y estructuración del texto con IA (Mistral AI por defecto, cualquier API compatible con OpenAI).
+- **Historial y comparativa de precios** entre proveedores, con avisos de subidas.
+- **Pedidos:** creación, edición, cancelación y envío al proveedor por email (la respuesta llega al cliente).
+- **Análisis de consumo** para las sugerencias de pedido y el asistente de chat (`orderflow`).
+- **Informes** por periodo con exportación a PDF.
+- **Panel SUPER_ADMIN:** empresas, usuarios, estadísticas, ampliar la prueba y activar el plan de pago.
+- **Tareas programadas:** avisos de la prueba al cliente (9:00), borrado de datos de pruebas no contratadas a los 30 días (03:30) y limpieza de los límites de uso.
+- **Endpoint interno** para las alertas de n8n (solo accesible desde el propio servidor).
 
 ---
 
-## Stack Tecnológico
+## Stack
 
-| Área               | Tecnología                                          |
-| ------------------ | --------------------------------------------------- |
-| Framework          | Spring Boot 3.5.6, Java 21                          |
-| Seguridad          | Spring Security, JWT HS512 (JJWT 0.11.5)            |
-| Base de datos      | MySQL 8.0+, Spring Data JPA, Hibernate              |
-| Validación         | Jakarta Bean Validation                             |
-| Email              | Spring Mail (SMTP Gmail)                            |
-| PDF                | OpenPDF 1.3.30, PDFBox 2.0.29                       |
-| IA                 | DeepSeek Vision API (Spring WebFlux + Reactor)      |
-| Documentación API  | SpringDoc OpenAPI 2.8.13 (Swagger UI)               |
-| Utilidades         | Lombok, BCrypt                                      |
-| Testing            | JUnit, Mockito, H2 (en memoria)                     |
-| Build              | Maven 3.8+                                          |
+| Área | Tecnología |
+| --- | --- |
+| Web y seguridad | Spring Web, Spring Security, JJWT |
+| Datos | Spring Data JPA, Hibernate, MySQL Connector/J |
+| Validación | Jakarta Bean Validation |
+| Email | Spring Mail (SMTP) |
+| PDF | OpenPDF, PDFBox (PDF de albaranes a imagen) |
+| IA | Tesseract OCR (`spa` + `cat`) + API de chat compatible con OpenAI vía WebClient |
+| Documentación | SpringDoc OpenAPI (Swagger UI) |
+| Utilidades | Lombok |
+| Tests | JUnit 5, Mockito, AssertJ, H2 |
 
 ---
 
-## Requisitos Previos
+## Estructura
 
-- Java 21 o superior
-- Maven 3.8+ (o usar el wrapper incluido)
-- MySQL 8.0+
-- Cuenta Gmail con App Password configurada
-- Variable de entorno `JWT_SECRET` configurada
-- Variable de entorno `DEEPSEEK_API_KEY` configurada (para funcionalidades de IA)
+```text
+src/main/java/com/pedidai/api/
+├── config/          # Idiomas (MessageSource), traducción de respuestas, Swagger, recursos web
+├── controllers/     # Endpoints REST; Pages acota la paginación
+├── dto/             # Entrada/salida de la API con validaciones
+├── entities/        # Company, User, Supplier, Product, PriceHistory, Order, OrderItem
+├── exceptions/      # Excepciones con clave de traducción y manejador global
+├── repositories/    # Spring Data JPA y Specifications de filtros
+├── security/        # JWT, filtro de autenticación, CurrentUser, límites de uso, IP del cliente
+└── services/impl/   # Lógica de negocio y tareas programadas
+src/main/resources/
+├── application.properties   # Sin secretos: todo lo sensible llega por variables de entorno
+└── i18n/                    # messages.properties (es) y messages_ca.properties (ca)
+```
+
+Capas: `Petición → JwtAuthenticationFilter → Controller → Service → Repository → MySQL`.
 
 ---
 
-## Instalación y Configuración
+## Configuración
 
-### 1. Clonar el repositorio
+Variables de entorno (en producción, en `/opt/apps/pedidai/.env`):
 
-```bash
-git clone https://github.com/devepsdev/pedidai.git
-cd pedidai
-```
+| Variable | Obligatoria | Uso |
+| --- | --- | --- |
+| `DB_USER_PEDIDAI`, `DB_PASS_PEDIDAI` | Sí | Credenciales de MySQL |
+| `SPRING_DATASOURCE_URL` | No | URL de la base de datos (por defecto `localhost:3306/pedidai_db`) |
+| `MAIL_USER_PEDIDAI`, `MAIL_PASS_PEDIDAI` | Sí | Cuenta SMTP de envío |
+| `JWT_SECRET` | Sí | Clave de firma de los tokens |
+| `AI_API_KEY` | Para la IA | Clave de la API de IA (Mistral AI) |
+| `AI_API_URL`, `AI_MODEL` | No | Por defecto `https://api.mistral.ai/v1` y `mistral-small-latest` |
+| `CORS_ALLOWED_ORIGINS` | No | Orígenes permitidos (por defecto los dominios públicos y `localhost:4200`) |
+| `SERVER_ADDRESS` | No | `127.0.0.1` en producción: la API solo escucha en local, detrás de nginx |
+| `N8N_NEW_COMPANY_WEBHOOK` | No | Webhook de n8n para el aviso de registro nuevo (vacío = desactivado) |
 
-### 2. Crear la base de datos
+Otras propiedades útiles al arrancar: `--app.frontend.url=http://localhost:4200`, `--app.ocr.tesseract-command=/ruta/a/tesseract` y, para depurar, `--logging.level.com.pedidai.api=DEBUG --spring.jpa.show-sql=true`.
 
-```sql
-CREATE USER 'pedidai_user'@'localhost' IDENTIFIED BY 'password_seguro';
-CREATE DATABASE pedidai_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-GRANT ALL PRIVILEGES ON pedidai_db.* TO 'pedidai_user'@'localhost';
-FLUSH PRIVILEGES;
-```
+La base de datos se crea con los scripts de [`pedidai-db`](../pedidai-db/readme.md) (`ddl-auto=none`).
 
-Ejecutar el script de esquema:
+---
 
-```bash
-mysql -u pedidai_user -p < pedidai-db/pedidai_db_schema.sql
-```
-
-### 3. Configurar variables de entorno
-
-**Windows (PowerShell como administrador):**
-
-```powershell
-[System.Environment]::SetEnvironmentVariable('DB_USER_PEDIDAI', 'pedidai_user', 'Machine')
-[System.Environment]::SetEnvironmentVariable('DB_PASS_PEDIDAI', 'password_seguro', 'Machine')
-[System.Environment]::SetEnvironmentVariable('MAIL_USER_PEDIDAI', 'correo@gmail.com', 'Machine')
-[System.Environment]::SetEnvironmentVariable('MAIL_PASS_PEDIDAI', 'app_password_gmail', 'Machine')
-[System.Environment]::SetEnvironmentVariable('JWT_SECRET', 'tu_secreto_jwt_muy_largo', 'Machine')
-[System.Environment]::SetEnvironmentVariable('DEEPSEEK_API_KEY', 'tu_api_key_deepseek', 'Machine')
-```
-
-**Linux/macOS (añadir a `~/.bashrc` o `~/.zshrc`):**
-
-```bash
-export DB_USER_PEDIDAI=pedidai_user
-export DB_PASS_PEDIDAI=password_seguro
-export MAIL_USER_PEDIDAI=correo@gmail.com
-export MAIL_PASS_PEDIDAI=app_password_gmail
-export JWT_SECRET=tu_secreto_jwt_muy_largo
-export DEEPSEEK_API_KEY=tu_api_key_deepseek
-```
-
-> **Nota Gmail:** Genera una "App Password" desde <https://myaccount.google.com/apppasswords> con la verificación en 2 pasos activada.
-
-### 4. Compilar y ejecutar
+## Ejecución
 
 ```bash
 cd pedidai-api
-
-# Con Maven Wrapper (recomendado)
-./mvnw clean install
-./mvnw spring-boot:run
-
-# Windows
-mvnw.cmd clean install
-mvnw.cmd spring-boot:run
-```
-
-La API estará disponible en: **<http://localhost:8085>**
-
-Swagger UI: **<https://pedidai.es/swagger-ui.html>**
-
----
-
-## Estructura del Proyecto
-
-```text
-pedidai-api/
-└── src/main/java/com/pedidai/api/
-    ├── config/                  # Configuración (Swagger, Web, CORS)
-    ├── controllers/             # Controladores REST
-    │   ├── AuthController       # Autenticación y recuperación de cuenta
-    │   ├── CompanyController    # Gestión de empresa
-    │   ├── UserController       # CRUD de usuarios
-    │   ├── SupplierController   # CRUD de proveedores
-    │   ├── ProductController    # CRUD de productos + imágenes
-    │   ├── OrderController      # Gestión y envío de pedidos
-    │   └── ReportController     # Dashboard y exportación PDF
-    ├── dto/                     # Data Transfer Objects
-    ├── entities/                # Entidades JPA
-    ├── exceptions/              # Gestión de errores centralizada
-    ├── repositories/            # Repositorios JPA + Specifications
-    ├── security/                # JWT y configuración de seguridad
-    └── services/                # Lógica de negocio + impl/
+./mvnw spring-boot:run              # http://localhost:8085 (Swagger en /swagger-ui.html)
+./mvnw test                         # tests con H2, sin MySQL
+./mvnw -DskipTests package          # jar en target/
 ```
 
 ---
 
-## API Endpoints
+## API
 
-### Autenticación — `/api/auth`
+Todas las rutas empiezan por `/api`. Salvo las públicas, necesitan `Authorization: Bearer <token>`. Las respuestas siguen el formato `{ success, message, data, timestamp }`, con `message` traducido según `Accept-Language` (`es` o `ca`). Los listados paginados aceptan `page`, `size` (máximo 200), `sortBy` y `sortDir`.
 
-| Método | Endpoint              | Descripción                          | Auth    |
-| ------ | --------------------- | ------------------------------------ | ------- |
-| POST   | `/login`              | Login con email y contraseña         | Público |
-| POST   | `/verify-email`       | Verificar email tras registro        | Público |
-| POST   | `/forgot-password`    | Solicitar recuperación de contraseña | Público |
-| POST   | `/reset-password`     | Restablecer contraseña con token     | Público |
-| POST   | `/resend-verification`| Reenviar email de verificación       | Público |
+### Autenticación — `/api/auth` (públicos)
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| POST | `/login` | Inicia sesión y devuelve el token |
+| POST | `/verify-email` | Verifica el email con el token recibido |
+| POST | `/resend-verification` | Reenvía el email de verificación |
+| POST | `/forgot-password` | Envía el enlace de recuperación (misma respuesta exista o no la cuenta) |
+| POST | `/reset-password` | Cambia la contraseña con el token |
 
 ### Empresas — `/api/companies`
 
-| Método | Endpoint    | Descripción                       | Auth    |
-| ------ | ----------- | --------------------------------- | ------- |
-| POST   | `/register` | Registrar empresa + administrador | Público |
-| GET    | `/`         | Obtener datos de la empresa       | JWT     |
-| PUT    | `/`         | Actualizar datos de la empresa    | JWT     |
-
-**Ejemplo de registro:**
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| POST | `/register` | Alta de empresa y administrador; empieza la prueba de 14 días y devuelve la sesión (público) |
+| GET | `/` | Datos de la empresa (ADMIN) |
+| PUT | `/` | Actualiza los datos de la empresa (ADMIN) |
+| GET | `/my-plan` | Plan y fin de la prueba |
 
 ```json
 POST /api/companies/register
 {
-  "companyName": "Ferretería El Martillo SL",
-  "taxId": "B12345678",
-  "companyEmail": "info@elmartillo.es",
-  "adminEmail": "admin@elmartillo.es",
-  "adminPassword": "Password123@",
-  "adminFirstName": "Juan",
-  "adminLastName": "García"
+  "companyName": "Bar La Plaza",
+  "adminFirstName": "Laura",
+  "adminEmail": "laura@barlaplaza.es",
+  "adminPassword": "Plaza2026",
+  "acceptTerms": true
 }
 ```
+
+Opcionales: `adminLastName`, `taxId`, `companyPhone`, `companyAddress`, `companyCity`, `companyPostalCode`.
 
 ### Usuarios — `/api/users`
 
-| Método | Endpoint                    | Descripción                           | Auth |
-| ------ | --------------------------- | ------------------------------------- | ---- |
-| GET    | `/`                         | Listar usuarios (paginado)            | JWT  |
-| GET    | `/{uuid}`                   | Obtener usuario por UUID              | JWT  |
-| GET    | `/search`                   | Búsqueda por texto                    | JWT  |
-| GET    | `/filter`                   | Búsqueda avanzada con filtros         | JWT  |
-| POST   | `/`                         | Crear nuevo usuario                   | JWT  |
-| PUT    | `/{uuid}`                   | Actualizar usuario                    | JWT  |
-| PATCH  | `/{uuid}/status`            | Activar/desactivar usuario            | JWT  |
-| PATCH  | `/{uuid}/change-password`   | Cambiar contraseña                    | JWT  |
-| DELETE | `/{uuid}`                   | Eliminar usuario (soft delete)        | JWT  |
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| GET | `/me` | Usuario de la sesión |
+| PATCH | `/me/language` | Idioma del usuario (`es`/`ca`) para emails y PDF |
+| POST | `/me/resend-verification` | Reenvía la verificación del propio email |
+| PATCH | `/{uuid}/change-password` | Cambia la contraseña (solo la propia) |
+| GET, POST | `/` | Listar y crear usuarios de la empresa (ADMIN) |
+| GET, PUT, DELETE | `/{uuid}` | Ver, editar y borrar (baja lógica con email anonimizado) (ADMIN) |
+| PATCH | `/{uuid}/status` | Activar o desactivar (ADMIN) |
+| GET | `/search`, `/filter` | Búsquedas (ADMIN) |
 
-### Proveedores — `/api/suppliers`
+### Proveedores — `/api/suppliers` y productos — `/api/products`
 
-| Método | Endpoint          | Descripción                        | Auth |
-| ------ | ----------------- | ---------------------------------- | ---- |
-| GET    | `/`               | Listar proveedores (paginado)      | JWT  |
-| GET    | `/{uuid}`         | Obtener proveedor por UUID         | JWT  |
-| GET    | `/search`         | Búsqueda básica por texto          | JWT  |
-| GET    | `/filter`         | Búsqueda avanzada con filtros      | JWT  |
-| POST   | `/`               | Crear nuevo proveedor              | JWT  |
-| PUT    | `/{uuid}`         | Actualizar proveedor               | JWT  |
-| PATCH  | `/{uuid}/status`  | Activar/desactivar proveedor       | JWT  |
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| GET, POST | `/api/suppliers` | Listar y crear proveedores |
+| GET, PUT | `/api/suppliers/{uuid}` | Ver y editar |
+| PATCH | `/api/suppliers/{uuid}/status` | Activar o desactivar |
+| GET | `/api/suppliers/search`, `/filter` | Búsquedas |
+| GET | `/api/products`, `/search`, `/filter` | Listar y buscar productos |
+| POST | `/api/products/create` | Crear producto (el precio se guarda en el historial) |
+| GET, PUT | `/api/products/{uuid}` | Ver y editar (sin `imageUrl` se conserva la imagen) |
+| PATCH | `/api/products/deactivate/{uuid}` | Baja lógica |
+| POST | `/api/products/upload/{uuid}` | Sube la imagen (campo `image`; JPEG, PNG o WebP, máx. 5 MB) |
+| GET | `/api/products/compare-prices?productName=` | Comparativa de un producto entre proveedores |
 
-**Parámetros de paginación (todos los GET):** `page`, `size`, `sortBy`, `sortDir`
+### Albaranes y precios
 
-### Productos — `/api/products`
-
-| Método | Endpoint                     | Descripción                            | Auth |
-| ------ | ---------------------------- | -------------------------------------- | ---- |
-| GET    | `/`                          | Listar productos (paginado)            | JWT  |
-| GET    | `/{uuid}`                    | Obtener producto por UUID              | JWT  |
-| GET    | `/search`                    | Búsqueda básica                        | JWT  |
-| GET    | `/filter`                    | Búsqueda avanzada con filtros          | JWT  |
-| POST   | `/create`                    | Crear nuevo producto                   | JWT  |
-| PUT    | `/{uuid}`                    | Actualizar producto                    | JWT  |
-| PATCH  | `/deactivate/{uuid}`         | Desactivar producto (soft delete)      | JWT  |
-| POST   | `/upload/{productUuid}`      | Subir imagen a producto existente      | JWT  |
-| POST   | `/upload-temp`               | Subir imagen temporal                  | JWT  |
-
-**Filtros disponibles:** `supplierUuid`, `name`, `category`, `description`, `volume`, `unit`, `minPrice`, `maxPrice`, `isActive`, `createdAfter`, `createdBefore`
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| POST | `/api/invoices/scan` | Lee un albarán o factura (imagen o PDF) y devuelve las líneas para revisar (40 al día por empresa) |
+| POST | `/api/invoices/confirm` | Guarda las líneas revisadas: productos e historial de precios |
+| GET | `/api/prices/overview?days=` | Comparativa, subidas de precio y estimación de lo pagado de más |
 
 ### Pedidos — `/api/orders`
 
-| Método | Endpoint            | Descripción                                    | Auth |
-| ------ | ------------------- | ---------------------------------------------- | ---- |
-| GET    | `/filter`           | Listar/filtrar pedidos con búsqueda avanzada   | JWT  |
-| GET    | `/{uuid}`           | Obtener pedido por UUID                        | JWT  |
-| POST   | `/create`           | Crear nuevo pedido con ítems                   | JWT  |
-| PUT    | `/update/{uuid}`    | Actualizar pedido existente                    | JWT  |
-| POST   | `/{uuid}/send`      | Enviar pedido al proveedor (email/WhatsApp)    | JWT  |
-| PATCH  | `/delete/{uuid}`    | Cancelar pedido                                | JWT  |
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| POST | `/create` | Crea un pedido pendiente |
+| GET | `/filter` (o `/list`) | Lista con filtros |
+| GET | `/{uuid}` | Detalle |
+| PUT | `/update/{uuid}` | Edita un pedido pendiente |
+| POST | `/{uuid}/send` | Envía el pedido al proveedor por email (requiere email verificado) |
+| PATCH | `/{uuid}/cancel` | Cancela un pedido pendiente |
+| PATCH | `/delete/{uuid}` | Baja lógica |
+| GET | `/consumption-analysis?days=` | Consumo por producto (base de las sugerencias) |
 
-**Estados del pedido:** `PENDING` → `SENT` → `CONFIRMED` / `REJECTED` / `COMPLETED` / `CANCELLED`
-
-**Métodos de notificación:** `EMAIL`, `WHATSAPP`, `BOTH`
-
-**Ejemplo de creación:**
-
-```json
-POST /api/orders/create
-{
-  "name": "Pedido Semanal #42",
-  "supplierUuid": "550e8400-e29b-41d4-a716-446655440000",
-  "deliveryDate": "2026-05-10",
-  "notes": "Entregar antes de las 10h",
-  "notificationMethod": "EMAIL",
-  "items": [
-    {
-      "productUuid": "660e8400-e29b-41d4-a716-446655440001",
-      "quantity": 10,
-      "notes": "Preferiblemente ecológico"
-    }
-  ]
-}
-```
+Estados en uso: `PENDING` → `SENT`, o `PENDING` → `CANCELLED`. `CONFIRMED`, `REJECTED` y `COMPLETED` están reservados.
 
 ### Informes — `/api/reports`
 
-| Método | Endpoint        | Descripción                                  | Auth |
-| ------ | --------------- | -------------------------------------------- | ---- |
-| GET    | `/dashboard`    | Datos del dashboard (último mes)             | JWT  |
-| GET    | `/global`       | Informe global por período personalizado     | JWT  |
-| GET    | `/global/pdf`   | Informe global en formato PDF                | JWT  |
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| GET | `/dashboard` | Resumen del panel de inicio (todos los usuarios) |
+| GET | `/global`, `/global/pdf` | Informe por periodo en JSON o PDF (ADMIN) |
 
-**Parámetros de informe:** `startDate`, `endDate` (formato `YYYY-MM-DD`)
+### Plataforma
 
----
-
-## Base de Datos
-
-El esquema completo está en `pedidai-db/pedidai_db_schema.sql`. Consulta [pedidai-db/readme.md](../pedidai-db/readme.md) para la documentación detallada de tablas y relaciones.
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| GET | `/api/superadmin/dashboard`, `/companies`, `/companies/{uuid}`, `/users`, `/stats/monthly` | Panel SUPER_ADMIN |
+| PATCH | `/api/superadmin/companies/{uuid}/status` | Cambia el estado (`ACTIVE`, `INACTIVE`, `PENDING`, `SUSPENDED`) |
+| PATCH | `/api/superadmin/companies/{uuid}/extend-trial` | `{ "days": 14 }`: suma días al final de la prueba (no en clientes de pago ni en la plataforma) |
+| PATCH | `/api/superadmin/companies/{uuid}/activate` | Pasa a cliente de pago |
+| GET | `/api/internal/daily-summary?hours=24` | Resumen para n8n (solo peticiones locales que no pasan por nginx) |
 
 ---
 
 ## Seguridad
 
-### JWT (JSON Web Tokens)
-
-- **Algoritmo:** HS512 (HMAC-SHA512)
-- **Caducidad:** 1 hora
-- **Claims:** `sub` (email), `role` (ADMIN/USER), `uuid`, `companyId`
-
-### Requisitos de contraseña
-
-- Mínimo 8 caracteres
-- Al menos 1 letra mayúscula
-- Al menos 1 letra minúscula
-- Al menos 1 número
-- Al menos 1 carácter especial (`@#$%^&+=...`)
-
-### Multi-tenancy
-
-Cada usuario solo puede acceder a los datos de su empresa. El `companyId` se extrae automáticamente del token JWT — no es manipulable desde el cliente.
+- **Roles:** `USER` (pedidos), `ADMIN` (además informes, empresa y usuarios) y `SUPER_ADMIN` (plataforma). Nadie puede asignarse un rol superior.
+- **JWT** con el email y el rol; en cada petición se comprueba en la base de datos que el usuario y la empresa siguen activos y que la prueba no ha terminado.
+- **Contraseñas:** mínimo 8 caracteres con alguna letra y algún número, guardadas con BCrypt.
+- **Límites de uso:** 8 intentos de login fallidos por cuenta y 40 por IP cada 15 minutos, 5 registros por IP y hora, recuperación de contraseña y lecturas de albaranes por día. La IP se toma de `X-Real-IP` (la fija nginx).
+- **Errores** sin detalles internos (400, 401, 403, 404, 405, 409, 415, 429 y 500) y mensajes que no revelan si un email existe.
+- **Emails** con el contenido del usuario escapado; los logs enmascaran las direcciones.
+- **Imágenes** validadas por contenido y guardadas con nombre aleatorio.
 
 ---
 
-## Sistema de Emails
+## Emails
 
-| Tipo                       | Caducidad     | Descripción                                             |
-| -------------------------- | ------------- | ------------------------------------------------------- |
-| Verificación de email      | 24 horas      | Se envía tras el registro con enlace de verificación    |
-| Recuperación de contraseña | 1 hora        | Se envía al solicitar reset con enlace temporal         |
-| Notificación de pedido     | Sin caducidad | Se envía al proveedor al confirmar el envío del pedido  |
+| Email | Cuándo |
+| --- | --- |
+| Bienvenida con verificación | Al registrarse (enlace válido 48 h) |
+| Verificación | Usuarios nuevos del equipo o al pedir otro enlace |
+| Recuperación de contraseña | Al pedirla (enlace válido 1 h) |
+| Pedido al proveedor | Al enviar un pedido (respuesta al email del cliente) |
+| La prueba acaba en 3 días | Tarea de las 9:00, con la actividad de la prueba |
+| La prueba ha terminado | Tarea de las 9:00, con la fecha de borrado de los datos |
 
-El email de pedido incluye: datos de la empresa, tabla de productos con cantidades, notas y fecha de entrega prevista.
-
----
-
-## Flujo de Registro
-
-```text
-POST /api/companies/register
-        │
-        ▼
-  Validar datos
-        │
-        ▼
-  Crear Company (PENDING) + User ADMIN (email_verified=false)
-        │
-        ▼
-  Enviar email de verificación (token 24h)
-        │
-  [Usuario hace clic en el enlace]
-        │
-        ▼
-  POST /api/auth/verify-email
-        │
-        ▼
-  email_verified=true → Company status=ACTIVE
-```
-
-## Flujo de Pedido
-
-```text
-POST /api/orders/create → Order (PENDING) + OrderItems
-        │
-  [Usuario revisa y confirma]
-        │
-        ▼
-POST /api/orders/{uuid}/send
-        │
-        ▼
-  Enviar notificación al proveedor (EMAIL/WhatsApp)
-        │
-        ▼
-  Order status = SENT
-```
-
----
-
-## Formato de Respuesta
-
-Todas las respuestas siguen el formato `ApiResponseDTO`:
-
-```json
-{
-  "success": true,
-  "message": "Operación realizada correctamente",
-  "data": { },
-  "timestamp": "2026-04-13T14:30:00"
-}
-```
-
-Las respuestas paginadas siguen el formato `PagedResponseDTO`:
-
-```json
-{
-  "success": true,
-  "message": "Búsqueda completada",
-  "data": {
-    "content": [],
-    "pageable": {
-      "page": 0,
-      "size": 10,
-      "totalPages": 5,
-      "totalElements": 48,
-      "first": true,
-      "last": false
-    }
-  },
-  "timestamp": "2026-04-13T14:30:00"
-}
-```
-
----
-
-## Gestión de Errores
-
-| Código | Descripción                               |
-| ------ | ----------------------------------------- |
-| 200    | Operación correcta                        |
-| 201    | Recurso creado correctamente              |
-| 400    | Petición incorrecta o validación fallida  |
-| 401    | No autorizado (token inválido o expirado) |
-| 404    | Recurso no encontrado                     |
-| 409    | Conflicto (recurso duplicado)             |
-| 500    | Error interno del servidor                |
-
----
-
-## Scripts Maven
-
-| Acción    | Comando                              |
-| --------- | ------------------------------------ |
-| Compilar  | `./mvnw clean install`               |
-| Ejecutar  | `./mvnw spring-boot:run`             |
-| Tests     | `./mvnw test`                        |
-| Empaquetar| `./mvnw clean package -DskipTests`   |
+Todos se envían en el idioma del usuario.
 
 ---
 
@@ -431,12 +236,4 @@ Las respuestas paginadas siguen el formato `PagedResponseDTO`:
 - **Daniel Garcia** — Backend Developer
 - **Enrique Pérez** — Full Stack Developer
 
-## Contacto
-
-- **Email:** <devepsdev@gmail.com>
-- **Web:** <https://pedidai.es>
-- **Swagger UI:** <https://pedidai.es/swagger-ui.html>
-
----
-
-*Documentación completa: consulta Swagger UI para todos los endpoints y sus parámetros.*
+Contacto: [hola@pedidai.es](mailto:hola@pedidai.es) · [pedidai.es](https://pedidai.es)

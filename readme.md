@@ -55,7 +55,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
           páginas web  │  /api │   /ai │
                        ▼       ▼       ▼
    /var/www/pedidai.es     Spring Boot      Asistente (Docker, Node.js)
-   (ficheros de Angular)   :8085            :3201 ──► DeepSeek
+   (ficheros de Angular)   :8085            :3201 ──► Mistral AI
                             │  ▲               │
                             │  └───────────────┘  REST con el token
                             │                     del propio usuario
@@ -70,9 +70,9 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 | --- | --- |
 | `pedidai-app` (Angular) | Interfaz web. Se sirve como ficheros estáticos y consume la API; el interceptor añade el JWT y el idioma (`Accept-Language`). |
 | nginx | HTTPS y proxy inverso: `/` → Angular, `/api` → Spring Boot, `/ai/` → asistente, `/n8n/` → n8n. |
-| `pedidai-api` (Spring Boot) | Lógica de negocio, autenticación JWT, aislamiento por empresa, emails (SMTP), PDF y lectura de albaranes (Tesseract + DeepSeek). Único acceso a MySQL. |
+| `pedidai-api` (Spring Boot) | Lógica de negocio, autenticación JWT, aislamiento por empresa, emails (SMTP), PDF y lectura de albaranes (Tesseract + Mistral AI). Único acceso a MySQL. |
 | MySQL | Persistencia (`pedidai_db`). |
-| Asistente de pedidos (`orderflow`) | Chat de pedidos: Express + *function calling* de DeepSeek. Cada herramienta llama a la API con el token del usuario, por lo que tiene sus mismos permisos. Crea pedidos en estado `PENDING`; el envío siempre lo confirma el usuario desde la web. |
+| Asistente de pedidos (`orderflow`) | Chat de pedidos: Express + *function calling* de Mistral AI. Cada herramienta llama a la API con el token del usuario, por lo que tiene sus mismos permisos. Crea pedidos en estado `PENDING`; el envío siempre lo confirma el usuario desde la web. |
 | n8n (`orderflow`) | Emails informativos al equipo: aviso de cada registro nuevo (webhook que llama la API tras el alta) y resumen diario a las 8:00 con registros, pruebas que acaban, pruebas vencidas, borrados próximos y actividad (lee `GET /api/internal/daily-summary`). |
 | Docker | Ejecuta el asistente y n8n (`docker compose` en `orderflow`). |
 
@@ -116,7 +116,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 | Frontend | Angular 21 (standalone, *signals*, sin zone.js), TypeScript 5.9, Tailwind CSS 4, ngx-translate 17, Vitest |
 | Backend | Java 25, Spring Boot 3.5 (Web, Data JPA, Security, Validation, Mail), JJWT, OpenPDF, SpringDoc (Swagger) |
 | Base de datos | MySQL 8 (InnoDB, `utf8mb4`); H2 en memoria para los tests |
-| IA | Tesseract OCR (castellano + catalán) en el servidor; DeepSeek para estructurar albaranes y para el chat |
+| IA | Tesseract OCR (castellano + catalán) en el servidor; Mistral AI (empresa europea, servidores en la UE) para estructurar albaranes y para el chat. Configurable: cualquier API compatible con OpenAI |
 | Asistente | Node.js 20 + Express 5, en Docker |
 | Automatización | n8n 2 en Docker: emails informativos al equipo (webhook + tarea diaria + SMTP) |
 | Servidor | VPS Ubuntu, nginx (HTTPS con Let's Encrypt), systemd, ufw |
@@ -132,7 +132,7 @@ pedidai/
 └── pedidai-db/           # Esquema SQL, migraciones y documentación de tablas
 
 orderflow/                # Repositorio aparte
-├── assistant/            # Asistente de pedidos por chat (Express + DeepSeek + herramientas)
+├── assistant/            # Asistente de pedidos por chat (Express + Mistral AI + herramientas)
 ├── n8n-workflows/        # Flujos de n8n: aviso de registro nuevo y resumen diario
 └── docker-compose.yml    # Levanta el asistente y n8n
 ```
@@ -236,7 +236,7 @@ Detalle de columnas en [`pedidai-db/readme.md`](pedidai-db/readme.md).
 - **Contraseñas:** mínimo 8 caracteres con letras y números, guardadas con BCrypt.
 - **Errores sin detalles internos** y mensajes que no revelan si un email existe.
 - **Emails a proveedores** sin HTML inyectable; imágenes validadas por contenido y guardadas con nombre aleatorio.
-- **IA:** a DeepSeek solo se envía el texto necesario (el OCR se hace en nuestro servidor). Está explicado en la política de privacidad.
+- **IA:** se usa Mistral AI (UE), con el uso de los datos para entrenar desactivado; solo se envía el texto necesario (el OCR se hace en nuestro servidor). Está explicado en la política de privacidad.
 - **Endpoints internos** (`/api/internal/`): solo responden a peticiones locales que no pasan por nginx, y nginx además los bloquea; los webhooks de n8n tampoco son accesibles desde fuera.
 - **Cabeceras de seguridad** en toda la web (HSTS, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`) desde un *snippet* de nginx, sin duplicarlas con las de Spring; nginx no muestra su versión.
 - **La API solo escucha en `127.0.0.1`** (`SERVER_ADDRESS`); desde fuera solo se llega a través de nginx.
@@ -284,7 +284,7 @@ export DB_PASS_PEDIDAI=password_seguro
 export MAIL_USER_PEDIDAI=correo@ejemplo.com
 export MAIL_PASS_PEDIDAI=contraseña_de_aplicación
 export JWT_SECRET=un_secreto_largo_y_aleatorio
-export DEEPSEEK_API_KEY=tu_api_key
+export AI_API_KEY=tu_clave_de_mistral   # opcionales: AI_API_URL, AI_MODEL
 # Opcionales: orígenes CORS (por defecto los dominios públicos y localhost:4200)
 # export CORS_ALLOWED_ORIGINS=https://pedidai.es,http://localhost:4200
 # Aviso a n8n de cada registro nuevo (vacío = desactivado)
@@ -315,7 +315,7 @@ npx ng build                    # producción → dist/pedidai-app/browser
 
 ```bash
 cd orderflow/assistant
-cp .env.example .env            # PEDIDAI_API_URL=http://localhost:8085/api y DEEPSEEK_API_KEY
+cp .env.example .env            # PEDIDAI_API_URL=http://localhost:8085/api y AI_API_KEY
 npm install && npm start        # http://127.0.0.1:3201/health
 ```
 
@@ -331,7 +331,7 @@ Todo corre en un VPS Ubuntu:
 | --- | --- |
 | Web (Angular) | `/var/www/pedidai.es`, servida por nginx |
 | API (Spring Boot) | `/opt/apps/pedidai/pedidai-api/target/*.jar`, servicio `pedidai-api.service` (puerto 8085, solo local) |
-| Configuración y secretos de la API | `/opt/apps/pedidai/.env` (permisos `600`, cargado con `EnvironmentFile=`): credenciales, `JWT_SECRET`, `DEEPSEEK_API_KEY`, `SERVER_ADDRESS=127.0.0.1`, `CORS_ALLOWED_ORIGINS` y `N8N_NEW_COMPANY_WEBHOOK` |
+| Configuración y secretos de la API | `/opt/apps/pedidai/.env` (permisos `600`, cargado con `EnvironmentFile=`): credenciales, `JWT_SECRET`, `AI_API_KEY`, `SERVER_ADDRESS=127.0.0.1`, `CORS_ALLOWED_ORIGINS` y `N8N_NEW_COMPANY_WEBHOOK` |
 | Imágenes de productos | `/opt/apps/pedidai/pedidai-api/img/productes/` |
 | Asistente y n8n | `/opt/apps/orderflow`, con `docker compose`, red `host` y escuchando solo en local (asistente en `127.0.0.1:3201`, n8n en `127.0.0.1:5678`) |
 | Base de datos | MySQL local, `pedidai_db` |

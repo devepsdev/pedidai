@@ -914,7 +914,7 @@
       "Q5": "¿Cuánto tiempo me lleva?",
       "A5": "Crear la cuenta, un minuto.\nCada albarán, lo que tardas en hacer la foto y revisar las líneas.\nPedir por chat es escribir lo que necesitas.",
       "Q6": "¿Qué pasa con mis datos?",
-      "A6": "Tus datos solo los ves tú y tu equipo.\nPara leer los albaranes y preparar pedidos usamos inteligencia artificial (DeepSeek).\nSolo le enviamos el texto necesario.\nLo tienes todo explicado en la política de privacidad.",
+      "A6": "Tus datos solo los ves tú y tu equipo.\nPara leer los albaranes y preparar pedidos usamos inteligencia artificial de Mistral AI.\nEs una empresa europea, con servidores en la UE.\nSolo le enviamos el texto necesario.\nLo tienes todo explicado en la política de privacidad.",
       "Q7": "Tengo varios locales, ¿cómo funciona?",
       "A7": "El precio es por local y cada local tiene su cuenta.\nSi tienes varios, escríbenos a hola@pedidai.es y lo organizamos contigo.",
       "Q8": "¿Hay permanencia?",

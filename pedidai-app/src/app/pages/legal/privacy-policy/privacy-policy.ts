@@ -12,7 +12,7 @@ const OWNER: [string, string][] = [
 const CONTENT: Bilingual<LegalDocument> = {
   es: {
     title: 'Política de privacidad',
-    updated: 'Última actualización: septiembre de 2026',
+    updated: 'Última actualización: octubre de 2026',
     intro: 'Explicamos qué datos tratamos en PedidAI, para qué, con quién los compartimos y cómo puedes ejercer tus derechos.',
     sections: [
       { title: 'Responsable del tratamiento', facts: OWNER },
@@ -50,7 +50,7 @@ const CONTENT: Bilingual<LegalDocument> = {
           head: ['Proveedor', 'Para qué', 'Dónde'],
           rows: [
             ['OVHcloud', 'Alojamiento del servidor y de la base de datos.', 'Unión Europea (Francia)'],
-            ['DeepSeek (Hangzhou DeepSeek Artificial Intelligence Co., Ltd.)', 'Inteligencia artificial: (1) estructurar el texto de tus albaranes y facturas, que extraemos antes en nuestro propio servidor (la imagen no se envía); (2) preparar los pedidos que pides por chat, para lo que recibe tu mensaje y los datos de proveedores, productos y precios necesarios.', 'China (transferencia internacional; ver punto 6)'],
+            ['Mistral AI (Francia)', 'Inteligencia artificial: (1) estructurar el texto de tus albaranes y facturas, que extraemos antes en nuestro propio servidor (la imagen no se envía); (2) preparar los pedidos que pides por chat, para lo que recibe tu mensaje y los datos de proveedores, productos y precios necesarios. Tenemos desactivado el uso de estos datos para entrenar sus modelos.', 'Unión Europea (Francia)'],
             ['Google (Gmail)', 'Envío de los emails de la plataforma y de los pedidos a tus proveedores.', 'UE y EE. UU. (Marco de Privacidad de Datos UE-EE. UU.)'],
             ['Google Analytics y Google Ads (Google Ireland Ltd.)', 'Analítica de la web y medición de campañas. Solo con tu consentimiento.', 'UE y EE. UU. (Marco de Privacidad de Datos UE-EE. UU.)'],
             ['Cloudflare', 'Servicio de DNS del dominio (traduce pedidai.es a la dirección del servidor; el tráfico de la web no pasa por sus servidores).', 'Global'],
@@ -62,10 +62,10 @@ const CONTENT: Bilingual<LegalDocument> = {
         ],
       },
       {
-        title: 'Transferencias internacionales (DeepSeek)',
+        title: 'Transferencias internacionales',
         paragraphs: [
-          'DeepSeek presta su servicio desde China, un país que no cuenta con una decisión de adecuación de la Comisión Europea. Por eso enviamos solo la información imprescindible: nunca imágenes, contraseñas ni datos de tu cuenta, sino el texto de los documentos y los datos de catálogo necesarios para cada tarea.',
-          'La transferencia es necesaria para prestar las funciones de lectura de albaranes y pedidos por chat que solicitas. Te recomendamos no escribir datos personales de terceros en el chat. Si no quieres que tus datos se procesen con DeepSeek, puedes no usar esas funciones o escribirnos.',
+          'El alojamiento y la inteligencia artificial están en la Unión Europea. Solo Google (envío de emails y, si lo aceptas, analítica y publicidad) puede tratar datos en EE. UU., amparado en el Marco de Privacidad de Datos UE-EE. UU.',
+          'A la inteligencia artificial solo le enviamos la información imprescindible para cada tarea: nunca imágenes, contraseñas ni datos de tu cuenta, sino el texto de los documentos y los datos de catálogo necesarios. Te recomendamos no escribir datos personales de terceros en el chat.',
         ],
       },
       {
@@ -95,7 +95,7 @@ const CONTENT: Bilingual<LegalDocument> = {
   },
   ca: {
     title: 'Política de privacitat',
-    updated: 'Darrera actualització: setembre de 2026',
+    updated: 'Darrera actualització: octubre de 2026',
     intro: 'T’expliquem quines dades tractem a PedidAI, per a què, amb qui les compartim i com pots exercir els teus drets.',
     sections: [
       { title: 'Responsable del tractament', facts: OWNER },
@@ -133,7 +133,7 @@ const CONTENT: Bilingual<LegalDocument> = {
           head: ['Proveïdor', 'Per a què', 'On'],
           rows: [
             ['OVHcloud', 'Allotjament del servidor i de la base de dades.', 'Unió Europea (França)'],
-            ['DeepSeek (Hangzhou DeepSeek Artificial Intelligence Co., Ltd.)', 'Intel·ligència artificial: (1) estructurar el text dels teus albarans i factures, que extraiem abans al nostre propi servidor (la imatge no s’envia); (2) preparar les comandes que demanes per xat, per a la qual cosa rep el teu missatge i les dades de proveïdors, productes i preus necessàries.', 'Xina (transferència internacional; vegeu el punt 6)'],
+            ['Mistral AI (França)', 'Intel·ligència artificial: (1) estructurar el text dels teus albarans i factures, que extraiem abans al nostre propi servidor (la imatge no s’envia); (2) preparar les comandes que demanes per xat, per a la qual cosa rep el teu missatge i les dades de proveïdors, productes i preus necessàries. Tenim desactivat l’ús d’aquestes dades per entrenar els seus models.', 'Unió Europea (França)'],
             ['Google (Gmail)', 'Enviament dels correus de la plataforma i de les comandes als teus proveïdors.', 'UE i EUA (Marc de Privacitat de Dades UE-EUA)'],
             ['Google Analytics i Google Ads (Google Ireland Ltd.)', 'Analítica del web i mesura de campanyes. Només amb el teu consentiment.', 'UE i EUA (Marc de Privacitat de Dades UE-EUA)'],
             ['Cloudflare', 'Servei de DNS del domini (tradueix pedidai.es a l’adreça del servidor; el trànsit del web no passa pels seus servidors).', 'Global'],
@@ -145,10 +145,10 @@ const CONTENT: Bilingual<LegalDocument> = {
         ],
       },
       {
-        title: 'Transferències internacionals (DeepSeek)',
+        title: 'Transferències internacionals',
         paragraphs: [
-          'DeepSeek presta el seu servei des de la Xina, un país que no té una decisió d’adequació de la Comissió Europea. Per això enviem només la informació imprescindible: mai imatges, contrasenyes ni dades del teu compte, sinó el text dels documents i les dades de catàleg necessàries per a cada tasca.',
-          'La transferència és necessària per prestar les funcions de lectura d’albarans i comandes per xat que sol·licites. Et recomanem no escriure dades personals de tercers al xat. Si no vols que les teves dades es processin amb DeepSeek, pots no fer servir aquestes funcions o escriure’ns.',
+          'L’allotjament i la intel·ligència artificial són a la Unió Europea. Només Google (enviament de correus i, si ho acceptes, analítica i publicitat) pot tractar dades als EUA, emparat en el Marc de Privacitat de Dades UE-EUA.',
+          'A la intel·ligència artificial només li enviem la informació imprescindible per a cada tasca: mai imatges, contrasenyes ni dades del teu compte, sinó el text dels documents i les dades de catàleg necessàries. Et recomanem no escriure dades personals de tercers al xat.',
         ],
       },
       {

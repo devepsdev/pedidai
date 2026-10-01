@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Lectura d'albarans i factures: l'OCR (Tesseract) s'executa al servidor i només el TEXT
- * extret s'envia a DeepSeek per estructurar-lo. La imatge no surt mai del servidor.
+ * extret s'envia a la IA (Mistral per defecte) per estructurar-lo. La imatge no surt mai del servidor.
  */
 @Service
 @Slf4j
@@ -89,9 +89,9 @@ public class AiVisionServiceImpl implements AiVisionService {
 
     public AiVisionServiceImpl(
             ObjectMapper objectMapper,
-            @Value("${deepseek.api.key}") String apiKey,
-            @Value("${deepseek.api.url:https://api.deepseek.com}") String apiUrl,
-            @Value("${deepseek.model:deepseek-v4-flash}") String model,
+            @Value("${ai.api.key:}") String apiKey,
+            @Value("${ai.api.url:https://api.mistral.ai/v1}") String apiUrl,
+            @Value("${ai.model:mistral-small-latest}") String model,
             @Value("${app.ocr.tesseract-command:tesseract}") String tesseractCommand) {
         this.objectMapper = objectMapper;
         this.model = model;
@@ -111,7 +111,7 @@ public class AiVisionServiceImpl implements AiVisionService {
     public AiInvoiceDataDTO analyzeInvoice(byte[] imageBytes, String mediaType) {
         String ocrText = extractTextWithTesseract(imageBytes, mediaType);
         log.debug("OCR: {} caràcters", ocrText.length());
-        AiInvoiceDataDTO data = structureWithDeepSeek(ocrText);
+        AiInvoiceDataDTO data = structureWithAi(ocrText);
         fillMissingUnitPrices(data);
         return data;
     }
@@ -171,7 +171,7 @@ public class AiVisionServiceImpl implements AiVisionService {
         }
     }
 
-    private AiInvoiceDataDTO structureWithDeepSeek(String ocrText) {
+    private AiInvoiceDataDTO structureWithAi(String ocrText) {
         Map<String, Object> requestBody = Map.of(
                 "model", model,
                 "messages", List.of(
@@ -179,8 +179,7 @@ public class AiVisionServiceImpl implements AiVisionService {
                         Map.of("role", "user", "content", "Texto OCR del documento:\n\n" + ocrText)),
                 "response_format", Map.of("type", "json_object"),
                 "temperature", 0,
-                "stream", false,
-                "thinking", Map.of("type", "disabled")
+                "stream", false
         );
 
         try {
@@ -200,7 +199,7 @@ public class AiVisionServiceImpl implements AiVisionService {
             return objectMapper.readValue(content, AiInvoiceDataDTO.class);
 
         } catch (Exception e) {
-            log.error("Error de DeepSeek en estructurar l'albarà: {}", e.getMessage());
+            log.error("Error de la IA en estructurar l'albarà: {}", e.getMessage());
             throw new InvoiceReadException("error.invoice.aiFailed", e);
         }
     }
