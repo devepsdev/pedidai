@@ -51,9 +51,10 @@ const CONTENT: Bilingual<LegalDocument> = {
           rows: [
             ['OVHcloud', 'Alojamiento del servidor y de la base de datos.', 'Unión Europea (Francia)'],
             ['Mistral AI (Francia)', 'Inteligencia artificial: (1) estructurar el texto de tus albaranes y facturas, que extraemos antes en nuestro propio servidor (la imagen no se envía); (2) preparar los pedidos que pides por chat, para lo que recibe tu mensaje y los datos de proveedores, productos y precios necesarios. Tenemos desactivado el uso de estos datos para entrenar sus modelos.', 'Unión Europea (Francia)'],
-            ['Google (Gmail)', 'Envío de los emails de la plataforma y de los pedidos a tus proveedores.', 'UE y EE. UU. (Marco de Privacidad de Datos UE-EE. UU.)'],
+            ['Brevo (Sendinblue SAS, Francia)', 'Envío de los emails de la plataforma y de los pedidos a tus proveedores. Registra de forma anónima, sin asociarlas a cada destinatario, las aperturas y los clics.', 'Unión Europea (Francia)'],
+            ['Google (Gmail)', 'Buzón en el que recibimos y respondemos los emails que escribes a hola@pedidai.es.', 'UE y EE. UU. (Marco de Privacidad de Datos UE-EE. UU.)'],
             ['Google Analytics y Google Ads (Google Ireland Ltd.)', 'Analítica de la web y medición de campañas. Solo con tu consentimiento.', 'UE y EE. UU. (Marco de Privacidad de Datos UE-EE. UU.)'],
-            ['Cloudflare', 'Servicio de DNS del dominio (traduce pedidai.es a la dirección del servidor; el tráfico de la web no pasa por sus servidores).', 'Global'],
+            ['Cloudflare', 'Servicio de DNS del dominio (traduce pedidai.es a la dirección del servidor; el tráfico de la web no pasa por sus servidores) y reenvío de los emails dirigidos a hola@pedidai.es.', 'Global'],
           ],
         },
         list: [
@@ -64,7 +65,7 @@ const CONTENT: Bilingual<LegalDocument> = {
       {
         title: 'Transferencias internacionales',
         paragraphs: [
-          'El alojamiento y la inteligencia artificial están en la Unión Europea. Solo Google (envío de emails y, si lo aceptas, analítica y publicidad) puede tratar datos en EE. UU., amparado en el Marco de Privacidad de Datos UE-EE. UU.',
+          'El alojamiento, el envío de emails y la inteligencia artificial están en la Unión Europea. Solo Google (el buzón de hola@pedidai.es y, si lo aceptas, analítica y publicidad) y Cloudflare (reenvío de los emails a ese buzón) pueden tratar datos fuera de ella, amparados en el Marco de Privacidad de Datos UE-EE. UU.',
           'A la inteligencia artificial solo le enviamos la información imprescindible para cada tarea: nunca imágenes, contraseñas ni datos de tu cuenta, sino el texto de los documentos y los datos de catálogo necesarios. Te recomendamos no escribir datos personales de terceros en el chat.',
         ],
       },
@@ -134,9 +135,10 @@ const CONTENT: Bilingual<LegalDocument> = {
           rows: [
             ['OVHcloud', 'Allotjament del servidor i de la base de dades.', 'Unió Europea (França)'],
             ['Mistral AI (França)', 'Intel·ligència artificial: (1) estructurar el text dels teus albarans i factures, que extraiem abans al nostre propi servidor (la imatge no s’envia); (2) preparar les comandes que demanes per xat, per a la qual cosa rep el teu missatge i les dades de proveïdors, productes i preus necessàries. Tenim desactivat l’ús d’aquestes dades per entrenar els seus models.', 'Unió Europea (França)'],
-            ['Google (Gmail)', 'Enviament dels correus de la plataforma i de les comandes als teus proveïdors.', 'UE i EUA (Marc de Privacitat de Dades UE-EUA)'],
+            ['Brevo (Sendinblue SAS, França)', 'Enviament dels correus de la plataforma i de les comandes als teus proveïdors. Registra de manera anònima, sense associar-les a cada destinatari, les obertures i els clics.', 'Unió Europea (França)'],
+            ['Google (Gmail)', 'Bústia on rebem i responem els correus que escrius a hola@pedidai.es.', 'UE i EUA (Marc de Privacitat de Dades UE-EUA)'],
             ['Google Analytics i Google Ads (Google Ireland Ltd.)', 'Analítica del web i mesura de campanyes. Només amb el teu consentiment.', 'UE i EUA (Marc de Privacitat de Dades UE-EUA)'],
-            ['Cloudflare', 'Servei de DNS del domini (tradueix pedidai.es a l’adreça del servidor; el trànsit del web no passa pels seus servidors).', 'Global'],
+            ['Cloudflare', 'Servei de DNS del domini (tradueix pedidai.es a l’adreça del servidor; el trànsit del web no passa pels seus servidors) i reenviament dels correus adreçats a hola@pedidai.es.', 'Global'],
           ],
         },
         list: [
@@ -147,7 +149,7 @@ const CONTENT: Bilingual<LegalDocument> = {
       {
         title: 'Transferències internacionals',
         paragraphs: [
-          'L’allotjament i la intel·ligència artificial són a la Unió Europea. Només Google (enviament de correus i, si ho acceptes, analítica i publicitat) pot tractar dades als EUA, emparat en el Marc de Privacitat de Dades UE-EUA.',
+          'L’allotjament, l’enviament de correus i la intel·ligència artificial són a la Unió Europea. Només Google (la bústia d’hola@pedidai.es i, si ho acceptes, analítica i publicitat) i Cloudflare (reenviament dels correus a aquesta bústia) poden tractar dades fora d’ella, emparats en el Marc de Privacitat de Dades UE-EUA.',
           'A la intel·ligència artificial només li enviem la informació imprescindible per a cada tasca: mai imatges, contrasenyes ni dades del teu compte, sinó el text dels documents i les dades de catàleg necessàries. Et recomanem no escriure dades personals de tercers al xat.',
         ],
       },
