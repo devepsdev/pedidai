@@ -5,9 +5,9 @@ export const environment = {
   analytics: {
     // Google Analytics 4
     gaId: 'G-EX93P8G7PH',
-    // Google Ads: ID de la cuenta (AW-XXXXXXXXX) y etiqueta de la conversión "registro completado".
-    // Vacíos = Google Ads desactivado. Rellenar cuando se cree la conversión en Google Ads.
-    adsId: '',
-    adsSignupLabel: '',
+    // Google Ads: ID de la cuenta y etiqueta de la conversión "Registro PedidAI".
+    // Vacíos = Google Ads desactivado.
+    adsId: 'AW-18487891560',
+    adsSignupLabel: 'vfjcCIP4k40dEOis2-9E',
   },
 };
