@@ -1,4 +1,4 @@
-<div class="p-4 md:p-6">
+<div class="p-4 md:p-6 max-w-7xl mx-auto">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
     <div>
@@ -175,7 +175,7 @@
                         [style.width.%]="s.percentatge">
                       </div>
                     </div>
-                    <span class="text-xs text-gray-500 whitespace-nowrap w-10 text-right">{{ s.percentatge.toFixed(1) }}%</span>
+                    <span class="text-xs text-gray-500 whitespace-nowrap w-10 text-right">{{ percent(s.percentatge) }}</span>
                   </div>
                 </td>
               </tr>

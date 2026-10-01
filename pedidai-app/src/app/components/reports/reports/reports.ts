@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReportService } from '../../../services/report';
 import { GlobalReport } from '../../../models/dashboard.model';
+import { LanguageService } from '../../../services/language.service';
+import { formatMoney, formatNumber } from '../../../shared/format';
 
 type QuickRange = 'LAST_WEEK' | 'LAST_MONTH' | 'LAST_YEAR' | '';
 
@@ -12,6 +14,7 @@ type QuickRange = 'LAST_WEEK' | 'LAST_MONTH' | 'LAST_YEAR' | '';
   templateUrl: './reports.html',
 })
 export class Reports implements OnInit {
+  private language = inject(LanguageService);
   private translate = inject(TranslateService);
   private reportService = inject(ReportService);
 
@@ -106,8 +109,12 @@ export class Reports implements OnInit {
     return Math.max(...r.despesaProveidors.map(s => s.despesaTotal));
   }
 
+  percent(value: number): string {
+    return formatNumber(value, this.language.current(), 1) + ' %';
+  }
+
   formatAmount(amount: number): string {
-    return amount.toFixed(2) + ' €';
+    return formatMoney(amount, this.language.current());
   }
 
   topProducts() {

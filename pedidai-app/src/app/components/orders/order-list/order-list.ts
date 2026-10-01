@@ -7,6 +7,8 @@ import { SupplierService } from '../../../services/supplier';
 import { OrderResponse } from '../../../models/order.model';
 import { SupplierResponse } from '../../../models/supplier.model';
 import { apiError } from '../../../shared/api-error';
+import { LanguageService } from '../../../services/language.service';
+import { formatMoney } from '../../../shared/format';
 
 @Component({
   selector: 'app-order-list',
@@ -14,6 +16,7 @@ import { apiError } from '../../../shared/api-error';
   templateUrl: './order-list.html',
 })
 export class OrderList implements OnInit {
+  private language = inject(LanguageService);
   private translate = inject(TranslateService);
   private orderService = inject(OrderService);
   private supplierService = inject(SupplierService);
@@ -243,6 +246,6 @@ export class OrderList implements OnInit {
   }
 
   formatAmount(amount: number): string {
-    return amount.toFixed(2) + ' €';
+    return formatMoney(amount, this.language.current());
   }
 }

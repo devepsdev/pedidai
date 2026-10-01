@@ -7,6 +7,8 @@ import { SupplierService } from '../../../services/supplier';
 import { ProductResponse } from '../../../models/product.model';
 import { SupplierResponse } from '../../../models/supplier.model';
 import { apiError } from '../../../shared/api-error';
+import { LanguageService } from '../../../services/language.service';
+import { formatMoney } from '../../../shared/format';
 
 @Component({
   selector: 'app-product-list',
@@ -14,6 +16,7 @@ import { apiError } from '../../../shared/api-error';
   templateUrl: './product-list.html',
 })
 export class ProductList implements OnInit {
+  private language = inject(LanguageService);
   private translate = inject(TranslateService);
   private productService = inject(ProductService);
   private supplierService = inject(SupplierService);
@@ -173,7 +176,7 @@ export class ProductList implements OnInit {
   }
 
   formatPrice(price: number): string {
-    return price.toFixed(2) + ' €';
+    return formatMoney(price, this.language.current());
   }
 
   pages(): number[] {

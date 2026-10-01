@@ -159,7 +159,7 @@ Rutas principales:
 | Zona | Rutas |
 | --- | --- |
 | Pública | `/`, `/login`, `/register`, `/verify-email`, `/recover-password`, `/reset-password`, `/sobre-nosotros`, `/contacto`, `/privacidad`, `/cookies`, `/terminos`, `/aviso-legal` |
-| Privada | `/dashboard`, `/prices`, `/invoices/scan`, `/ai`, `/ai/suggestions`, `/orders`, `/suppliers`, `/products`, `/users`, `/reports`, `/company` |
+| Privada | `/dashboard`, `/prices`, `/invoices/scan`, `/chat`, `/suggestions`, `/orders`, `/suppliers`, `/products`, `/users`, `/reports`, `/company` |
 | SUPER_ADMIN | `/superadmin`, `/superadmin/companies`, `/superadmin/users` |
 
 ### 4.2. Backend (`pedidai-api/src/main/java/com/pedidai/api`)

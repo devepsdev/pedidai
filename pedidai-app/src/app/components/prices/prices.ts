@@ -51,7 +51,7 @@ export class Prices implements OnInit {
   /** Abre el chat con el producto ya escrito para pedirlo al más barato. */
   orderCheapest(group: PriceGroup) {
     const text = this.translate.instant('PRICES.ORDER_PREFILL', { product: group.name.toLowerCase(), unit: group.unit || '' });
-    this.router.navigate(['/ai'], { queryParams: { q: text } });
+    this.router.navigate(['/chat'], { queryParams: { q: text } });
   }
 
   /** Cuánto más caro es este proveedor que el más barato del grupo, en %. */

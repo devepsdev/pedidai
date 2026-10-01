@@ -74,7 +74,9 @@ public class AiVisionServiceImpl implements AiVisionService {
             - genericName: SIEMPRE en castellano, minúsculas y singular, sin marca, calibre, formato ni envase. \
               Ejemplos: "TOMÀQUET PERA CAT.1 5KG" → "tomate pera"; "Agua Font Vella 5L garrafa" → "agua mineral"; \
               "AOVE Carbonell 5L" → "aceite de oliva virgen extra"; "Patata agria saco 25kg" → "patata".
-            - unit: una de kg, g, l, ml, ud, caja, docena, garrafa, botella, paquete, bandeja, saco, lata, barril.
+            - unit: una de kg, g, l, ml, ud, caja, docena, garrafa, botella, paquete, bandeja, saco, lata, barril. \
+              Es la unidad en la que se cuenta la cantidad y a la que corresponde unitPrice: si se venden envases \
+              (ej.: "AOVE 5 L", 2 unidades a 32,50) la unidad es el envase (garrafa, botella, caja…), no "l" ni "kg".
             - unitPrice es el precio por unidad SIN IVA y con el descuento aplicado. Si solo aparece el importe de la \
               línea, calcula unitPrice = importe / cantidad. Si el documento no tiene precios (albarán sin valorar), \
               pon unitPrice a null.

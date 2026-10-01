@@ -1,5 +1,4 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReportService } from '../../../services/report';
@@ -20,7 +19,7 @@ import { formatDate, formatMoney } from '../../../shared/format';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DecimalPipe, TranslateModule],
+  imports: [RouterLink, TranslateModule],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {

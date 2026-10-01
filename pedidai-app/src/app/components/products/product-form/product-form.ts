@@ -7,8 +7,13 @@ import { SupplierService } from '../../../services/supplier';
 import { SupplierResponse } from '../../../models/supplier.model';
 import { ProductRequest, ProductResponse } from '../../../models/product.model';
 import { apiError } from '../../../shared/api-error';
+import { LanguageService } from '../../../services/language.service';
 
-const UNITS = ['kg', 'L', 'unitat', 'capsa', 'paquet', 'litre', 'dotzena'];
+/** Sugerencias del campo unidad; se admite cualquier texto (los albaranes traen unidades variadas). */
+const UNITS: Record<string, string[]> = {
+  es: ['kg', 'g', 'l', 'ud', 'docena', 'caja', 'paquete', 'botella', 'garrafa', 'barril', 'saco', 'bandeja'],
+  ca: ['kg', 'g', 'l', 'u.', 'dotzena', 'caixa', 'paquet', 'ampolla', 'garrafa', 'barril', 'sac', 'safata'],
+};
 
 @Component({
   selector: 'app-product-form',
@@ -22,6 +27,7 @@ export class ProductForm implements OnInit {
   private router = inject(Router);
   private productService = inject(ProductService);
   private supplierService = inject(SupplierService);
+  private language = inject(LanguageService);
 
   loading = signal(false);
   saving = signal(false);
@@ -32,7 +38,9 @@ export class ProductForm implements OnInit {
   currentImageUrl = signal<string | null>(null);
   pendingImageFile = signal<File | null>(null);
   imagePreview = signal<string | null>(null);
-  readonly units = UNITS;
+  units(): string[] {
+    return UNITS[this.language.current()] ?? UNITS['es'];
+  }
 
   form = this.fb.group({
     name: ['', [Validators.required]],
@@ -40,7 +48,7 @@ export class ProductForm implements OnInit {
     description: [''],
     price: [null as number | null, [Validators.required, Validators.min(0)]],
     volume: [null as number | null],
-    unit: [''],
+    unit: ['', [Validators.maxLength(50)]],
     supplierUuid: ['', [Validators.required]],
   });
 

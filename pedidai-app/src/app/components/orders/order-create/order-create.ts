@@ -9,6 +9,8 @@ import { SupplierResponse } from '../../../models/supplier.model';
 import { ProductResponse } from '../../../models/product.model';
 import { OrderItemRequest } from '../../../models/order.model';
 import { apiError } from '../../../shared/api-error';
+import { LanguageService } from '../../../services/language.service';
+import { formatMoney } from '../../../shared/format';
 
 interface CartItem {
   productUuid: string;
@@ -24,6 +26,7 @@ interface CartItem {
   templateUrl: './order-create.html',
 })
 export class OrderCreate implements OnInit {
+  private language = inject(LanguageService);
   private translate = inject(TranslateService);
   private orderService = inject(OrderService);
   private supplierService = inject(SupplierService);
@@ -216,6 +219,6 @@ export class OrderCreate implements OnInit {
   }
 
   formatAmount(amount: number): string {
-    return amount.toFixed(2) + ' €';
+    return formatMoney(amount, this.language.current());
   }
 }

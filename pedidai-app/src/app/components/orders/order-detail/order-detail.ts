@@ -5,6 +5,8 @@ import { OrderService } from '../../../services/order';
 import { SupplierService } from '../../../services/supplier';
 import { OrderResponse } from '../../../models/order.model';
 import { apiError } from '../../../shared/api-error';
+import { LanguageService } from '../../../services/language.service';
+import { formatMoney } from '../../../shared/format';
 
 @Component({
   selector: 'app-order-detail',
@@ -12,6 +14,7 @@ import { apiError } from '../../../shared/api-error';
   templateUrl: './order-detail.html',
 })
 export class OrderDetail implements OnInit {
+  private language = inject(LanguageService);
   private translate = inject(TranslateService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -120,6 +123,6 @@ export class OrderDetail implements OnInit {
   }
 
   formatAmount(amount: number): string {
-    return amount.toFixed(2) + ' €';
+    return formatMoney(amount, this.language.current());
   }
 }

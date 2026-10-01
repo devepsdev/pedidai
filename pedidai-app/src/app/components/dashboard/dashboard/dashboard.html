@@ -1,11 +1,11 @@
-<div class="space-y-6 p-4 md:p-8">
+<div class="space-y-6 p-4 md:p-8 max-w-7xl mx-auto">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
     <h1 class="text-2xl font-bold text-gray-900">{{ 'DASHBOARD.TITLE' | translate }}</h1>
     <div class="flex gap-2">
       <a routerLink="/invoices/scan" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50">
         {{ 'DASHBOARD.UPLOAD_INVOICE' | translate }}
       </a>
-      <a routerLink="/ai" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+      <a routerLink="/chat" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
         {{ 'DASHBOARD.NEW_ORDER_AI' | translate }}
       </a>
@@ -125,7 +125,7 @@
         </div>
         <div>
           <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">{{ 'DASHBOARD.TOTAL_SPEND' | translate }}</p>
-          <p class="text-3xl font-bold text-gray-900 mt-0.5">{{ stats()!.despesaComandes | number:'1.2-2' }} €</p>
+          <p class="text-3xl font-bold text-gray-900 mt-0.5">{{ money(stats()!.despesaComandes) }}</p>
         </div>
       </div>
       <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 border-l-4 border-l-orange-500 flex items-center gap-4">
@@ -198,7 +198,7 @@
                       {{ 'ORDERS.STATUS_' + order.status | translate }}
                     </span>
                   </td>
-                  <td class="px-6 py-3 text-right font-medium text-gray-900">{{ order.totalAmount | number:'1.2-2' }} €</td>
+                  <td class="px-6 py-3 text-right font-medium text-gray-900">{{ money(order.totalAmount) }}</td>
                 </tr>
               }
             </tbody>
@@ -216,7 +216,7 @@
               </div>
               <div class="flex items-center justify-between">
                 <p class="text-xs text-gray-500">{{ order.supplierName ?? getSupplierName(order.supplierUuid) }}</p>
-                <p class="text-sm font-semibold text-gray-800">{{ order.totalAmount | number:'1.2-2' }} €</p>
+                <p class="text-sm font-semibold text-gray-800">{{ money(order.totalAmount) }}</p>
               </div>
             </a>
           }
@@ -228,7 +228,7 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-100">
       <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
         <h2 class="text-base font-semibold text-gray-900">{{ 'DASHBOARD.AI_SUGGESTIONS' | translate }}</h2>
-        <a routerLink="/ai/suggestions" class="text-sm text-blue-600 hover:underline">{{ 'DASHBOARD.SEE_ALL_SUGGESTIONS' | translate }}</a>
+        <a routerLink="/suggestions" class="text-sm text-blue-600 hover:underline">{{ 'DASHBOARD.SEE_ALL_SUGGESTIONS' | translate }}</a>
       </div>
       @if (loadingSuggestions()) {
         <div class="divide-y divide-gray-100">

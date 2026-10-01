@@ -28,8 +28,8 @@ Aplicación web de [PedidAI](https://pedidai.es) para **bares y restaurantes**: 
 | `/dashboard` | Inicio: avisos de verificación de email y de fin de prueba, primeros pasos, resumen de precios, pedidos y gasto del mes, últimos pedidos y sugerencias de pedido |
 | `/invoices/scan` | Leer albarán: foto o PDF, revisión y corrección línea a línea, alta de proveedor nuevo |
 | `/prices` | Mis precios: comparativa del mismo producto entre proveedores, subidas de precio y estimación de lo pagado de más |
-| `/ai` | Pedir por chat: el asistente prepara pedidos pendientes al proveedor más barato |
-| `/ai/suggestions` | Sugerencias de pedido: productos habituales con urgencia, cantidad y proveedor más barato; crean un pedido pendiente con un clic |
+| `/chat` | Pedir por chat: el asistente prepara pedidos pendientes al proveedor más barato |
+| `/suggestions` | Sugerencias de pedido: productos habituales con urgencia, cantidad y proveedor más barato; crean un pedido pendiente con un clic |
 | `/orders` | Pedidos: listado con filtros, creación, edición, detalle, envío al proveedor y cancelación de los pendientes |
 | `/suppliers`, `/products` | Proveedores y catálogo, con búsqueda y filtros |
 | `/reports` | Informes por periodo con exportación a PDF (solo administrador) |
