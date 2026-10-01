@@ -63,11 +63,14 @@ Componente ──► Servicio (services/) ──► HttpClient ──► jwt-int
 - **Estado:** *signals* en los componentes; token JWT y usuario en `localStorage`.
 - **Interceptores:** `jwt-interceptor` añade `Authorization: Bearer <token>` y `Accept-Language` (`es`/`ca`) a las peticiones a la API y al asistente; `error-interceptor` cierra la sesión si la API responde 401.
 - **Guards:** `auth-guard` protege la zona privada, `admin.guard` la sección Gestión y `super-admin.guard` el panel de la plataforma.
-- **Idioma:** `LanguageService` guarda el idioma elegido, cambia las traducciones y lo sincroniza con el perfil del usuario (`PATCH /api/users/me/language`), para que emails y PDF lleguen en el mismo idioma.
+- **Idioma:** `LanguageService` guarda el idioma elegido, cambia las traducciones y lo sincroniza con el perfil del usuario (`PATCH /api/users/me/language`), para que emails y PDF lleguen en el mismo idioma. Prioridad: parámetro `?lang=es|ca` del enlace (lo usan los anuncios en catalán), idioma guardado y, por último, el del navegador.
 - **Analítica:** `AnalyticsService` aplica el consentimiento de cookies y, al registrarse un usuario, envía el evento `sign_up` a Analytics y la conversión a Google Ads, cada uno solo si se ha aceptado su categoría.
 - **Errores:** en las acciones (guardar, enviar, cancelar, subir imagen…) `apiError()` (`shared/api-error.ts`) muestra el mensaje traducido que devuelve la API; si no hay uno útil (sin conexión o error 5xx), el texto genérico de `ERRORS.*`.
 - **Imágenes de producto:** se suben aparte (`POST /api/products/upload/{uuid}`, campo `image`) después de guardar el producto; al editar el producto se conserva la imagen existente.
 - **Textos en varias líneas:** el pipe `lines` parte las traducciones por `\n` para mostrar frases completas por línea en pantallas grandes.
+- **Formato:** importes, números y fechas siempre con `shared/format.ts` (`formatMoney`, `formatNumber`, `formatDate`) según el idioma; no se usa `toFixed` ni el pipe `number` para mostrar importes.
+- **Maquetación:** las pantallas privadas van centradas (`max-w-7xl mx-auto` en listados; formularios más estrechos, también centrados).
+- **Rutas:** ninguna ruta de la web puede empezar por `/api`, `/ai` o `/n8n`, porque nginx (y `proxy.conf.json` en desarrollo) las envía a otros servicios.
 
 ---
 
@@ -125,7 +128,7 @@ export const environment = {
 };
 ```
 
-`src/environments/environment.prod.ts` (producción) usa `https://pedidai.es/api`, `/ai` y el identificador de Google Analytics. `adsId` y `adsSignupLabel` se rellenan cuando exista la campaña de Google Ads; vacíos, no se carga la etiqueta de Ads.
+`src/environments/environment.prod.ts` (producción) usa `https://pedidai.es/api`, `/ai`, el identificador de Google Analytics y la conversión de Google Ads «Registro PedidAI» (`adsId: 'AW-18487891560'` y `adsSignupLabel`). Si `adsId` o `adsSignupLabel` están vacíos, no se carga la etiqueta de Ads.
 
 En desarrollo, `ng serve` usa `proxy.conf.json` para redirigir `/ai` al asistente (`orderflow/assistant`) en `127.0.0.1:3201`.
 

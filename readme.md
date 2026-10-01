@@ -12,7 +12,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 - **API (Swagger):** [pedidai.es/swagger-ui.html](https://pedidai.es/swagger-ui.html)
 - **Repositorios:** [devepsdev/pedidai](https://github.com/devepsdev/pedidai) (web, API y base de datos) y [devepsdev/orderflow](https://github.com/devepsdev/orderflow) (asistente de pedidos por chat y automatizaciones con n8n)
 
-**Versión:** 2.2.0 · **Última actualización:** 29 de septiembre de 2026
+**Versión:** 2.3.0 · **Última actualización:** 2 de octubre de 2026
 
 ---
 
@@ -82,19 +82,20 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 
 - **Registro en 1 minuto** (nombre del negocio, nombre, email y contraseña), sin tarjeta. Empieza una **prueba gratuita de 14 días**.
 - **Verificación de email** necesaria para enviar pedidos a proveedores.
-- **Lectura de albaranes y facturas** (foto o PDF) con OCR + IA, con revisión línea a línea antes de guardar.
+- **Lectura de albaranes y facturas** (foto o PDF) con OCR + IA, con revisión línea a línea antes de guardar. La unidad de cada línea es la del precio (kg, l, docena o el envase: garrafa, caja, barril…), y solo se comparan productos con la misma unidad.
 - **Mis precios:** comparativa del mismo producto entre proveedores, avisos de subidas (≥ 2 %) y estimación de lo pagado de más.
-- **Asistente IA por chat:** prepara pedidos al proveedor más barato a partir de una frase.
+- **Asistente IA por chat:** prepara pedidos al proveedor más barato a partir de una frase. El ahorro frente al proveedor más caro lo calcula el asistente en código al crear el pedido; la IA solo lo comunica.
 - **Sugerencias de pedido:** productos que el cliente pide con frecuencia (últimos 180 días), con urgencia según la frecuencia y si ya se han pedido en las últimas 48 h, cantidad habitual y el proveedor más barato según el historial de precios. Se calculan con reglas a partir del análisis de consumo (`GET /api/orders/consumption-analysis`), sin IA; el usuario crea el pedido pendiente con un clic. También aparecen en el panel de inicio.
 - **Pedidos:** creación manual o por chat, envío al proveedor **por email** (la respuesta del proveedor llega al email del cliente) y cancelación mientras están pendientes. Estados en uso: `PENDING` → `SENT`, o `PENDING` → `CANCELLED` (`CONFIRMED`, `REJECTED` y `COMPLETED` existen en el modelo, pero todavía no hay forma de asignarlos).
-- **Proveedores y productos**, con búsqueda y filtros.
+- **Proveedores y productos**, con búsqueda y filtros. La unidad del producto es texto libre con sugerencias en el idioma del usuario.
 - **Dos tipos de usuario por empresa:**
   - **Usuario:** trabaja con los pedidos: albaranes, *Mis precios*, chat, sugerencias, pedidos, proveedores y productos.
   - **Administrador:** todo lo anterior y además la sección **Gestión**: informes, datos de la empresa y usuarios del equipo (alta de usuarios y administradores).
 - **Informes** por periodo con exportación a PDF.
 - **Mi cuenta:** cada usuario ve sus datos y cambia su contraseña.
 - **Errores comprensibles:** las pantallas muestran el motivo que devuelve la API (p. ej. «verifica tu email antes de enviar pedidos») en lugar de un error genérico.
-- **Bilingüe castellano/catalán en todo:** pantallas, errores de la API, emails y PDF, según el idioma de cada usuario.
+- **Bilingüe castellano/catalán en todo:** pantallas, errores de la API, emails y PDF, según el idioma de cada usuario. Un enlace con `?lang=ca` o `?lang=es` fija el idioma (lo usan los anuncios en catalán).
+- **Importes y fechas** con el formato local (`1.234,50 €`) en todas las pantallas.
 
 ### Para la plataforma
 
@@ -105,6 +106,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 - **Borrado automático:** cada día a las 03:30 (hora de Madrid) se eliminan las empresas cuya prueba terminó hace **más de 30 días** sin contratar, con todos sus datos e imágenes. Nunca se borran clientes de pago ni la cuenta SUPER_ADMIN (`DataRetentionServiceImpl`).
 - **Landing para campañas:** precio visible (39 €/mes, lanzamiento 29 €/mes), calculadora de ahorro de ejemplo, FAQ y un único botón «Pruébalo gratis 14 días».
 - **Cookies con consentimiento** (Consent Mode v2 de Google): Analytics y Ads solo se cargan si el usuario acepta.
+- **Google Ads:** campaña de Búsqueda «PedidAI · Búsqueda» y conversión «Registro PedidAI», que la web envía al completar el registro solo si se ha aceptado la publicidad (`environment.prod.ts`: `adsId`, `adsSignupLabel`).
 - **Páginas legales** bilingües: privacidad, cookies, términos y aviso legal.
 
 ---
@@ -161,6 +163,8 @@ Rutas principales:
 | Pública | `/`, `/login`, `/register`, `/verify-email`, `/recover-password`, `/reset-password`, `/sobre-nosotros`, `/contacto`, `/privacidad`, `/cookies`, `/terminos`, `/aviso-legal` |
 | Privada | `/dashboard`, `/prices`, `/invoices/scan`, `/chat`, `/suggestions`, `/orders`, `/suppliers`, `/products`, `/users`, `/reports`, `/company` |
 | SUPER_ADMIN | `/superadmin`, `/superadmin/companies`, `/superadmin/users` |
+
+Las rutas de la web no pueden empezar por `/api`, `/ai` ni `/n8n`: nginx las envía a la API, al asistente o a n8n (por eso el chat está en `/chat`).
 
 ### 4.2. Backend (`pedidai-api/src/main/java/com/pedidai/api`)
 
@@ -346,7 +350,7 @@ nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` �
 2. **Migraciones nuevas** de `pedidai-db/migrations/`, si las hay.
 3. **API:** `./mvnw -DskipTests package`, copiar el jar a `target/` y `sudo systemctl restart pedidai-api`.
 4. **Web:** `npx ng build` y copiar `dist/pedidai-app/browser/` a `/var/www/pedidai.es` (sin borrar `.well-known/`).
-5. **Asistente y n8n:** en `/opt/apps/orderflow`, `git fetch && git merge --ff-only origin/main`; después `sudo docker compose up -d --build assistant` (asistente) o `sudo docker compose up -d n8n`.
+5. **Asistente y n8n:** en `/opt/apps/orderflow`, `git fetch && git merge --ff-only origin/main` (sin `sudo`: el repositorio es del usuario `ubuntu`); después `sudo docker compose up -d --build assistant` (asistente) o `sudo docker compose up -d n8n`.
 6. **Comprobar:** `https://pedidai.es/api/users/me` debe responder 401 sin token y `https://pedidai.es/ai/health` `{"status":"ok"}`.
 
 ---

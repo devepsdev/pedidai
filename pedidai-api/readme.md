@@ -17,7 +17,7 @@ API de [PedidAI](https://pedidai.es), la aplicación para bares y restaurantes q
 
 - **Multiempresa:** cada consulta se limita a la empresa del usuario autenticado.
 - **Registro con prueba gratuita de 14 días**, verificación de email y recuperación de contraseña.
-- **Lectura de albaranes:** OCR con Tesseract en el propio servidor y estructuración del texto con IA (Mistral AI por defecto, cualquier API compatible con OpenAI).
+- **Lectura de albaranes:** OCR con Tesseract en el propio servidor y estructuración del texto con IA (Mistral AI por defecto, cualquier API compatible con OpenAI). Cada línea trae un nombre genérico (para comparar entre proveedores) y la unidad a la que corresponde el precio: si se venden envases, el envase (garrafa, caja, barril…).
 - **Historial y comparativa de precios** entre proveedores, con avisos de subidas.
 - **Pedidos:** creación, edición, cancelación y envío al proveedor por email (la respuesta llega al cliente).
 - **Análisis de consumo** para las sugerencias de pedido y el asistente de chat (`orderflow`).
