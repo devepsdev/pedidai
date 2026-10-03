@@ -140,6 +140,55 @@ class InvoiceServiceImplTest {
     }
 
     @Test
+    @DisplayName("reconeix el proveïdor encara que la IA hi enganxi la paraula «albarán»")
+    void reusesSupplierWhenNameIncludesDocumentWord() {
+        Supplier existing = Supplier.builder().id(9L).uuid("s1").name("Distribuciones López S.L.").company(company).build();
+        when(supplierRepository.findActiveByCompanyIdAndNameContaining(1L, "distribuciones")).thenReturn(List.of(existing));
+        when(productRepository.findBySupplier_IdAndIsActiveTrue(9L)).thenReturn(new ArrayList<>());
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        var result = service.confirmInvoice(InvoiceConfirmRequestDTO.builder()
+                .newSupplier(InvoiceConfirmRequestDTO.NewSupplier.builder().name("DISTRIBUCIONES LÓPEZ ALBARÁN").build())
+                .products(List.of(line("PATATA", "patata", "0.70", null))).build());
+
+        verify(supplierRepository, never()).save(any());
+        assertThat(result.getMatchedSupplierUuid()).isEqualTo("s1");
+    }
+
+    @Test
+    @DisplayName("sense coincidència exacta, accepta l'únic proveïdor que conté el nom sencer")
+    void reusesSupplierContainedInDetectedName() {
+        Supplier existing = Supplier.builder().id(9L).uuid("s1").name("Distribuciones López").company(company).build();
+        Supplier other = Supplier.builder().id(10L).uuid("s2").name("Distribuciones Martí").company(company).build();
+        when(supplierRepository.findActiveByCompanyIdAndNameContaining(1L, "distribuciones")).thenReturn(List.of(existing, other));
+        when(productRepository.findBySupplier_IdAndIsActiveTrue(9L)).thenReturn(new ArrayList<>());
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        var result = service.confirmInvoice(InvoiceConfirmRequestDTO.builder()
+                .newSupplier(InvoiceConfirmRequestDTO.NewSupplier.builder().name("Distribuciones López Hostelería").build())
+                .products(List.of(line("PATATA", "patata", "0.70", null))).build());
+
+        assertThat(result.getMatchedSupplierUuid()).isEqualTo("s1");
+    }
+
+    @Test
+    @DisplayName("si dos proveïdors encaixen parcialment no n'escull cap i en crea un de nou")
+    void ambiguousPartialMatchCreatesSupplier() {
+        Supplier a = Supplier.builder().id(9L).uuid("s1").name("Distribuciones López").company(company).build();
+        Supplier b = Supplier.builder().id(10L).uuid("s2").name("Distribuciones López Hostelería Norte").company(company).build();
+        when(supplierRepository.findActiveByCompanyIdAndNameContaining(1L, "distribuciones")).thenReturn(List.of(a, b));
+        when(supplierRepository.save(any())).thenAnswer(i -> { Supplier s = i.getArgument(0); s.setId(11L); s.setUuid("s-new"); return s; });
+        when(productRepository.findBySupplier_IdAndIsActiveTrue(11L)).thenReturn(new ArrayList<>());
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        var result = service.confirmInvoice(InvoiceConfirmRequestDTO.builder()
+                .newSupplier(InvoiceConfirmRequestDTO.NewSupplier.builder().name("Distribuciones López Hostelería").build())
+                .products(List.of(line("PATATA", "patata", "0.70", null))).build());
+
+        assertThat(result.getMatchedSupplierUuid()).isEqualTo("s-new");
+    }
+
+    @Test
     @DisplayName("només s'accepten JPG, PNG, WebP o PDF reals")
     void rejectsOtherFiles() {
         var html = new MockMultipartFile("image", "albara.png", "image/png", "<html></html>".getBytes());

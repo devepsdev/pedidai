@@ -207,26 +207,49 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .orElseThrow(() -> new ResourceNotFoundException("error.supplier.notFound"));
     }
 
-    /** Proveïdor actiu de l'empresa amb el mateix nom (ignorant majúscules, accents i forma jurídica). */
+    /**
+     * Proveïdor actiu de l'empresa amb el mateix nom (ignorant majúscules, accents, forma jurídica i paraules
+     * com "albarán"). Si no n'hi ha cap d'idèntic, s'accepta l'únic el nom del qual està contingut sencer al
+     * detectat o a l'inrevés ("Distribuciones López" ↔ "Distribuciones López Hostelería").
+     */
     private Supplier matchSupplierByName(Long companyId, String name) {
         String wanted = supplierKey(name);
         if (wanted == null) {
             return null;
         }
         String firstWord = wanted.split(" ")[0];
-        return supplierRepository.findActiveByCompanyIdAndNameContaining(companyId, firstWord).stream()
+        List<Supplier> candidates = supplierRepository.findActiveByCompanyIdAndNameContaining(companyId, firstWord);
+        Optional<Supplier> exact = candidates.stream()
                 .filter(s -> wanted.equals(supplierKey(s.getName())))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
+        if (exact.isPresent()) {
+            return exact.get();
+        }
+        List<Supplier> partial = candidates.stream()
+                .filter(s -> containsPhrase(wanted, supplierKey(s.getName())))
+                .toList();
+        return partial.size() == 1 ? partial.get(0) : null;
     }
 
-    private static String supplierKey(String name) {
+    static String supplierKey(String name) {
         String c = ProductNames.canonical(name);
         if (c == null) {
             return null;
         }
-        String withoutLegalForm = c.replaceAll("\\b(s ?l ?u?|s ?a|s ?c ?p|s ?c ?c ?l|c ?b|sll)\\b", " ").trim().replaceAll("\\s+", " ");
-        return withoutLegalForm.isEmpty() ? c : withoutLegalForm;
+        String cleaned = c.replaceAll("\\b(s ?l ?u?|s ?a|s ?c ?p|s ?c ?c ?l|c ?b|sll)\\b", " ")
+                .replaceAll("\\b(albaran(es)?|albara(ns)?|factura|facturas|factures|tiquet|ticket)\\b", " ")
+                .trim().replaceAll("\\s+", " ");
+        return cleaned.isEmpty() ? c : cleaned;
+    }
+
+    /** Una de les dues claus conté l'altra com a frase sencera, i la més curta té almenys dues paraules. */
+    private static boolean containsPhrase(String a, String b) {
+        if (a == null || b == null) {
+            return false;
+        }
+        String shorter = a.length() <= b.length() ? a : b;
+        String longer = shorter == a ? b : a;
+        return shorter.split(" ").length >= 2 && (" " + longer + " ").contains(" " + shorter + " ");
     }
 
     // ───────────────────────── Línies ─────────────────────────

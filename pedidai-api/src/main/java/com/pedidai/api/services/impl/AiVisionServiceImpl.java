@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Lectura d'albarans i factures: l'OCR (Tesseract) s'executa al servidor i només el TEXT
@@ -70,7 +72,11 @@ public class AiVisionServiceImpl implements AiVisionService {
               "totals": { "base": 100.00, "iva": 10.00, "total": 110.00 }
             }
             Reglas:
-            - El proveedor es quien EMITE el documento, no el cliente que lo recibe.
+            - El proveedor es quien EMITE el documento, no el cliente que lo recibe. supplier.name es solo su nombre \
+              comercial o razón social, sin el tipo de documento ("albarán", "factura", "nota de entrega"), sin número \
+              y sin dirección. Ej.: "DISTRIBUCIONES LÓPEZ    ALBARÁN Nº A-1234" → name "DISTRIBUCIONES LÓPEZ", number "A-1234".
+            - invoice.number es el identificador del albarán o factura; suele aparecer junto a "Albarán nº", "Nº", \
+              "Núm.", "Número", "Factura" o "Albarà núm.". Pon solo el identificador, sin la palabra que lo precede.
             - genericName: SIEMPRE en castellano, minúsculas y singular, sin marca, calibre, formato ni envase. \
               Ejemplos: "TOMÀQUET PERA CAT.1 5KG" → "tomate pera"; "Agua Font Vella 5L garrafa" → "agua mineral"; \
               "AOVE Carbonell 5L" → "aceite de oliva virgen extra"; "Patata agria saco 25kg" → "patata".
@@ -115,6 +121,8 @@ public class AiVisionServiceImpl implements AiVisionService {
         log.debug("OCR: {} caràcters", ocrText.length());
         AiInvoiceDataDTO data = structureWithAi(ocrText);
         fillMissingUnitPrices(data);
+        cleanSupplierName(data);
+        fillMissingDocumentNumber(data, ocrText);
         return data;
     }
 
@@ -204,6 +212,59 @@ public class AiVisionServiceImpl implements AiVisionService {
             log.error("Error de la IA en estructurar l'albarà: {}", e.getMessage());
             throw new InvoiceReadException("error.invoice.aiFailed", e);
         }
+    }
+
+    /** Paraules del tipus de document que la IA de vegades enganxa al nom del proveïdor. */
+    private static final Pattern DOCUMENT_WORDS = Pattern.compile(
+            "(?iU)\\b(albar[aáà]n(es)?|albar[aà]ns?|factura|facturas|factures|tiquet|ticket|nota de entrega)\\b");
+
+    /** "Albarán nº A-1234", "Factura núm. 2026/15", "Nº: 8812"… (només si la IA no ha trobat el número). */
+    private static final Pattern DOCUMENT_NUMBER = Pattern.compile(
+            "(?iU)\\b(?:albar[aáà]n|albar[aà]|factura|n[uú]m(?:ero)?\\.?|n[ºo°]\\.?)\\s*(?:n[ºo°]\\.?|n[uú]m(?:ero)?\\.?)?"
+                    + "\\s*[:#.]?\\s*([A-Z0-9][A-Z0-9/\\-.]{1,30})");
+
+    /** Treu del nom del proveïdor paraules com "albarán" o "factura" ("DISTRIBUCIONES LÓPEZ ALBARÁN"). */
+    static void cleanSupplierName(AiInvoiceDataDTO data) {
+        if (data.getSupplier() == null || data.getSupplier().getName() == null) {
+            return;
+        }
+        String original = data.getSupplier().getName();
+        if (!DOCUMENT_WORDS.matcher(original).find()) {
+            return;
+        }
+        String cleaned = DOCUMENT_WORDS.matcher(original).replaceAll(" ")
+                .replaceAll("\\s+", " ").replaceAll("^[\\s,.:;\\-]+|[\\s,:;\\-]+$", "");
+        if (!cleaned.isBlank()) {
+            data.getSupplier().setName(cleaned);
+        }
+    }
+
+    /** Si la IA no ha trobat el número del document, el busca al text de l'OCR. */
+    static void fillMissingDocumentNumber(AiInvoiceDataDTO data, String ocrText) {
+        if (ocrText == null || (data.getInvoice() != null && data.getInvoice().getNumber() != null
+                && !data.getInvoice().getNumber().isBlank())) {
+            return;
+        }
+        String number = findDocumentNumber(ocrText);
+        if (number == null) {
+            return;
+        }
+        if (data.getInvoice() == null) {
+            data.setInvoice(new AiInvoiceDataDTO.InvoiceData());
+        }
+        data.getInvoice().setNumber(number);
+    }
+
+    static String findDocumentNumber(String text) {
+        Matcher m = DOCUMENT_NUMBER.matcher(text);
+        while (m.find()) {
+            String candidate = m.group(1).replaceAll("[./\\-]+$", "");
+            boolean isDate = candidate.matches("\\d{1,2}[/.\\-]\\d{1,2}[/.\\-]\\d{2,4}");
+            if (candidate.length() >= 3 && candidate.matches(".*\\d.*") && !isDate) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     /** Si la IA no dona preu unitari però sí import i quantitat, el calcula. */
