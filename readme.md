@@ -12,7 +12,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 - **API (Swagger):** [pedidai.es/swagger-ui.html](https://pedidai.es/swagger-ui.html)
 - **Repositorios:** [devepsdev/pedidai](https://github.com/devepsdev/pedidai) (web, API y base de datos) y [devepsdev/orderflow](https://github.com/devepsdev/orderflow) (asistente de pedidos por chat y automatizaciones con n8n)
 
-**Versión:** 2.3.0 · **Última actualización:** 2 de octubre de 2026
+**Versión:** 2.3.1 · **Última actualización:** 7 de octubre de 2026
 
 ---
 
@@ -82,7 +82,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 
 - **Registro en 1 minuto** (nombre del negocio, nombre, email y contraseña), sin tarjeta. Empieza una **prueba gratuita de 14 días**.
 - **Verificación de email** necesaria para enviar pedidos a proveedores.
-- **Lectura de albaranes y facturas** (foto o PDF) con OCR + IA, con revisión línea a línea antes de guardar. La unidad de cada línea es la del precio (kg, l, docena o el envase: garrafa, caja, barril…), y solo se comparan productos con la misma unidad.
+- **Lectura de albaranes y facturas** (foto o PDF) con OCR + IA, con revisión línea a línea antes de guardar. La unidad de cada línea es la del precio (kg, l, docena o el envase: garrafa, caja, barril…), y solo se comparan productos con la misma unidad. El proveedor ya existente se reconoce aunque la IA añada palabras como «albarán» al nombre, y si no lee el número del documento se busca en el texto del OCR.
 - **Mis precios:** comparativa del mismo producto entre proveedores, avisos de subidas (≥ 2 %) y estimación de lo pagado de más.
 - **Asistente IA por chat:** prepara pedidos al proveedor más barato a partir de una frase. El ahorro frente al proveedor más caro lo calcula el asistente en código al crear el pedido; la IA solo lo comunica.
 - **Sugerencias de pedido:** productos que el cliente pide con frecuencia (últimos 180 días), con urgencia según la frecuencia y si ya se han pedido en las últimas 48 h, cantidad habitual y el proveedor más barato según el historial de precios. Se calculan con reglas a partir del análisis de consumo (`GET /api/orders/consumption-analysis`), sin IA; el usuario crea el pedido pendiente con un clic. También aparecen en el panel de inicio.
@@ -105,7 +105,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 - **Alertas por email al equipo (n8n):** aviso inmediato de cada registro nuevo, resumen diario de la actividad y **vigilancia cada 5 minutos** de la web, la API y el asistente (avisa solo cuando algo se cae o se recupera).
 - **Borrado automático:** cada día a las 03:30 (hora de Madrid) se eliminan las empresas cuya prueba terminó hace **más de 30 días** sin contratar, con todos sus datos e imágenes. Nunca se borran clientes de pago ni la cuenta SUPER_ADMIN (`DataRetentionServiceImpl`).
 - **Landing para campañas:** precio visible (39 €/mes, lanzamiento 29 €/mes), calculadora de ahorro de ejemplo, FAQ y un único botón «Pruébalo gratis 14 días».
-- **Cookies con consentimiento** (Consent Mode v2 de Google): Analytics y Ads solo se cargan si el usuario acepta.
+- **Cookies con consentimiento** (Consent Mode v2 de Google): Analytics y Ads solo se cargan si el usuario acepta. El aviso es compacto (una frase, «Rechazar» y «Aceptar» con el mismo peso y «Configurar» para elegir por categorías), para no tapar la página en móvil.
 - **Google Ads:** campaña de Búsqueda «PedidAI · Búsqueda» y conversión «Registro PedidAI», que la web envía al completar el registro solo si se ha aceptado la publicidad (`environment.prod.ts`: `adsId`, `adsSignupLabel`).
 - **Páginas legales** bilingües: privacidad, cookies, términos y aviso legal.
 
@@ -352,6 +352,18 @@ nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` �
 4. **Web:** `npx ng build` y copiar `dist/pedidai-app/browser/` a `/var/www/pedidai.es` (sin borrar `.well-known/`).
 5. **Asistente y n8n:** en `/opt/apps/orderflow`, `git fetch && git merge --ff-only origin/main` (sin `sudo`: el repositorio es del usuario `ubuntu`); después `sudo docker compose up -d --build assistant` (asistente) o `sudo docker compose up -d n8n`.
 6. **Comprobar:** `https://pedidai.es/api/users/me` debe responder 401 sin token y `https://pedidai.es/ai/health` `{"status":"ok"}`.
+
+Para sustituir el jar conviene parar antes el servicio (`systemctl stop`, copiar y `systemctl start`): si se cambia con la API en marcha, el proceso antiguo registra un `NoClassDefFoundError` al apagarse.
+
+### Comandos de mantenimiento en el servidor
+
+| Comando | Uso |
+| --- | --- |
+| `sudo pedidai-set-ai-key` | Guarda la clave de la API de IA (la pide oculta y la valida contra Mistral) |
+| `sudo pedidai-set-smtp` | Guarda las credenciales SMTP de Brevo (las valida antes de guardarlas) |
+| `sudo pedidai-borrar-empresa email@ejemplo.com` | Borra una empresa en prueba y todos sus datos a partir del email de uno de sus usuarios. Muestra lo que va a borrar, pide escribir `BORRAR`, hace antes una copia de la base de datos y nunca toca la cuenta de la plataforma ni clientes de pago |
+
+Se ejecutan con `ssh -t vps …` para que puedan pedir datos por teclado.
 
 ---
 

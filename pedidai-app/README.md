@@ -19,7 +19,7 @@ Aplicación web de [PedidAI](https://pedidai.es) para **bares y restaurantes**: 
 - **Landing** para campañas: propuesta de ahorro, cómo funciona, calculadora de ahorro de ejemplo, precio (39 €/mes, lanzamiento 29 €/mes), preguntas frecuentes y un único botón «Pruébalo gratis 14 días». En pantallas grandes cada frase ocupa su propia línea (pipe `lines`).
 - **Registro rápido** (negocio, nombre, email y contraseña) que deja la sesión iniciada; login, verificación de email y recuperación de contraseña.
 - **Sobre nosotros**, **contacto** y páginas **legales** bilingües: privacidad, cookies, términos y aviso legal.
-- **Aviso de cookies** con Consent Mode v2 de Google: aceptar, rechazar o configurar por categorías; Analytics y Ads solo se cargan con consentimiento. Se puede reabrir desde el pie de página.
+- **Aviso de cookies** con Consent Mode v2 de Google: versión compacta (una frase, «Rechazar» y «Aceptar» en una fila con el mismo estilo y «Configurar» como enlace) que abre el panel por categorías; Analytics y Ads solo se cargan con consentimiento. Se puede reabrir desde el pie de página.
 
 ### Zona privada
 
