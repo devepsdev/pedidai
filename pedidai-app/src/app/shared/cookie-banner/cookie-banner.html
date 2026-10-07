@@ -1,13 +1,15 @@
 @if (visible()) {
   <div class="fixed bottom-0 inset-x-0 z-50 p-3 sm:p-4" role="dialog" aria-modal="false" [attr.aria-label]="'COOKIE_BANNER.TITLE' | translate">
-    <div class="max-w-3xl lg:max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-2xl p-5 sm:p-6">
-      <h2 class="text-base font-bold text-gray-900 mb-2">{{ 'COOKIE_BANNER.TITLE' | translate }}</h2>
-      <p class="text-sm text-gray-600 leading-relaxed">
-        @for (line of ('COOKIE_BANNER.TEXT' | translate | lines); track $index) {<span class="lg:block">{{ line }} </span>}
-        <a routerLink="/cookies" class="text-blue-600 underline hover:text-blue-800">{{ 'COOKIE_BANNER.LEARN_MORE' | translate }}</a>
-      </p>
+    <div class="max-w-3xl lg:max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-2xl"
+      [class]="configuring() ? 'p-5 sm:p-6' : 'p-4'">
 
       @if (configuring()) {
+        <h2 class="text-base font-bold text-gray-900 mb-2">{{ 'COOKIE_BANNER.TITLE' | translate }}</h2>
+        <p class="text-sm text-gray-600 leading-relaxed">
+          @for (line of ('COOKIE_BANNER.TEXT' | translate | lines); track $index) {<span class="lg:block">{{ line }} </span>}
+          <a routerLink="/cookies" class="text-blue-600 underline hover:text-blue-800">{{ 'COOKIE_BANNER.LEARN_MORE' | translate }}</a>
+        </p>
+
         <div class="mt-4 space-y-3">
           <div class="flex items-start justify-between gap-4 p-3 bg-gray-50 rounded-xl">
             <div>
@@ -33,30 +35,45 @@
               (change)="adsOn.set($any($event.target).checked)"/>
           </label>
         </div>
-      }
 
-      <!-- Aceptar y rechazar con el mismo estilo y tamaño -->
-      <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <button type="button" (click)="rejectAll()"
-          class="px-4 py-2.5 text-sm font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition-colors">
-          {{ 'COOKIE_BANNER.REJECT' | translate }}
-        </button>
-        @if (configuring()) {
+        <!-- Aceptar y rechazar con el mismo estilo y tamaño -->
+        <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <button type="button" (click)="rejectAll()"
+            class="px-4 py-2.5 text-sm font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition-colors">
+            {{ 'COOKIE_BANNER.REJECT' | translate }}
+          </button>
           <button type="button" (click)="saveSelection()"
             class="px-4 py-2.5 text-sm font-semibold rounded-xl border border-slate-300 text-slate-800 hover:bg-slate-50 transition-colors">
             {{ 'COOKIE_BANNER.SAVE' | translate }}
           </button>
-        } @else {
-          <button type="button" (click)="configuring.set(true)"
-            class="px-4 py-2.5 text-sm font-semibold rounded-xl border border-slate-300 text-slate-800 hover:bg-slate-50 transition-colors">
-            {{ 'COOKIE_BANNER.CONFIGURE' | translate }}
+          <button type="button" (click)="acceptAll()"
+            class="px-4 py-2.5 text-sm font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition-colors">
+            {{ 'COOKIE_BANNER.ACCEPT' | translate }}
           </button>
-        }
-        <button type="button" (click)="acceptAll()"
-          class="px-4 py-2.5 text-sm font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition-colors">
-          {{ 'COOKIE_BANNER.ACCEPT' | translate }}
+        </div>
+      } @else {
+        <!-- Versión compacta: una frase, aceptar y rechazar con el mismo peso y configurar como enlace -->
+        <div class="sm:flex sm:items-center sm:gap-6">
+          <p class="text-sm text-gray-600 leading-snug sm:flex-1">
+            {{ 'COOKIE_BANNER.SHORT_TEXT' | translate }}
+            <a routerLink="/cookies" class="text-blue-600 underline hover:text-blue-800">{{ 'COOKIE_BANNER.LEARN_MORE' | translate }}</a>
+          </p>
+          <div class="mt-3 sm:mt-0 grid grid-cols-2 gap-2 sm:w-80 shrink-0">
+            <button type="button" (click)="rejectAll()"
+              class="px-3 py-2.5 text-sm font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition-colors">
+              {{ 'COOKIE_BANNER.REJECT' | translate }}
+            </button>
+            <button type="button" (click)="acceptAll()"
+              class="px-3 py-2.5 text-sm font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition-colors">
+              {{ 'COOKIE_BANNER.ACCEPT' | translate }}
+            </button>
+          </div>
+        </div>
+        <button type="button" (click)="configuring.set(true)"
+          class="mt-2 text-sm text-slate-600 underline hover:text-slate-900">
+          {{ 'COOKIE_BANNER.CONFIGURE' | translate }}
         </button>
-      </div>
+      }
     </div>
   </div>
 }

@@ -743,6 +743,7 @@
   "COOKIE_BANNER": {
     "TITLE": "La teva privacitat",
     "TEXT": "Fem servir emmagatzematge tècnic necessari perquè el web funcioni.\nAmb el teu permís, farem servir galetes de Google Analytics (ús del web) i de Google Ads (mesurar campanyes).\nPots acceptar-les, rebutjar-les o triar, i canviar d’opinió quan vulguis des del peu de pàgina.",
+    "SHORT_TEXT": "Només fem servir galetes de Google Analytics i Google Ads si les acceptes. Pots canviar-ho quan vulguis des del peu de pàgina.",
     "LEARN_MORE": "Política de galetes",
     "NECESSARY": "Tècniques (necessàries)",
     "NECESSARY_DESC": "Sessió, idioma i les teves preferències de galetes.",

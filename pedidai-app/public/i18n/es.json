@@ -743,6 +743,7 @@
   "COOKIE_BANNER": {
     "TITLE": "Tu privacidad",
     "TEXT": "Usamos almacenamiento técnico necesario para que la web funcione.\nCon tu permiso, usaremos cookies de Google Analytics (uso de la web) y de Google Ads (medir campañas).\nPuedes aceptarlas, rechazarlas o elegir, y cambiar de opinión cuando quieras desde el pie de página.",
+    "SHORT_TEXT": "Solo usamos cookies de Google Analytics y Google Ads si las aceptas. Puedes cambiarlo cuando quieras desde el pie de página.",
     "LEARN_MORE": "Política de cookies",
     "NECESSARY": "Técnicas (necesarias)",
     "NECESSARY_DESC": "Sesión, idioma y tus preferencias de cookies.",
