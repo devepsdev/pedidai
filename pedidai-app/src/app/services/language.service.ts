@@ -8,7 +8,7 @@ export type AppLang = 'es' | 'ca';
 /**
  * Idioma de la aplicación (castellano o catalán).
  * Un enlace con ?lang=es|ca manda y se recuerda.
- * Primera visita: el del navegador. Después: el que elija el usuario, que también se guarda
+ * Primera visita: el principal del navegador. Después: el que elija el usuario, que también se guarda
  * en su cuenta para que los emails y los PDF le lleguen en ese idioma.
  */
 @Injectable({ providedIn: 'root' })
@@ -68,9 +68,10 @@ export class LanguageService {
     return v === 'es' || v === 'ca' ? v : null;
   }
 
+  /** Solo cuenta el idioma principal del navegador: un catalán añadido como segundo idioma no basta. */
   private fromBrowser(): AppLang {
-    const langs = navigator.languages?.length ? navigator.languages : [navigator.language];
-    return langs.some(l => l?.toLowerCase().startsWith('ca')) ? 'ca' : 'es';
+    const main = navigator.languages?.[0] ?? navigator.language;
+    return main?.toLowerCase().startsWith('ca') ? 'ca' : 'es';
   }
 
   private hasSession(): boolean {

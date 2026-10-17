@@ -42,21 +42,21 @@
         <!-- Language selector -->
         <div class="flex items-center gap-1 text-xs font-medium mr-1">
           <button
-            (click)="setLang('ca')"
-            class="px-2 py-1 rounded transition-colors"
-            [class]="currentLang() === 'ca'
-              ? 'bg-blue-600 text-white'
-              : (navbarSolid() ? 'text-gray-500 hover:text-gray-700' : 'text-slate-300 hover:text-white')">
-            CA
-          </button>
-          <span [class]="navbarSolid() ? 'text-gray-300' : 'text-slate-500'">|</span>
-          <button
             (click)="setLang('es')"
             class="px-2 py-1 rounded transition-colors"
             [class]="currentLang() === 'es'
               ? 'bg-blue-600 text-white'
               : (navbarSolid() ? 'text-gray-500 hover:text-gray-700' : 'text-slate-300 hover:text-white')">
             ES
+          </button>
+          <span [class]="navbarSolid() ? 'text-gray-300' : 'text-slate-500'">|</span>
+          <button
+            (click)="setLang('ca')"
+            class="px-2 py-1 rounded transition-colors"
+            [class]="currentLang() === 'ca'
+              ? 'bg-blue-600 text-white'
+              : (navbarSolid() ? 'text-gray-500 hover:text-gray-700' : 'text-slate-300 hover:text-white')">
+            CA
           </button>
         </div>
 
@@ -114,15 +114,15 @@
         <div class="border-t border-gray-100 mt-3 pt-3 flex flex-col gap-2" [class]="isLanding() ? '' : 'border-0 mt-0 pt-0'">
           <!-- Mobile language selector -->
           <div class="flex items-center gap-2 py-1">
-            <button (click)="setLang('ca')"
-              class="px-3 py-1 text-xs font-medium rounded transition-colors"
-              [class]="currentLang() === 'ca' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'">
-              CA
-            </button>
             <button (click)="setLang('es')"
               class="px-3 py-1 text-xs font-medium rounded transition-colors"
               [class]="currentLang() === 'es' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'">
               ES
+            </button>
+            <button (click)="setLang('ca')"
+              class="px-3 py-1 text-xs font-medium rounded transition-colors"
+              [class]="currentLang() === 'ca' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'">
+              CA
             </button>
           </div>
           <a routerLink="/login" (click)="closeMenu()"
