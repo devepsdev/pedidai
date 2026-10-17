@@ -96,7 +96,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 - **Informes** por periodo con exportación a PDF.
 - **Mi cuenta:** cada usuario ve sus datos y cambia su contraseña.
 - **Errores comprensibles:** las pantallas muestran el motivo que devuelve la API (p. ej. «verifica tu email antes de enviar pedidos») en lugar de un error genérico.
-- **Bilingüe castellano/catalán en todo:** pantallas, errores de la API, emails y PDF, según el idioma de cada usuario. Un enlace con `?lang=ca` o `?lang=es` fija el idioma (lo usan los anuncios en catalán).
+- **Bilingüe castellano/catalán en todo:** pantallas, errores de la API, emails y PDF, según el idioma de cada usuario. Un enlace con `?lang=ca` o `?lang=es` fija el idioma (lo usan los anuncios en catalán); si no, se usa el elegido antes o el idioma principal del navegador (catalán solo si es el primero; si no, castellano). El selector va en orden ES | CA.
 - **Importes y fechas** con el formato local (`1.234,50 €`) en todas las pantallas.
 
 ### Para la plataforma
@@ -282,6 +282,14 @@ mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/003_avisos_prueba.sq
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/004_tarifas.sql
 ```
 
+Con Docker, en lugar de instalar MySQL (los scripts se cargan igual, con `docker exec -i pedidai-mysql-local mysql …`):
+
+```bash
+docker run -d --name pedidai-mysql-local -p 127.0.0.1:3306:3306 \
+  -e MYSQL_ROOT_PASSWORD=… -e MYSQL_DATABASE=pedidai_db -e MYSQL_USER=pedidai_user -e MYSQL_PASSWORD=… \
+  -v pedidai-mysql-local:/var/lib/mysql mysql:8.0 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+```
+
 ### 8.2. Backend
 
 Variables de entorno necesarias (nunca las subas al repositorio):
@@ -307,6 +315,10 @@ cd pedidai-api
 ```
 
 Opciones útiles al arrancar: `--app.frontend.url=http://localhost:4200`, `--app.ocr.tesseract-command=/ruta/a/tesseract` y, para depurar, `--logging.level.com.pedidai.api=DEBUG --spring.jpa.show-sql=true`.
+
+**Perfil `local`** (alternativa a las variables de entorno): `./mvnw spring-boot:run -Dspring-boot.run.profiles=local` carga `pedidai-api/config/application-local.properties`, que no se versiona (`.gitignore`). Ahí van `spring.datasource.username/password`, `app.jwt.secret`, `ai.api.key`, `app.frontend.url`, `app.ocr.tesseract-command` y un SMTP inexistente (`spring.mail.host=localhost`, `port=2525`, sin autenticación ni STARTTLS) para que los envíos fallen sin más. No debe estar en `src/main/resources`: entraría en el jar.
+
+**Tesseract en Windows:** `winget install UB-Mannheim.TesseractOCR` instala solo el inglés. Los idiomas `spa.traineddata` y `cat.traineddata` se descargan de [tessdata_fast](https://github.com/tesseract-ocr/tessdata_fast) a una carpeta propia (con `eng` y `osd`), que se indica en la variable `TESSDATA_PREFIX` antes de arrancar la API; `app.ocr.tesseract-command=C:/Program Files/Tesseract-OCR/tesseract.exe`.
 
 ### 8.3. Frontend
 
@@ -345,13 +357,13 @@ Todo corre en un VPS Ubuntu:
 | Asistente y n8n | `/opt/apps/orderflow`, con `docker compose`, red `host` y escuchando solo en local (asistente en `127.0.0.1:3201`, n8n en `127.0.0.1:5678`) |
 | Base de datos | MySQL local, `pedidai_db` |
 
-nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` → `localhost:8085`, `/ai/` → `localhost:3201/` y `/n8n/` → `localhost:5678/`. nginx bloquea `/api/internal/` y los webhooks de n8n, y añade las cabeceras de seguridad (`/etc/nginx/snippets/pedidai-security-headers.conf`). El cortafuegos (`ufw`) solo deja pasar HTTP/HTTPS y SSH.
+nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` → `localhost:8085` (y `location = /api/invoices/scan` aparte, con `proxy_read_timeout 240s`: leer una tarifa larga puede tardar hasta 3 minutos), `/ai/` → `localhost:3201/` y `/n8n/` → `localhost:5678/`. nginx bloquea `/api/internal/` y los webhooks de n8n, y añade las cabeceras de seguridad (`/etc/nginx/snippets/pedidai-security-headers.conf`). El cortafuegos (`ufw`) solo deja pasar HTTP/HTTPS y SSH.
 
 ### Pasos de una actualización
 
 1. **Copia de seguridad** de la base de datos (`mysqldump`), del jar y de la web.
 2. **Migraciones nuevas** de `pedidai-db/migrations/`, si las hay.
-3. **API:** `./mvnw -DskipTests package`, copiar el jar a `target/` y `sudo systemctl restart pedidai-api`.
+3. **API:** en el servidor no hay copia del repositorio: el jar se genera en local (`./mvnw -DskipTests package`, comprobando con `unzip -l` que no lleva `application-local.properties`), se sube y se copia a `target/` con el servicio parado (`systemctl stop`, copiar, `systemctl start`).
 4. **Web:** `npx ng build` y copiar `dist/pedidai-app/browser/` a `/var/www/pedidai.es` (sin borrar `.well-known/`).
 5. **Asistente y n8n:** en `/opt/apps/orderflow`, `git fetch && git merge --ff-only origin/main` (sin `sudo`: el repositorio es del usuario `ubuntu`); después `sudo docker compose up -d --build assistant` (asistente) o `sudo docker compose up -d n8n`.
 6. **Comprobar:** `https://pedidai.es/api/users/me` debe responder 401 sin token y `https://pedidai.es/ai/health` `{"status":"ok"}`.
@@ -376,7 +388,8 @@ Se ejecutan con `ssh -t vps …` para que puedan pedir datos por teclado.
 | --- | --- |
 | La API no arranca: `Access denied for user` | Credenciales de MySQL o variables `DB_*` incorrectas. |
 | `Port 8085 is already in use` | Ya hay otra instancia de la API en marcha. |
-| La lectura de albaranes falla | Tesseract no instalado o sin los idiomas `spa`/`cat`; revisa `app.ocr.tesseract-command`. |
+| La lectura de albaranes falla | Tesseract no instalado o sin los idiomas `spa`/`cat`; revisa `app.ocr.tesseract-command`. En Windows, `TESSDATA_PREFIX` debe apuntar a la carpeta con `spa` y `cat`. |
+| Una tarifa larga da error al cabo de un minuto | Falta en nginx `location = /api/invoices/scan` con `proxy_read_timeout 240s` (el valor por defecto es 60 s). |
 | El chat responde 401 | Sesión caducada (el token dura 1 hora): vuelve a entrar. |
 | Tras desplegar se ven textos antiguos | Caché del navegador: recarga forzando (Ctrl+F5). En producción `index.html` e `/i18n/` ya se sirven con `no-cache`. |
 | No llegan las alertas de n8n | Flujo sin publicar o credencial SMTP incorrecta en n8n; comprueba también `N8N_NEW_COMPANY_WEBHOOK` en el `.env` de la API. |

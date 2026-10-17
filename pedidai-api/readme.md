@@ -98,9 +98,12 @@ La base de datos se crea con los scripts de [`pedidai-db`](../pedidai-db/readme.
 ```bash
 cd pedidai-api
 ./mvnw spring-boot:run              # http://localhost:8085 (Swagger en /swagger-ui.html)
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local   # con config/application-local.properties
 ./mvnw test                         # tests con H2, sin MySQL
 ./mvnw -DskipTests package          # jar en target/
 ```
+
+El perfil `local` lee `config/application-local.properties` (fuera del repositorio y fuera de `src/main/resources`, para que no entre en el jar). El README principal detalla qué lleva.
 
 ---
 
