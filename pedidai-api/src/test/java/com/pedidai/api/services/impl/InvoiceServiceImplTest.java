@@ -1,5 +1,6 @@
 package com.pedidai.api.services.impl;
 
+import com.pedidai.api.dto.AiInvoiceDataDTO;
 import com.pedidai.api.dto.InvoiceConfirmRequestDTO;
 import com.pedidai.api.dto.InvoiceProductConfirmDTO;
 import com.pedidai.api.entities.Company;
@@ -241,6 +242,28 @@ class InvoiceServiceImplTest {
         assertThat(InvoiceServiceImpl.validateFile(csv)).isEqualTo(AiVisionServiceImpl.MEDIA_CSV);
         assertThatThrownBy(() -> InvoiceServiceImpl.validateFile(fakeCsv))
                 .isInstanceOf(BadRequestException.class).hasMessage("error.invoice.invalidFormat");
+    }
+
+    @Test
+    @DisplayName("en mode AUTO el resultat porta el tipus que ha detectat la IA")
+    void autoScanReturnsDetectedKind() {
+        AiInvoiceDataDTO ai = new AiInvoiceDataDTO();
+        ai.setDocumentType("PRICE_LIST");
+        AiInvoiceDataDTO.InvoiceData inv = new AiInvoiceDataDTO.InvoiceData();
+        inv.setDate("2026-10-15");
+        inv.setValidUntil("2026-11-14");
+        ai.setInvoice(inv);
+        AiInvoiceDataDTO.ProductData p = new AiInvoiceDataDTO.ProductData();
+        p.setName("Tomate pera");
+        p.setUnitPrice(new BigDecimal("1.72"));
+        ai.setProducts(List.of(p));
+        when(aiVisionService.analyzeDocument(any(), eq("application/pdf"), eq(AiVisionService.DocumentKind.AUTO))).thenReturn(ai);
+        var pdf = new MockMultipartFile("image", "presupuesto.pdf", "application/pdf", "%PDF-1.4 ...".getBytes());
+
+        var result = service.scanInvoice(pdf, null, AiVisionService.DocumentKind.AUTO);
+
+        assertThat(result.getDocumentKind()).isEqualTo(AiVisionService.DocumentKind.PRICE_LIST);
+        assertThat(result.getValidUntil()).isEqualTo("2026-11-14");
     }
 
     @Test

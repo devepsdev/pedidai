@@ -1,5 +1,8 @@
-/** INVOICE: albarán o factura (precios pagados) · PRICE_LIST: tarifa o presupuesto (precios ofrecidos). */
-export type DocumentKind = 'INVOICE' | 'PRICE_LIST';
+/**
+ * INVOICE: albarán o factura (precios pagados) · PRICE_LIST: tarifa o presupuesto (precios ofrecidos).
+ * AUTO solo al leer: la IA decide cuál de los dos es y lo devuelve en documentKind.
+ */
+export type DocumentKind = 'INVOICE' | 'PRICE_LIST' | 'AUTO';
 
 /** NEW: producto nuevo · CHANGED: precio distinto del último conocido · SAME: mismo precio. */
 export type InvoiceLineStatus = 'NEW' | 'CHANGED' | 'SAME';

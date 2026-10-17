@@ -18,6 +18,7 @@ API de [PedidAI](https://pedidai.es), la aplicación para bares y restaurantes q
 - **Multiempresa:** cada consulta se limita a la empresa del usuario autenticado.
 - **Registro con prueba gratuita de 14 días**, verificación de email y recuperación de contraseña.
 - **Lectura de albaranes:** OCR con Tesseract en el propio servidor y estructuración del texto con IA (Mistral AI por defecto, cualquier API compatible con OpenAI). Cada línea trae un nombre genérico (para comparar entre proveedores) y la unidad a la que corresponde el precio: si se venden envases, el envase (garrafa, caja, barril…). El proveedor se reconoce aunque la IA añada palabras como «albarán» o cambie la forma jurídica (y, si no hay uno idéntico, el único cuyo nombre esté contenido en el detectado); si la IA no encuentra el número del documento, se busca en el texto del OCR. De un PDF digital se usa su propio texto (PDFBox) y solo se hace OCR si no lo tiene; se leen hasta 3 páginas.
+- **Detección del tipo de documento** (`kind=AUTO`): una sola llamada a la IA clasifica el documento (`documentType`: `INVOICE` si registra una compra hecha, con cantidades e importes; `PRICE_LIST` si son precios ofrecidos o lleva validez) y extrae los datos con las reglas de ese tipo. Si la IA no indica el tipo, se considera tarifa cuando hay validez o ninguna línea tiene cantidad. Se leen con los límites de las tarifas.
 - **Lectura de tarifas y presupuestos** (`kind=PRICE_LIST`): PDF (hasta 8 páginas), Excel `.xlsx`/`.xls` (Apache POI, hasta 3.000 filas; de las fórmulas se usa el último resultado guardado), CSV (UTF-8 o Windows-1252) o foto, con unas instrucciones propias para la IA (validez, IVA incluido, precios por tramos). Los precios se guardan en `price_history` con `source = QUOTE`, sin cantidad y con `valid_until` (por defecto, 180 días). En `/api/prices/overview` y en la comparativa del chat cuentan como oferta (`quoted`, `validUntil`), pero no en las subidas ni en el «pagado de más»; una tarifa caducada se ignora.
 - **Historial y comparativa de precios** entre proveedores, con avisos de subidas.
 - **Pedidos:** creación, edición, cancelación y envío al proveedor por email (la respuesta llega al cliente).
@@ -170,7 +171,7 @@ Opcionales: `adminLastName`, `taxId`, `companyPhone`, `companyAddress`, `company
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
-| POST | `/api/invoices/scan` | Lee un albarán o factura (`kind=INVOICE`, imagen o PDF) o una tarifa (`kind=PRICE_LIST`, también Excel o CSV) y devuelve las líneas para revisar (40 al día por empresa) |
+| POST | `/api/invoices/scan` | Lee un albarán o factura (`kind=INVOICE`, por defecto), una tarifa (`kind=PRICE_LIST`) o un documento cuyo tipo decide la IA (`kind=AUTO`, el que usa la web; el tipo detectado vuelve en `documentKind`). Imagen, PDF, Excel o CSV. Devuelve las líneas para revisar (40 al día por empresa) |
 | POST | `/api/invoices/confirm` | Guarda las líneas revisadas: productos e historial de precios (`documentKind`, `validUntil` en tarifas) |
 | GET | `/api/prices/overview?days=` | Comparativa, subidas de precio y estimación de lo pagado de más |
 

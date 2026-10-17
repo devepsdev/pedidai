@@ -1,6 +1,6 @@
 <div class="p-4 md:p-6 max-w-6xl mx-auto">
   <!-- Cabecera -->
-  <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 mb-6">
+  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
     <div>
       <h1 class="text-2xl font-bold text-gray-800">{{ 'PRICES.TITLE' | translate }}</h1>
       <p class="text-sm text-gray-500 mt-1">{{ 'PRICES.SUBTITLE' | translate }}</p>
@@ -16,10 +16,6 @@
         class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         {{ 'PRICES.UPLOAD' | translate }}
-      </a>
-      <a routerLink="/invoices/scan" [queryParams]="{ kind: 'price-list' }"
-        class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-blue-200 text-blue-700 hover:bg-blue-50 text-sm font-medium rounded-lg">
-        {{ 'PRICES.UPLOAD_PRICE_LIST' | translate }}
       </a>
     </div>
   </div>
@@ -45,7 +41,7 @@
         {{ 'PRICES.EMPTY_CTA' | translate }}
       </a>
       <p class="mt-4 text-sm">
-        <a routerLink="/invoices/scan" [queryParams]="{ kind: 'price-list' }" class="text-blue-700 font-medium hover:underline">{{ 'PRICES.EMPTY_CTA_PRICE_LIST' | translate }}</a>
+        <a routerLink="/invoices/scan" class="text-blue-700 font-medium hover:underline">{{ 'PRICES.EMPTY_CTA_PRICE_LIST' | translate }}</a>
       </p>
     </div>
   } @else if (overview(); as o) {

@@ -26,7 +26,7 @@ Aplicación web de [PedidAI](https://pedidai.es) para **bares y restaurantes**: 
 | Ruta | Pantalla |
 | --- | --- |
 | `/dashboard` | Inicio: avisos de verificación de email y de fin de prueba, primeros pasos, resumen de precios, pedidos y gasto del mes, últimos pedidos y sugerencias de pedido |
-| `/invoices/scan` | Leer albarán o tarifa (selector de tipo; `?kind=price-list` abre la tarifa): foto, PDF y, en tarifas, Excel o CSV; revisión y corrección línea a línea, validez de la tarifa, alta de proveedor nuevo |
+| `/invoices/scan` | Leer albarán o tarifa: foto, PDF, Excel o CSV. El tipo lo detecta la IA (`kind=AUTO`) y se puede cambiar en la revisión; revisión y corrección línea a línea, validez de la tarifa, alta de proveedor nuevo |
 | `/prices` | Mis precios: comparativa del mismo producto entre proveedores (los precios de tarifa se marcan como «precio ofrecido», con su validez, y se avisa cuando una tarifa mejora lo que se paga), subidas de precio y estimación de lo pagado de más |
 | `/chat` | Pedir por chat: el asistente prepara pedidos pendientes al proveedor más barato |
 | `/suggestions` | Sugerencias de pedido: productos habituales con urgencia, cantidad y proveedor más barato; crean un pedido pendiente con un clic |

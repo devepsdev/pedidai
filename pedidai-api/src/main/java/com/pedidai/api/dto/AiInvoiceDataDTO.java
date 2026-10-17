@@ -15,6 +15,8 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AiInvoiceDataDTO {
 
+    /** Tipus de document detectat per la IA quan es llegeix en mode AUTO: INVOICE o PRICE_LIST. */
+    private String documentType;
     private SupplierData supplier;
     private InvoiceData invoice;
     private List<ProductData> products;

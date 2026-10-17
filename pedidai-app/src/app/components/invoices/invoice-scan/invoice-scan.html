@@ -27,19 +27,7 @@
   <!-- ═════════ Paso 1: subir ═════════ -->
   @if (step() === 1) {
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 sm:p-6 space-y-5">
-      <!-- Tipo de documento -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" [attr.aria-label]="'INVOICE_SCAN.KIND_LABEL' | translate">
-        @for (opt of kinds; track opt) {
-          <button type="button" role="radio" [attr.aria-checked]="kind() === opt" (click)="setKind(opt)"
-            class="text-left p-3.5 rounded-xl border-2 transition-colors"
-            [class]="kind() === opt ? 'border-cyan-500 bg-cyan-50' : 'border-slate-200 hover:border-slate-300'">
-            <span class="block text-sm font-semibold text-slate-800">{{ 'INVOICE_SCAN.KIND_' + opt | translate }}</span>
-            <span class="block text-xs text-slate-500 mt-0.5">{{ 'INVOICE_SCAN.KIND_' + opt + '_HINT' | translate }}</span>
-          </button>
-        }
-      </div>
-
-      <input #fileInput type="file" [accept]="accept()" class="hidden" (change)="onFileSelected($event)">
+      <input #fileInput type="file" [accept]="accept" class="hidden" (change)="onFileSelected($event)">
       <input #cameraInput type="file" accept="image/*" capture="environment" class="hidden" (change)="onFileSelected($event)">
 
       <div class="relative border-2 border-dashed rounded-xl transition-all cursor-pointer select-none"
@@ -54,9 +42,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
               </svg>
             </div>
-            <p class="font-semibold text-slate-700">{{ 'INVOICE_SCAN.DROP_TITLE' + k() | translate }}</p>
+            <p class="font-semibold text-slate-700">{{ 'INVOICE_SCAN.DROP_TITLE' | translate }}</p>
             <p class="text-sm text-slate-500">{{ 'INVOICE_SCAN.DROP_SUBTITLE' | translate }}</p>
-            <p class="text-xs text-slate-400">{{ 'INVOICE_SCAN.DROP_FORMATS' + k() | translate }}</p>
+            <p class="text-xs text-slate-400">{{ 'INVOICE_SCAN.DROP_FORMATS' | translate }}</p>
           </div>
         } @else {
           <div class="flex flex-col items-center gap-3 py-8 px-6" (click)="$event.stopPropagation()">
@@ -80,7 +68,7 @@
         {{ 'INVOICE_SCAN.TAKE_PHOTO' | translate }}
       </button>
 
-      <div class="p-3 bg-slate-50 rounded-lg text-xs text-slate-500">{{ 'INVOICE_SCAN.TIPS' + k() | translate }}</div>
+      <div class="p-3 bg-slate-50 rounded-lg text-xs text-slate-500">{{ 'INVOICE_SCAN.TIPS' | translate }}</div>
 
       @if (suppliers().length) {
         <div>
@@ -99,9 +87,9 @@
         class="w-full py-3.5 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl disabled:opacity-50 flex items-center justify-center gap-2">
         @if (loading()) {
           <span class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-          {{ 'INVOICE_SCAN.SCANNING' + k() | translate }}
+          {{ 'INVOICE_SCAN.SCANNING' | translate }}
         } @else {
-          {{ 'INVOICE_SCAN.SCAN_BTN' + k() | translate }}
+          {{ 'INVOICE_SCAN.SCAN_BTN' | translate }}
         }
       </button>
     </div>
@@ -110,6 +98,23 @@
   <!-- ═════════ Paso 2: revisar ═════════ -->
   @if (step() === 2 && scanResult()) {
     <div class="space-y-4">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-gray-800">{{ 'INVOICE_SCAN.KIND_LABEL' | translate }}</p>
+          <p class="text-xs text-gray-500">{{ 'INVOICE_SCAN.KIND_DETECTED' | translate }}</p>
+        </div>
+        <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-lg shrink-0" role="radiogroup" [attr.aria-label]="'INVOICE_SCAN.KIND_LABEL' | translate">
+          @for (opt of kinds; track opt) {
+            <button type="button" role="radio" [attr.aria-checked]="kind() === opt" (click)="setKind(opt)"
+              class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors"
+              [class]="kind() === opt ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-600 hover:text-slate-800'"
+              [title]="'INVOICE_SCAN.KIND_' + opt + '_HINT' | translate">
+              {{ 'INVOICE_SCAN.KIND_' + opt | translate }}
+            </button>
+          }
+        </div>
+      </div>
+
       @if (scanResult()!.truncated) {
         <div class="p-3.5 bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl" role="status">{{ 'INVOICE_SCAN.TRUNCATED' | translate }}</div>
       }
@@ -220,7 +225,7 @@
         <button type="button" (click)="confirm()" [disabled]="loading() || !selectedCount()"
           class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl disabled:opacity-50 flex items-center justify-center gap-2">
           @if (loading()) { <span class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span> }
-          {{ 'INVOICE_SCAN.CONFIRM_BTN' | translate: { count: selectedCount() } }}
+          {{ plural('INVOICE_SCAN.CONFIRM_BTN', selectedCount()) }}
         </button>
       </div>
     </div>
@@ -231,9 +236,9 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
       <div class="w-14 h-14 mx-auto bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4 text-2xl" aria-hidden="true">✓</div>
       <h2 class="text-xl font-bold text-gray-800">{{ 'INVOICE_SCAN.DONE_TITLE' + k() | translate }}</h2>
-      <p class="text-gray-600 mt-2">{{ 'INVOICE_SCAN.DONE_TEXT' + k() | translate: { recorded: r.pricesRecorded ?? 0, created: r.productsCreated } }}</p>
+      <p class="text-gray-600 mt-2">{{ doneText(r) }}</p>
       @if (r.priceIncreases) {
-        <p class="mt-2 text-sm font-semibold text-red-600">{{ 'INVOICE_SCAN.DONE_INCREASES' + k() | translate: { count: r.priceIncreases } }}</p>
+        <p class="mt-2 text-sm font-semibold text-red-600">{{ plural('INVOICE_SCAN.DONE_INCREASES' + k(), r.priceIncreases) }}</p>
       }
       @if (suppliers().length < 2) {
         <p class="mt-4 text-sm text-blue-800 bg-blue-50 rounded-lg p-3">{{ 'INVOICE_SCAN.DONE_NEXT_SUPPLIER' | translate }}</p>

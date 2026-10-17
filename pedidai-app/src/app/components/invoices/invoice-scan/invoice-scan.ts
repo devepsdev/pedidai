@@ -1,5 +1,5 @@
 import { Component, inject, OnDestroy, OnInit, computed, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { InvoiceService } from '../../../services/invoice';
@@ -25,6 +25,8 @@ interface EditableLine {
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 /** Las tarifas también pueden ser hojas de cálculo; el navegador no siempre da su tipo, así que va por extensión. */
 const SHEET_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
+/** Tipos que acepta el selector de archivos. */
+const ACCEPT = [...ACCEPTED_TYPES, ...SHEET_EXTENSIONS].join(',');
 const MAX_BYTES = 10 * 1024 * 1024;
 
 @Component({
@@ -38,9 +40,12 @@ export class InvoiceScan implements OnInit, OnDestroy {
   private sanitizer = inject(DomSanitizer);
   private translate = inject(TranslateService);
   private language = inject(LanguageService);
-  private route = inject(ActivatedRoute);
 
-  /** Albarán o factura (precios pagados) o tarifa o presupuesto (precios ofrecidos). */
+  readonly accept = ACCEPT;
+  /**
+   * Albarán o factura (precios pagados) o tarifa o presupuesto (precios ofrecidos). Lo detecta la IA al leer
+   * el documento y el usuario lo puede cambiar en la revisión.
+   */
   readonly kinds: DocumentKind[] = ['INVOICE', 'PRICE_LIST'];
   kind = signal<DocumentKind>('INVOICE');
   isPriceList = computed(() => this.kind() === 'PRICE_LIST');
@@ -79,26 +84,12 @@ export class InvoiceScan implements OnInit, OnDestroy {
   increases = computed(() => this.lines().filter(l => l.selected && this.change(l) !== null && this.change(l)! > 0).length);
 
   ngOnInit() {
-    if (this.route.snapshot.queryParamMap.get('kind') === 'price-list') {
-      this.kind.set('PRICE_LIST');
-    }
     this.loadSuppliers();
   }
 
+  /** Corrige en la revisión el tipo de documento que ha detectado la IA. */
   setKind(kind: DocumentKind) {
-    if (kind === this.kind()) return;
     this.kind.set(kind);
-    this.error.set('');
-    // Una hoja de cálculo solo vale como tarifa
-    if (kind === 'INVOICE' && this.sheetType()) {
-      this.clearFile();
-    }
-  }
-
-  /** Tipos que acepta el selector de archivos según el documento. */
-  accept(): string {
-    const base = 'image/jpeg,image/png,image/webp,application/pdf';
-    return this.isPriceList() ? base + ',' + SHEET_EXTENSIONS.join(',') : base;
   }
 
   ngOnDestroy() {
@@ -141,8 +132,8 @@ export class InvoiceScan implements OnInit, OnDestroy {
   private processFile(file: File) {
     const name = file.name.toLowerCase();
     const sheet = SHEET_EXTENSIONS.find(ext => name.endsWith(ext));
-    if (sheet ? !this.isPriceList() : !ACCEPTED_TYPES.includes(file.type)) {
-      this.error.set(this.translate.instant('INVOICE_SCAN.ERR_FORMAT' + this.k()));
+    if (!sheet && !ACCEPTED_TYPES.includes(file.type)) {
+      this.error.set(this.translate.instant('INVOICE_SCAN.ERR_FORMAT'));
       return;
     }
     if (file.size > MAX_BYTES) {
@@ -163,10 +154,11 @@ export class InvoiceScan implements OnInit, OnDestroy {
     if (!file || this.loading()) return;
     this.loading.set(true);
     this.error.set('');
-    this.invoiceService.scanInvoice(file, this.preselectedSupplierUuid() || undefined, this.kind()).subscribe({
+    this.invoiceService.scanInvoice(file, this.preselectedSupplierUuid() || undefined, 'AUTO').subscribe({
       next: resp => {
         const data = resp.data;
         this.scanResult.set(data);
+        this.kind.set(data.documentKind === 'PRICE_LIST' ? 'PRICE_LIST' : 'INVOICE');
         this.lines.set(data.products.map(p => ({
           selected: p.unitPrice != null,
           name: p.name,
@@ -266,6 +258,7 @@ export class InvoiceScan implements OnInit, OnDestroy {
   reset() {
     this.step.set(1);
     this.clearFile();
+    this.kind.set('INVOICE');
     this.preselectedSupplierUuid.set('');
     this.validUntil.set('');
     this.scanResult.set(null);
@@ -280,6 +273,22 @@ export class InvoiceScan implements OnInit, OnDestroy {
     this.previewUrl.set(null);
     this.isPdf.set(false);
     this.sheetType.set('');
+  }
+
+  /** Texto con plural: la clave con sufijo _ONE para 1 (y _ZERO para 0, si existe) y la clave tal cual para el resto. */
+  plural(key: string, count: number, params: Record<string, unknown> = {}): string {
+    const suffix = count === 1 ? '_ONE' : count === 0 ? '_ZERO' : '';
+    const fullKey = key + suffix;
+    const value = { count, ...params };
+    const text = this.translate.instant(fullKey, value);
+    return suffix && text === fullKey ? this.translate.instant(key, value) : text;
+  }
+
+  /** «Hemos guardado 5 precios (1 producto nuevo).» */
+  doneText(r: InvoiceScanResultDTO): string {
+    const prices = this.plural(this.isPriceList() ? 'INVOICE_SCAN.PRICES_OFFERED' : 'INVOICE_SCAN.PRICES_SAVED', r.pricesRecorded ?? 0);
+    const products = this.plural('INVOICE_SCAN.NEW_PRODUCTS', r.productsCreated ?? 0);
+    return this.translate.instant('INVOICE_SCAN.DONE_TEXT' + this.k(), { prices, products });
   }
 
   money(v: number | null | undefined) {

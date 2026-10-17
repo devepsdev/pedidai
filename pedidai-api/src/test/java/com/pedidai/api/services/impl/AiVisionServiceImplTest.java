@@ -1,6 +1,7 @@
 package com.pedidai.api.services.impl;
 
 import com.pedidai.api.dto.AiInvoiceDataDTO;
+import com.pedidai.api.services.AiVisionService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -101,6 +102,27 @@ class AiVisionServiceImplTest {
 
         assertThat(AiVisionServiceImpl.csvToText(latin)).isEqualTo("Tomàquet pera;1,55\n");
         assertThat(AiVisionServiceImpl.csvToText(utf8Bom)).isEqualTo("Agua mineral;0,40\n");
+    }
+
+    @Test
+    @DisplayName("en mode AUTO es fa cas del tipus que diu la IA i, si no en diu cap, es dedueix")
+    void detectsDocumentKind() {
+        AiInvoiceDataDTO saysPriceList = data("X", null);
+        saysPriceList.setDocumentType("price_list");
+        assertThat(AiVisionServiceImpl.detectedKind(saysPriceList)).isEqualTo(AiVisionService.DocumentKind.PRICE_LIST);
+
+        AiInvoiceDataDTO withQuantities = data("X", null);
+        AiInvoiceDataDTO.ProductData line = new AiInvoiceDataDTO.ProductData();
+        line.setQuantity(java.math.BigDecimal.TEN);
+        withQuantities.setProducts(java.util.List.of(line));
+        assertThat(AiVisionServiceImpl.detectedKind(withQuantities)).isEqualTo(AiVisionService.DocumentKind.INVOICE);
+
+        withQuantities.getInvoice().setValidUntil("2026-12-31");
+        assertThat(AiVisionServiceImpl.detectedKind(withQuantities)).isEqualTo(AiVisionService.DocumentKind.PRICE_LIST);
+
+        AiInvoiceDataDTO withoutQuantities = data("X", null);
+        withoutQuantities.setProducts(java.util.List.of(new AiInvoiceDataDTO.ProductData()));
+        assertThat(AiVisionServiceImpl.detectedKind(withoutQuantities)).isEqualTo(AiVisionService.DocumentKind.PRICE_LIST);
     }
 
     @Test

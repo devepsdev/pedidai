@@ -66,6 +66,9 @@ public class InvoiceServiceImpl implements InvoiceService {
         AiInvoiceDataDTO aiData;
         try {
             aiData = aiVisionService.analyzeDocument(image.getBytes(), mediaType, documentKind);
+            if (documentKind == DocumentKind.AUTO) {
+                documentKind = resolveDetectedKind(aiData);
+            }
         } catch (AiVisionServiceImpl.InvoiceReadException e) {
             throw new BadRequestException(e.getMessage());
         } catch (IOException e) {
@@ -401,6 +404,11 @@ public class InvoiceServiceImpl implements InvoiceService {
         } catch (DateTimeParseException e) {
             return null;
         }
+    }
+
+    /** Tipus que ha detectat la IA en mode AUTO; si no en diu cap de vàlid, albarà o factura. */
+    private static DocumentKind resolveDetectedKind(AiInvoiceDataDTO data) {
+        return "PRICE_LIST".equals(data.getDocumentType()) ? DocumentKind.PRICE_LIST : DocumentKind.INVOICE;
     }
 
     /** Data del document; si no es pot llegir o és futura, s'usa la d'avui. */

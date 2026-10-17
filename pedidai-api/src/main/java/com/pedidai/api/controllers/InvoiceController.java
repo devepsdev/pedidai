@@ -20,8 +20,10 @@ public class InvoiceController {
     private final InvoiceService invoiceService;
 
     /**
-     * Llegeix amb IA un albarà o factura ({@code kind=INVOICE}, per defecte) o una tarifa o pressupost
-     * ({@code kind=PRICE_LIST}, també en Excel o CSV) i proposa les línies; encara no desa res.
+     * Llegeix amb IA un albarà o factura ({@code kind=INVOICE}, per defecte), una tarifa o pressupost
+     * ({@code kind=PRICE_LIST}, també en Excel o CSV) o un document del qual la IA decideix el tipus
+     * ({@code kind=AUTO}, el que fa servir la web) i proposa les línies; encara no desa res.
+     * El tipus llegit torna a {@code documentKind}.
      */
     @PostMapping(value = "/scan", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponseDTO<InvoiceScanResultDTO>> scanInvoice(

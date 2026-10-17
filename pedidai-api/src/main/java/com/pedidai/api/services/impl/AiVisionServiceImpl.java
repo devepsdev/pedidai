@@ -143,6 +143,55 @@ public class AiVisionServiceImpl implements AiVisionService {
             - Las fechas en formato YYYY-MM-DD (en España las fechas son día/mes/año).
             """;
 
+    /** Mode AUTO: la IA decideix si és un albarà o factura o una tarifa i aplica les regles de cadascun. */
+    private static final String AUTO_PROMPT = """
+            Eres un asistente que lee documentos de proveedores de hostelería en España (castellano o catalán): \
+            albaranes, facturas, tarifas, listas de precios y presupuestos. Recibirás el texto extraído del documento \
+            (de un PDF, de una hoja de cálculo con las celdas separadas por " | ", o por OCR con posibles errores).
+            Primero decide el tipo de documento (documentType):
+            - "INVOICE": albarán, nota de entrega o factura. Registra una compra ya hecha: mercancía servida o \
+              facturada a un cliente, con cantidades e importes (y normalmente un total).
+            - "PRICE_LIST": tarifa, lista de precios, catálogo con precios, oferta o presupuesto. Son precios que el \
+              proveedor ofrece, sin una compra hecha: no hay cantidades servidas ni importes por línea, o se indica \
+              una validez ("válido hasta", "vigencia").
+            Devuelve EXCLUSIVAMENTE un objeto JSON con esta forma:
+            {
+              "documentType": "INVOICE",
+              "supplier": { "name": "...", "cif": "...", "address": "...", "phone": "..." },
+              "invoice": { "number": "...", "date": "YYYY-MM-DD", "validUntil": "YYYY-MM-DD" },
+              "products": [
+                { "name": "nombre tal y como aparece", "genericName": "nombre genérico", "quantity": 10.0, "unit": "kg", \
+            "unitPrice": 2.50, "ivaPercent": 10.0, "subtotal": 25.00 }
+              ],
+              "totals": { "base": 100.00, "iva": 10.00, "total": 110.00 }
+            }
+            Reglas para los dos tipos:
+            - El proveedor es quien EMITE el documento, no el cliente que lo recibe. supplier.name es solo su nombre \
+              comercial o razón social, sin el tipo de documento ("albarán", "factura", "tarifa", "presupuesto"), sin \
+              número y sin dirección.
+            - invoice.number: identificador del documento, sin la palabra que lo precede ("Albarán nº A-1234" → "A-1234").
+            - genericName: SIEMPRE en castellano, minúsculas y singular, sin marca, calibre, formato ni envase. \
+              Ejemplos: "TOMÀQUET PERA CAT.1 5KG" → "tomate pera"; "Agua Font Vella 5L garrafa" → "agua mineral"; \
+              "AOVE Carbonell 5L" → "aceite de oliva virgen extra"; "Patata agria saco 25kg" → "patata".
+            - name: el nombre del producto tal como aparece, sin la cantidad ni el precio de la línea.
+            - unit: una de kg, g, l, ml, ud, caja, docena, garrafa, botella, paquete, bandeja, saco, lata, barril; \
+              la unidad a la que corresponde unitPrice: si se venden envases (ej.: "AOVE 5 L", 2 unidades a 32,50) \
+              la unidad es el envase (garrafa, botella, caja…), no "l" ni "kg".
+            - unitPrice es el precio por unidad SIN IVA y con el descuento aplicado. Los precios en España usan coma \
+              decimal ("1,55" = 1.55).
+            - No inventes datos: si un campo no aparece, pon null. No incluyas portes, envases retornables, \
+              categorías, encabezados ni totales como productos.
+            - Las fechas en formato YYYY-MM-DD (en España las fechas son día/mes/año).
+            Si es INVOICE:
+            - quantity es la cantidad servida. Si solo aparece el importe de la línea, calcula unitPrice = importe / \
+              cantidad. Si no tiene precios (albarán sin valorar), unitPrice null. invoice.validUntil null.
+            Si es PRICE_LIST:
+            - quantity, subtotal y totals a null. Si los precios llevan el IVA incluido, quítalo. Si hay precios por \
+              tramos de cantidad, usa el de la compra más pequeña.
+            - invoice.date: fecha de la tarifa. invoice.validUntil: hasta cuándo valen los precios; si solo dice un \
+              plazo ("válido 30 días"), súmalo a la fecha. Si no aparece, null.
+            """;
+
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
     private final String model;
@@ -171,23 +220,59 @@ public class AiVisionServiceImpl implements AiVisionService {
 
     @Override
     public AiInvoiceDataDTO analyzeDocument(byte[] fileBytes, String mediaType, DocumentKind kind) {
-        boolean priceList = kind == DocumentKind.PRICE_LIST;
-        String text = extractText(fileBytes, mediaType, priceList ? MAX_PRICE_LIST_PAGES : MAX_INVOICE_PAGES);
-        int maxChars = priceList ? MAX_PRICE_LIST_CHARS : MAX_INVOICE_CHARS;
+        DocumentKind requested = kind != null ? kind : DocumentKind.INVOICE;
+        // Si no se sap el tipus, es llegeix amb els límits de les tarifes, que són més llargues
+        boolean large = requested != DocumentKind.INVOICE;
+        String text = extractText(fileBytes, mediaType, large ? MAX_PRICE_LIST_PAGES : MAX_INVOICE_PAGES);
+        int maxChars = large ? MAX_PRICE_LIST_CHARS : MAX_INVOICE_CHARS;
         boolean truncated = text.length() > maxChars;
         if (truncated) {
             text = text.substring(0, maxChars);
         }
         log.debug("Text del document: {} caràcters", text.length());
 
-        AiInvoiceDataDTO data = structureWithAi(text, priceList);
+        String prompt = switch (requested) {
+            case PRICE_LIST -> PRICE_LIST_PROMPT;
+            case AUTO -> AUTO_PROMPT;
+            default -> INVOICE_PROMPT;
+        };
+        AiInvoiceDataDTO data = structureWithAi(text, prompt, large ? 180 : 60);
+        DocumentKind detected = requested == DocumentKind.AUTO ? detectedKind(data) : requested;
+        data.setDocumentType(detected.name());
         data.setTextTruncated(truncated);
+        if (detected == DocumentKind.PRICE_LIST) {
+            // En una tarifa no hi ha quantitats ni imports comprats
+            if (data.getProducts() != null) {
+                data.getProducts().forEach(p -> { p.setQuantity(null); p.setSubtotal(null); });
+            }
+        } else if (data.getInvoice() != null) {
+            data.getInvoice().setValidUntil(null);
+        }
         fillMissingUnitPrices(data);
         cleanSupplierName(data);
-        if (!priceList) {
+        if (detected == DocumentKind.INVOICE) {
             fillMissingDocumentNumber(data, text);
         }
         return data;
+    }
+
+    /**
+     * Tipus que ha triat la IA en mode AUTO. Si no ho diu clarament: és una tarifa si porta validesa
+     * o cap línia té quantitat; si no, un albarà o factura.
+     */
+    static DocumentKind detectedKind(AiInvoiceDataDTO data) {
+        String type = data.getDocumentType() != null ? data.getDocumentType().trim().toUpperCase(Locale.ROOT) : "";
+        if (type.equals("PRICE_LIST")) {
+            return DocumentKind.PRICE_LIST;
+        }
+        if (type.equals("INVOICE")) {
+            return DocumentKind.INVOICE;
+        }
+        boolean hasValidity = data.getInvoice() != null && data.getInvoice().getValidUntil() != null
+                && !data.getInvoice().getValidUntil().isBlank();
+        boolean hasQuantities = data.getProducts() != null
+                && data.getProducts().stream().anyMatch(p -> p.getQuantity() != null);
+        return hasValidity || !hasQuantities ? DocumentKind.PRICE_LIST : DocumentKind.INVOICE;
     }
 
     // ───────────────────────── Extracció del text ─────────────────────────
@@ -342,11 +427,11 @@ public class AiVisionServiceImpl implements AiVisionService {
 
     // ───────────────────────── IA ─────────────────────────
 
-    private AiInvoiceDataDTO structureWithAi(String text, boolean priceList) {
+    private AiInvoiceDataDTO structureWithAi(String text, String prompt, int timeoutSeconds) {
         Map<String, Object> requestBody = Map.of(
                 "model", model,
                 "messages", List.of(
-                        Map.of("role", "system", "content", priceList ? PRICE_LIST_PROMPT : INVOICE_PROMPT),
+                        Map.of("role", "system", "content", prompt),
                         Map.of("role", "user", "content", "Texto del documento:\n\n" + text)),
                 "response_format", Map.of("type", "json_object"),
                 "temperature", 0,
@@ -359,7 +444,7 @@ public class AiVisionServiceImpl implements AiVisionService {
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .timeout(Duration.ofSeconds(priceList ? 180 : 60))
+                    .timeout(Duration.ofSeconds(timeoutSeconds))
                     .block();
 
             JsonNode root = objectMapper.readTree(responseJson);
