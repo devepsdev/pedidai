@@ -26,6 +26,8 @@ public class PriceServiceImpl implements PriceService {
 
     /** Variació mínima (en %) perquè una pujada es mostri com a alerta. */
     private static final BigDecimal ALERT_THRESHOLD = new BigDecimal("2");
+    /** Validesa d'un preu de tarifa que no indica fins quan és vàlid. */
+    static final int QUOTE_DEFAULT_DAYS = 180;
 
     private final PriceHistoryRepository priceHistoryRepository;
     private final ProductRepository productRepository;
@@ -34,7 +36,8 @@ public class PriceServiceImpl implements PriceService {
     @Override
     @Transactional
     public boolean recordObservation(Product product, BigDecimal unitPrice, String unit, BigDecimal quantity,
-                                     LocalDate documentDate, PriceHistory.Source source, String documentRef) {
+                                     LocalDate documentDate, PriceHistory.Source source, String documentRef,
+                                     LocalDate validUntil) {
         if (unitPrice == null || unitPrice.signum() < 0) {
             return false;
         }
@@ -51,6 +54,7 @@ public class PriceServiceImpl implements PriceService {
                 .documentDate(date)
                 .source(source)
                 .documentRef(documentRef)
+                .validUntil(source == PriceHistory.Source.QUOTE ? validUntil : null)
                 .build());
 
         boolean isMostRecent = latest.isEmpty() || !date.isBefore(latest.get().getDocumentDate());
@@ -72,9 +76,14 @@ public class PriceServiceImpl implements PriceService {
         List<PriceHistory> history = priceHistoryRepository.findActiveByCompanySince(companyId, LocalDate.now().minusYears(2));
 
         List<PriceGroupDTO> groups = buildGroups(history);
-        Map<String, BigDecimal> cheapestByGroup = groups.stream()
-                .filter(g -> g.getOffers().size() > 1)
-                .collect(Collectors.toMap(PriceGroupDTO::getKey, PriceGroupDTO::getCheapestPrice));
+        // El sobrecost es calcula només amb preus pagats: una tarifa és una oferta, no el que s'ha pagat
+        Map<String, BigDecimal> cheapestByGroup = new HashMap<>();
+        for (PriceGroupDTO g : groups) {
+            List<PriceOfferDTO> paid = g.getOffers().stream().filter(o -> !o.isQuoted()).toList();
+            if (paid.size() > 1) {
+                cheapestByGroup.put(g.getKey(), paid.stream().map(PriceOfferDTO::getLatestPrice).min(Comparator.naturalOrder()).get());
+            }
+        }
 
         // Sobrecost: línies d'albarà del període pagades per sobre del preu més barat vigent
         LocalDate from = LocalDate.now().minusDays(window);
@@ -138,8 +147,10 @@ public class PriceServiceImpl implements PriceService {
     // ───────────────────────── Càlculs ─────────────────────────
 
     private List<PriceGroupDTO> buildGroups(List<PriceHistory> history) {
-        // Darrera i penúltima observació de cada producte
+        // Darrera i penúltima observació de cada producte (les tarifes caducades no compten)
+        LocalDate today = LocalDate.now();
         Map<Long, List<PriceHistory>> byProduct = history.stream()
+                .filter(h -> !isExpiredQuote(h, today))
                 .collect(Collectors.groupingBy(h -> h.getProduct().getId(), LinkedHashMap::new, Collectors.toList()));
 
         Map<String, List<PriceOfferDTO>> offersByGroup = new LinkedHashMap<>();
@@ -148,7 +159,12 @@ public class PriceServiceImpl implements PriceService {
         for (List<PriceHistory> observations : byProduct.values()) {
             observations.sort(Comparator.comparing(PriceHistory::getDocumentDate).thenComparing(PriceHistory::getId));
             PriceHistory latest = observations.get(observations.size() - 1);
-            PriceHistory previous = findPreviousDifferentDate(observations);
+            boolean quoted = latest.getSource() == PriceHistory.Source.QUOTE;
+            // Si el preu vigent és d'una tarifa, es compara amb l'últim preu pagat; si no, amb el pagat anterior
+            List<PriceHistory> paid = observations.stream().filter(h -> h.getSource() != PriceHistory.Source.QUOTE).toList();
+            PriceHistory previous = quoted
+                    ? (paid.isEmpty() ? null : paid.get(paid.size() - 1))
+                    : findPreviousDifferentDate(paid);
             Product product = latest.getProduct();
 
             BigDecimal change = previous != null ? percentChange(previous.getUnitPrice(), latest.getUnitPrice()) : null;
@@ -166,6 +182,8 @@ public class PriceServiceImpl implements PriceService {
                     .latestDate(latest.getDocumentDate())
                     .previousPrice(previous != null ? scale(previous.getUnitPrice()) : null)
                     .changePercent(change)
+                    .quoted(quoted)
+                    .validUntil(quoted ? quoteValidUntil(latest) : null)
                     .build());
             groupLabels.putIfAbsent(key, new String[]{displayName(product), unit});
         }
@@ -191,9 +209,13 @@ public class PriceServiceImpl implements PriceService {
         return groups;
     }
 
-    /** Pujades de preu (≥ 2 %) entre dues observacions consecutives del mateix producte dins el període. */
+    /**
+     * Pujades de preu (≥ 2 %) entre dues observacions consecutives del mateix producte dins el període.
+     * Només preus pagats: una tarifa més cara d'un altre proveïdor no és una pujada.
+     */
     private List<PriceAlertDTO> buildAlerts(List<PriceHistory> history, LocalDate from) {
         Map<Long, List<PriceHistory>> byProduct = history.stream()
+                .filter(h -> h.getSource() != PriceHistory.Source.QUOTE)
                 .collect(Collectors.groupingBy(h -> h.getProduct().getId()));
         List<PriceAlertDTO> alerts = new ArrayList<>();
         for (List<PriceHistory> observations : byProduct.values()) {
@@ -222,8 +244,20 @@ public class PriceServiceImpl implements PriceService {
         return alerts;
     }
 
+    /** Data fins a la qual val un preu de tarifa: la indicada o, si no n'hi ha, {@value #QUOTE_DEFAULT_DAYS} dies. */
+    static LocalDate quoteValidUntil(PriceHistory h) {
+        return h.getValidUntil() != null ? h.getValidUntil() : h.getDocumentDate().plusDays(QUOTE_DEFAULT_DAYS);
+    }
+
+    private static boolean isExpiredQuote(PriceHistory h, LocalDate today) {
+        return h.getSource() == PriceHistory.Source.QUOTE && quoteValidUntil(h).isBefore(today);
+    }
+
     /** Observació anterior a la darrera amb data de document diferent (evita comparar línies del mateix albarà). */
     private static PriceHistory findPreviousDifferentDate(List<PriceHistory> sorted) {
+        if (sorted.isEmpty()) {
+            return null;
+        }
         PriceHistory latest = sorted.get(sorted.size() - 1);
         for (int i = sorted.size() - 2; i >= 0; i--) {
             if (sorted.get(i).getDocumentDate().isBefore(latest.getDocumentDate())) {

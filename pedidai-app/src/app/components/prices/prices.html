@@ -17,6 +17,10 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         {{ 'PRICES.UPLOAD' | translate }}
       </a>
+      <a routerLink="/invoices/scan" [queryParams]="{ kind: 'price-list' }"
+        class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-blue-200 text-blue-700 hover:bg-blue-50 text-sm font-medium rounded-lg">
+        {{ 'PRICES.UPLOAD_PRICE_LIST' | translate }}
+      </a>
     </div>
   </div>
 
@@ -40,6 +44,9 @@
       <a routerLink="/invoices/scan" class="inline-block mt-6 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl">
         {{ 'PRICES.EMPTY_CTA' | translate }}
       </a>
+      <p class="mt-4 text-sm">
+        <a routerLink="/invoices/scan" [queryParams]="{ kind: 'price-list' }" class="text-blue-700 font-medium hover:underline">{{ 'PRICES.EMPTY_CTA_PRICE_LIST' | translate }}</a>
+      </p>
     </div>
   } @else if (overview(); as o) {
     <!-- Indicadores -->
@@ -93,6 +100,12 @@
                   {{ 'PRICES.ORDER_CHEAPEST' | translate }}
                 </button>
               </div>
+              @if (quoteHint(g); as h) {
+                <p class="mb-3 p-2.5 bg-emerald-50 rounded-lg text-sm text-emerald-800">
+                  {{ 'PRICES.QUOTE_HINT' | translate: { paid: money(h.paid.latestPrice), paidSupplier: h.paid.supplierName,
+                     supplier: h.offer.supplierName, price: money(h.offer.latestPrice), unit: g.unit, pct: num(h.pct, 0) } }}
+                </p>
+              }
               <ul class="divide-y divide-gray-100">
                 @for (offer of g.offers; track offer.productUuid) {
                   <li class="py-2 flex items-center justify-between gap-3 text-sm">
@@ -100,7 +113,14 @@
                       <p class="font-medium truncate" [class]="offer.cheapest ? 'text-emerald-700' : 'text-gray-700'">
                         @if (offer.cheapest) { <span aria-hidden="true">✓ </span> }{{ offer.supplierName }}
                       </p>
-                      <p class="text-xs text-gray-400 truncate">{{ offer.productName }} · {{ 'PRICES.AS_OF' | translate: { date: date(offer.latestDate) } }}</p>
+                      <p class="text-xs text-gray-400 truncate">
+                        @if (offer.quoted) {
+                          <span class="inline-block px-1.5 py-px mr-1 rounded bg-sky-50 text-sky-700 font-medium">{{ 'PRICES.QUOTED' | translate }}</span>
+                          {{ offer.productName }} · {{ 'PRICES.VALID_UNTIL' | translate: { date: date(offer.validUntil) } }}
+                        } @else {
+                          {{ offer.productName }} · {{ 'PRICES.AS_OF' | translate: { date: date(offer.latestDate) } }}
+                        }
+                      </p>
                     </div>
                     <div class="text-right shrink-0">
                       <p class="font-semibold" [class]="offer.cheapest ? 'text-emerald-700' : 'text-gray-800'">{{ money(offer.latestPrice) }}<span class="text-xs font-normal text-gray-400">/{{ offer.unit }}</span></p>
@@ -152,7 +172,9 @@
           <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
             @for (g of o.singleSupplier; track g.key) {
               <div class="px-4 py-2.5 flex items-center justify-between text-sm">
-                <span class="text-gray-700">{{ g.name }} <span class="text-gray-400">· {{ g.offers[0].supplierName }}</span></span>
+                <span class="text-gray-700">{{ g.name }} <span class="text-gray-400">· {{ g.offers[0].supplierName }}</span>
+                  @if (g.offers[0].quoted) { <span class="ml-1 px-1.5 py-px rounded bg-sky-50 text-sky-700 text-xs font-medium">{{ 'PRICES.QUOTED' | translate }}</span> }
+                </span>
                 <span class="font-medium text-gray-800">{{ money(g.offers[0].latestPrice) }}/{{ g.unit }}</span>
               </div>
             }

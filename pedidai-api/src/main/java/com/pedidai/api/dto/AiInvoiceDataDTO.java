@@ -1,5 +1,6 @@
 package com.pedidai.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +20,10 @@ public class AiInvoiceDataDTO {
     private List<ProductData> products;
     private TotalsData totals;
 
+    /** El text del document era massa llarg i se n'ha llegit només una part (no ve de la IA). */
+    @JsonIgnore
+    private boolean textTruncated;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -37,6 +42,8 @@ public class AiInvoiceDataDTO {
     public static class InvoiceData {
         private String number;
         private String date;
+        /** Només en tarifes: fins quan són vàlids els preus (AAAA-MM-DD). */
+        private String validUntil;
     }
 
     @Data

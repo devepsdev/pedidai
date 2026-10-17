@@ -1,11 +1,11 @@
 import { Component, inject, OnDestroy, OnInit, computed, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { InvoiceService } from '../../../services/invoice';
 import { SupplierService } from '../../../services/supplier';
 import { LanguageService } from '../../../services/language.service';
-import { InvoiceConfirmRequestDTO, InvoiceLineStatus, InvoiceScanResultDTO } from '../../../models/invoice.model';
+import { DocumentKind, InvoiceConfirmRequestDTO, InvoiceLineStatus, InvoiceScanResultDTO } from '../../../models/invoice.model';
 import { SupplierResponse } from '../../../models/supplier.model';
 import { formatMoney } from '../../../shared/format';
 
@@ -23,6 +23,8 @@ interface EditableLine {
 }
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+/** Las tarifas también pueden ser hojas de cálculo; el navegador no siempre da su tipo, así que va por extensión. */
+const SHEET_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
 const MAX_BYTES = 10 * 1024 * 1024;
 
 @Component({
@@ -36,11 +38,21 @@ export class InvoiceScan implements OnInit, OnDestroy {
   private sanitizer = inject(DomSanitizer);
   private translate = inject(TranslateService);
   private language = inject(LanguageService);
+  private route = inject(ActivatedRoute);
+
+  /** Albarán o factura (precios pagados) o tarifa o presupuesto (precios ofrecidos). */
+  readonly kinds: DocumentKind[] = ['INVOICE', 'PRICE_LIST'];
+  kind = signal<DocumentKind>('INVOICE');
+  isPriceList = computed(() => this.kind() === 'PRICE_LIST');
+  /** Sufijo de las claves de texto que cambian según el tipo de documento. */
+  k = computed(() => (this.isPriceList() ? '_PRICE_LIST' : ''));
 
   step = signal<1 | 2 | 3>(1);
   selectedFile = signal<File | null>(null);
   previewUrl = signal<SafeUrl | null>(null);
   isPdf = signal(false);
+  /** Extensión en mayúsculas si es una hoja de cálculo (XLSX, XLS, CSV). */
+  sheetType = signal('');
   isDragOver = signal(false);
 
   suppliers = signal<SupplierResponse[]>([]);
@@ -54,6 +66,7 @@ export class InvoiceScan implements OnInit, OnDestroy {
   newSupplierEmail = signal('');
   invoiceDate = signal('');
   invoiceNumber = signal('');
+  validUntil = signal('');
 
   loading = signal(false);
   error = signal('');
@@ -66,7 +79,26 @@ export class InvoiceScan implements OnInit, OnDestroy {
   increases = computed(() => this.lines().filter(l => l.selected && this.change(l) !== null && this.change(l)! > 0).length);
 
   ngOnInit() {
+    if (this.route.snapshot.queryParamMap.get('kind') === 'price-list') {
+      this.kind.set('PRICE_LIST');
+    }
     this.loadSuppliers();
+  }
+
+  setKind(kind: DocumentKind) {
+    if (kind === this.kind()) return;
+    this.kind.set(kind);
+    this.error.set('');
+    // Una hoja de cálculo solo vale como tarifa
+    if (kind === 'INVOICE' && this.sheetType()) {
+      this.clearFile();
+    }
+  }
+
+  /** Tipos que acepta el selector de archivos según el documento. */
+  accept(): string {
+    const base = 'image/jpeg,image/png,image/webp,application/pdf';
+    return this.isPriceList() ? base + ',' + SHEET_EXTENSIONS.join(',') : base;
   }
 
   ngOnDestroy() {
@@ -107,8 +139,10 @@ export class InvoiceScan implements OnInit, OnDestroy {
   }
 
   private processFile(file: File) {
-    if (!ACCEPTED_TYPES.includes(file.type)) {
-      this.error.set(this.translate.instant('INVOICE_SCAN.ERR_FORMAT'));
+    const name = file.name.toLowerCase();
+    const sheet = SHEET_EXTENSIONS.find(ext => name.endsWith(ext));
+    if (sheet ? !this.isPriceList() : !ACCEPTED_TYPES.includes(file.type)) {
+      this.error.set(this.translate.instant('INVOICE_SCAN.ERR_FORMAT' + this.k()));
       return;
     }
     if (file.size > MAX_BYTES) {
@@ -118,7 +152,8 @@ export class InvoiceScan implements OnInit, OnDestroy {
     this.error.set('');
     this.revokeObjectUrl();
     this.selectedFile.set(file);
-    this.isPdf.set(file.type === 'application/pdf');
+    this.isPdf.set(!sheet && file.type === 'application/pdf');
+    this.sheetType.set(sheet ? sheet.slice(1).toUpperCase() : '');
     this.objectUrl = URL.createObjectURL(file);
     this.previewUrl.set(this.sanitizer.bypassSecurityTrustUrl(this.objectUrl));
   }
@@ -128,7 +163,7 @@ export class InvoiceScan implements OnInit, OnDestroy {
     if (!file || this.loading()) return;
     this.loading.set(true);
     this.error.set('');
-    this.invoiceService.scanInvoice(file, this.preselectedSupplierUuid() || undefined).subscribe({
+    this.invoiceService.scanInvoice(file, this.preselectedSupplierUuid() || undefined, this.kind()).subscribe({
       next: resp => {
         const data = resp.data;
         this.scanResult.set(data);
@@ -148,6 +183,7 @@ export class InvoiceScan implements OnInit, OnDestroy {
         this.newSupplierEmail.set('');
         this.invoiceDate.set(data.invoiceDate ?? new Date().toISOString().slice(0, 10));
         this.invoiceNumber.set(data.invoiceNumber ?? '');
+        this.validUntil.set(data.validUntil ?? '');
         this.loading.set(false);
         this.step.set(2);
       },
@@ -199,10 +235,12 @@ export class InvoiceScan implements OnInit, OnDestroy {
         : { supplierUuid: this.supplierUuid() }),
       invoiceNumber: this.invoiceNumber().trim() || undefined,
       invoiceDate: this.invoiceDate() || undefined,
+      documentKind: this.kind(),
+      validUntil: this.isPriceList() ? this.validUntil() || undefined : undefined,
       products: selected.map(l => ({
         name: l.name.trim(),
         genericName: l.genericName.trim() || undefined,
-        quantity: l.quantity ?? undefined,
+        quantity: this.isPriceList() ? undefined : l.quantity ?? undefined,
         unit: l.unit.trim() || undefined,
         unitPrice: l.unitPrice!,
         matchedProductUuid: creatingSupplier ? undefined : l.matchedProductUuid,
@@ -227,15 +265,21 @@ export class InvoiceScan implements OnInit, OnDestroy {
 
   reset() {
     this.step.set(1);
-    this.selectedFile.set(null);
-    this.revokeObjectUrl();
-    this.previewUrl.set(null);
-    this.isPdf.set(false);
+    this.clearFile();
     this.preselectedSupplierUuid.set('');
+    this.validUntil.set('');
     this.scanResult.set(null);
     this.lines.set([]);
     this.error.set('');
     this.confirmResult.set(null);
+  }
+
+  private clearFile() {
+    this.selectedFile.set(null);
+    this.revokeObjectUrl();
+    this.previewUrl.set(null);
+    this.isPdf.set(false);
+    this.sheetType.set('');
   }
 
   money(v: number | null | undefined) {

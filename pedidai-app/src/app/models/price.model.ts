@@ -11,6 +11,9 @@ export interface PriceOffer {
   previousPrice?: number;
   changePercent?: number;
   cheapest: boolean;
+  /** El precio vigente viene de una tarifa o presupuesto (ofrecido, aún no pagado). */
+  quoted?: boolean;
+  validUntil?: string;
 }
 
 /** Un mismo producto (nombre genérico + unidad) en uno o varios proveedores. */

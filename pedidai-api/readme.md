@@ -17,7 +17,8 @@ API de [PedidAI](https://pedidai.es), la aplicación para bares y restaurantes q
 
 - **Multiempresa:** cada consulta se limita a la empresa del usuario autenticado.
 - **Registro con prueba gratuita de 14 días**, verificación de email y recuperación de contraseña.
-- **Lectura de albaranes:** OCR con Tesseract en el propio servidor y estructuración del texto con IA (Mistral AI por defecto, cualquier API compatible con OpenAI). Cada línea trae un nombre genérico (para comparar entre proveedores) y la unidad a la que corresponde el precio: si se venden envases, el envase (garrafa, caja, barril…). El proveedor se reconoce aunque la IA añada palabras como «albarán» o cambie la forma jurídica (y, si no hay uno idéntico, el único cuyo nombre esté contenido en el detectado); si la IA no encuentra el número del documento, se busca en el texto del OCR.
+- **Lectura de albaranes:** OCR con Tesseract en el propio servidor y estructuración del texto con IA (Mistral AI por defecto, cualquier API compatible con OpenAI). Cada línea trae un nombre genérico (para comparar entre proveedores) y la unidad a la que corresponde el precio: si se venden envases, el envase (garrafa, caja, barril…). El proveedor se reconoce aunque la IA añada palabras como «albarán» o cambie la forma jurídica (y, si no hay uno idéntico, el único cuyo nombre esté contenido en el detectado); si la IA no encuentra el número del documento, se busca en el texto del OCR. De un PDF digital se usa su propio texto (PDFBox) y solo se hace OCR si no lo tiene; se leen hasta 3 páginas.
+- **Lectura de tarifas y presupuestos** (`kind=PRICE_LIST`): PDF (hasta 8 páginas), Excel `.xlsx`/`.xls` (Apache POI, hasta 3.000 filas; de las fórmulas se usa el último resultado guardado), CSV (UTF-8 o Windows-1252) o foto, con unas instrucciones propias para la IA (validez, IVA incluido, precios por tramos). Los precios se guardan en `price_history` con `source = QUOTE`, sin cantidad y con `valid_until` (por defecto, 180 días). En `/api/prices/overview` y en la comparativa del chat cuentan como oferta (`quoted`, `validUntil`), pero no en las subidas ni en el «pagado de más»; una tarifa caducada se ignora.
 - **Historial y comparativa de precios** entre proveedores, con avisos de subidas.
 - **Pedidos:** creación, edición, cancelación y envío al proveedor por email (la respuesta llega al cliente).
 - **Análisis de consumo** para las sugerencias de pedido y el asistente de chat (`orderflow`).
@@ -36,7 +37,8 @@ API de [PedidAI](https://pedidai.es), la aplicación para bares y restaurantes q
 | Datos | Spring Data JPA, Hibernate, MySQL Connector/J |
 | Validación | Jakarta Bean Validation |
 | Email | Spring Mail (SMTP) |
-| PDF | OpenPDF, PDFBox (PDF de albaranes a imagen) |
+| PDF | OpenPDF, PDFBox (texto de PDF digitales y PDF escaneados a imagen) |
+| Excel | Apache POI (tarifas en `.xlsx` y `.xls`) |
 | IA | Tesseract OCR (`spa` + `cat`) + API de chat compatible con OpenAI vía WebClient |
 | Documentación | SpringDoc OpenAPI (Swagger UI) |
 | Utilidades | Lombok |
@@ -168,8 +170,8 @@ Opcionales: `adminLastName`, `taxId`, `companyPhone`, `companyAddress`, `company
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
-| POST | `/api/invoices/scan` | Lee un albarán o factura (imagen o PDF) y devuelve las líneas para revisar (40 al día por empresa) |
-| POST | `/api/invoices/confirm` | Guarda las líneas revisadas: productos e historial de precios |
+| POST | `/api/invoices/scan` | Lee un albarán o factura (`kind=INVOICE`, imagen o PDF) o una tarifa (`kind=PRICE_LIST`, también Excel o CSV) y devuelve las líneas para revisar (40 al día por empresa) |
+| POST | `/api/invoices/confirm` | Guarda las líneas revisadas: productos e historial de precios (`documentKind`, `validUntil` en tarifas) |
 | GET | `/api/prices/overview?days=` | Comparativa, subidas de precio y estimación de lo pagado de más |
 
 ### Pedidos — `/api/orders`

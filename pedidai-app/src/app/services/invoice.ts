@@ -2,15 +2,16 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api';
 import { ApiResponse } from '../models/shared.model';
-import { InvoiceConfirmRequestDTO, InvoiceScanResultDTO } from '../models/invoice.model';
+import { DocumentKind, InvoiceConfirmRequestDTO, InvoiceScanResultDTO } from '../models/invoice.model';
 
 @Injectable({ providedIn: 'root' })
 export class InvoiceService {
   private api = inject(ApiService);
 
-  scanInvoice(image: File, supplierUuid?: string): Observable<ApiResponse<InvoiceScanResultDTO>> {
+  scanInvoice(image: File, supplierUuid?: string, kind: DocumentKind = 'INVOICE'): Observable<ApiResponse<InvoiceScanResultDTO>> {
     const formData = new FormData();
     formData.append('image', image);
+    formData.append('kind', kind);
     if (supplierUuid) {
       formData.append('supplierUuid', supplierUuid);
     }

@@ -115,6 +115,96 @@ class PriceServiceImplTest {
         assertThat(overview.getSuppliersTracked()).isEqualTo(2);
     }
 
+    private PriceHistory quote(Product p, String price, LocalDate date, LocalDate validUntil) {
+        return PriceHistory.builder().id(ids++).company(company).supplier(p.getSupplier()).product(p)
+                .unitPrice(new BigDecimal(price)).unit("kg").documentDate(date).validUntil(validUntil)
+                .source(PriceHistory.Source.QUOTE).build();
+    }
+
+    @Test
+    @DisplayName("una tarifa d'un altre proveïdor es compara, però no compta com a pagat de més")
+    void quoteIsComparedButNotOverpaid() {
+        LocalDate today = LocalDate.now();
+        Product tomatoGarcia = product(1, "TOMATE PERA", "tomate pera", garcia, "1.85");
+        Product tomatoMaresme = product(2, "TOMAQUET PERA", "tomate pera", maresme, "1.55");
+        when(currentUser.companyId()).thenReturn(1L);
+        when(historyRepository.findActiveByCompanySince(eq(1L), any())).thenReturn(new java.util.ArrayList<>(List.of(
+                obs(tomatoGarcia, "1.60", "15", today.minusDays(40)),
+                obs(tomatoGarcia, "1.85", "15", today.minusDays(6)),
+                quote(tomatoMaresme, "1.55", today.minusDays(2), null))));
+
+        PriceOverviewDTO overview = service.getOverview(90);
+
+        assertThat(overview.getComparable()).hasSize(1);
+        var offers = overview.getComparable().get(0).getOffers();
+        assertThat(offers.get(0).getSupplierName()).isEqualTo("Maresme");
+        assertThat(offers.get(0).isQuoted()).isTrue();
+        assertThat(offers.get(0).isCheapest()).isTrue();
+        assertThat(offers.get(0).getValidUntil()).isEqualTo(today.minusDays(2).plusDays(PriceServiceImpl.QUOTE_DEFAULT_DAYS));
+        assertThat(offers.get(1).isQuoted()).isFalse();
+        // La pujada de García (preus pagats) sí que surt; el sobrecost només es calcula entre preus pagats
+        assertThat(overview.getAlerts()).extracting("supplierName").containsExactly("García");
+        assertThat(overview.getOverpaidAmount()).isEqualByComparingTo("0");
+    }
+
+    @Test
+    @DisplayName("una tarifa nova del mateix proveïdor no genera una alerta de pujada")
+    void quoteDoesNotRaiseAlert() {
+        LocalDate today = LocalDate.now();
+        Product tomato = product(1, "TOMATE PERA", "tomate pera", garcia, "1.80");
+        when(currentUser.companyId()).thenReturn(1L);
+        when(historyRepository.findActiveByCompanySince(eq(1L), any())).thenReturn(new java.util.ArrayList<>(List.of(
+                obs(tomato, "1.60", "15", today.minusDays(10)),
+                quote(tomato, "1.80", today.minusDays(2), today.plusDays(30)))));
+
+        PriceOverviewDTO overview = service.getOverview(90);
+
+        assertThat(overview.getAlerts()).isEmpty();
+        var offer = overview.getSingleSupplier().get(0).getOffers().get(0);
+        assertThat(offer.isQuoted()).isTrue();
+        assertThat(offer.getPreviousPrice()).isEqualByComparingTo("1.60");
+        assertThat(offer.getChangePercent()).isEqualByComparingTo("12.5");
+        assertThat(offer.getValidUntil()).isEqualTo(today.plusDays(30));
+    }
+
+    @Test
+    @DisplayName("una tarifa caducada no compta: queda l'últim preu pagat")
+    void expiredQuoteIsIgnored() {
+        LocalDate today = LocalDate.now();
+        Product tomato = product(1, "TOMATE PERA", "tomate pera", garcia, "1.40");
+        Product tomatoMaresme = product(2, "TOMAQUET PERA", "tomate pera", maresme, "1.30");
+        when(currentUser.companyId()).thenReturn(1L);
+        when(historyRepository.findActiveByCompanySince(eq(1L), any())).thenReturn(new java.util.ArrayList<>(List.of(
+                obs(tomato, "1.60", "15", today.minusDays(60)),
+                quote(tomato, "1.40", today.minusDays(40), today.minusDays(1)),
+                quote(tomatoMaresme, "1.30", today.minusDays(40), today.minusDays(1)))));
+
+        PriceOverviewDTO overview = service.getOverview(90);
+
+        assertThat(overview.getComparable()).isEmpty();
+        var offer = overview.getSingleSupplier().get(0).getOffers().get(0);
+        assertThat(offer.isQuoted()).isFalse();
+        assertThat(offer.getLatestPrice()).isEqualByComparingTo("1.60");
+    }
+
+    @Test
+    @DisplayName("una tarifa desa la validesa; un albarà no")
+    void recordsValidUntilOnlyForQuotes() {
+        Product tomato = product(1, "Tomate pera", "tomate pera", garcia, "1.60");
+        when(historyRepository.findFirstByProduct_IdOrderByDocumentDateDescIdDesc(1L)).thenReturn(Optional.empty());
+        LocalDate until = LocalDate.now().plusDays(30);
+
+        service.recordObservation(tomato, new BigDecimal("1.50"), "kg", null, LocalDate.now(),
+                PriceHistory.Source.QUOTE, "T-1", until);
+        service.recordObservation(tomato, new BigDecimal("1.50"), "kg", BigDecimal.ONE, LocalDate.now(),
+                PriceHistory.Source.INVOICE, "A-1", until);
+
+        var saved = org.mockito.ArgumentCaptor.forClass(PriceHistory.class);
+        verify(historyRepository, times(2)).save(saved.capture());
+        assertThat(saved.getAllValues().get(0).getValidUntil()).isEqualTo(until);
+        assertThat(saved.getAllValues().get(1).getValidUntil()).isNull();
+    }
+
     @Test
     @DisplayName("la cerca per nom troba plurals i ignora accents")
     void compareByNameMatchesPlurals() {

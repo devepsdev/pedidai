@@ -7,6 +7,14 @@ import com.pedidai.api.services.AiVisionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,11 +30,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -34,8 +45,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Lectura d'albarans i factures: l'OCR (Tesseract) s'executa al servidor i només el TEXT
- * extret s'envia a la IA (Mistral per defecte) per estructurar-lo. La imatge no surt mai del servidor.
+ * Lectura d'albarans, factures i tarifes de proveïdors. El text s'extreu al servidor (text del PDF, full de
+ * càlcul o OCR amb Tesseract) i només el TEXT s'envia a la IA (Mistral per defecte) per estructurar-lo.
+ * El fitxer no surt mai del servidor.
  */
 @Service
 @Slf4j
@@ -48,12 +60,23 @@ public class AiVisionServiceImpl implements AiVisionService {
         }
     }
 
-    private static final int OCR_TIMEOUT_SECONDS = 90;
-    private static final int MAX_OCR_CHARS = 20_000;
+    public static final String MEDIA_CSV = "text/csv";
+    public static final String MEDIA_XLS = "application/vnd.ms-excel";
+    public static final String MEDIA_XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-    private static final String SYSTEM_PROMPT = """
+    private static final int OCR_TIMEOUT_SECONDS = 90;
+    private static final int MAX_INVOICE_CHARS = 20_000;
+    private static final int MAX_PRICE_LIST_CHARS = 40_000;
+    private static final int MAX_INVOICE_PAGES = 3;
+    private static final int MAX_PRICE_LIST_PAGES = 8;
+    private static final int MAX_SHEET_ROWS = 3_000;
+    private static final int MAX_SHEET_COLUMNS = 40;
+    /** Mínim de lletres i xifres perquè el text propi d'un PDF es consideri llegible (si no, OCR). */
+    private static final int MIN_PDF_TEXT_CHARS = 40;
+
+    private static final String INVOICE_PROMPT = """
             Eres un asistente que lee albaranes y facturas de proveedores de hostelería en España \
-            (castellano o catalán). Recibirás el texto extraído por OCR, que puede tener errores.
+            (castellano o catalán). Recibirás el texto extraído del documento (por OCR, puede tener errores).
             Devuelve EXCLUSIVAMENTE un objeto JSON con esta forma:
             {
               "supplier": { "name": "...", "cif": "...", "address": "...", "phone": "..." },
@@ -90,6 +113,36 @@ public class AiVisionServiceImpl implements AiVisionService {
             - La fecha en formato YYYY-MM-DD (en España las fechas son día/mes/año).
             """;
 
+    private static final String PRICE_LIST_PROMPT = """
+            Eres un asistente que lee tarifas, listas de precios y presupuestos que los proveedores de hostelería \
+            en España envían a bares y restaurantes (castellano o catalán). Recibirás el texto extraído del documento \
+            (de un PDF, de una hoja de cálculo con las celdas separadas por " | ", o por OCR con posibles errores).
+            Devuelve EXCLUSIVAMENTE un objeto JSON con esta forma:
+            {
+              "supplier": { "name": "...", "cif": "...", "address": "...", "phone": "..." },
+              "invoice": { "number": "...", "date": "YYYY-MM-DD", "validUntil": "YYYY-MM-DD" },
+              "products": [
+                { "name": "nombre tal y como aparece", "genericName": "nombre genérico", "unit": "kg", "unitPrice": 2.50, "ivaPercent": 10.0 }
+              ]
+            }
+            Reglas:
+            - El proveedor es quien EMITE la tarifa, no el cliente. supplier.name es solo su nombre comercial o razón \
+              social, sin "tarifa", "presupuesto" ni "lista de precios". Si no aparece, null.
+            - invoice.number: número o referencia de la tarifa o presupuesto, si lo hay. invoice.date: fecha de la \
+              tarifa. invoice.validUntil: fecha hasta la que son válidos los precios ("válido hasta", "vigencia", \
+              "validesa"); si solo dice un plazo ("válido 30 días"), súmalo a la fecha. Si no aparece, null.
+            - Un producto por cada artículo con precio. No incluyas categorías, encabezados, portes ni condiciones.
+            - genericName: SIEMPRE en castellano, minúsculas y singular, sin marca, calibre, formato ni envase. \
+              Ejemplos: "TOMÀQUET PERA CAT.1 5KG" → "tomate pera"; "Agua Font Vella 5L garrafa" → "agua mineral".
+            - unit: una de kg, g, l, ml, ud, caja, docena, garrafa, botella, paquete, bandeja, saco, lata, barril; \
+              la unidad a la que corresponde unitPrice ("€/kg" → kg; "caja 6 ud" a 12,00 → caja).
+            - unitPrice es el precio por unidad SIN IVA. Si la tarifa indica que los precios llevan el IVA incluido, \
+              quítalo. Si hay precios por tramos de cantidad, usa el de la compra más pequeña.
+            - Los precios en España usan coma decimal ("1,55" = 1.55).
+            - No inventes datos: si un campo no aparece, pon null.
+            - Las fechas en formato YYYY-MM-DD (en España las fechas son día/mes/año).
+            """;
+
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
     private final String model;
@@ -105,7 +158,8 @@ public class AiVisionServiceImpl implements AiVisionService {
         this.model = model;
         this.tesseractCommand = tesseractCommand;
 
-        HttpClient httpClient = HttpClient.create().responseTimeout(Duration.ofSeconds(60));
+        // Una tarifa llarga pot trigar més d'un minut a estructurar-se
+        HttpClient httpClient = HttpClient.create().responseTimeout(Duration.ofSeconds(180));
         this.webClient = WebClient.builder()
                 .baseUrl(apiUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -116,17 +170,137 @@ public class AiVisionServiceImpl implements AiVisionService {
     }
 
     @Override
-    public AiInvoiceDataDTO analyzeInvoice(byte[] imageBytes, String mediaType) {
-        String ocrText = extractTextWithTesseract(imageBytes, mediaType);
-        log.debug("OCR: {} caràcters", ocrText.length());
-        AiInvoiceDataDTO data = structureWithAi(ocrText);
+    public AiInvoiceDataDTO analyzeDocument(byte[] fileBytes, String mediaType, DocumentKind kind) {
+        boolean priceList = kind == DocumentKind.PRICE_LIST;
+        String text = extractText(fileBytes, mediaType, priceList ? MAX_PRICE_LIST_PAGES : MAX_INVOICE_PAGES);
+        int maxChars = priceList ? MAX_PRICE_LIST_CHARS : MAX_INVOICE_CHARS;
+        boolean truncated = text.length() > maxChars;
+        if (truncated) {
+            text = text.substring(0, maxChars);
+        }
+        log.debug("Text del document: {} caràcters", text.length());
+
+        AiInvoiceDataDTO data = structureWithAi(text, priceList);
+        data.setTextTruncated(truncated);
         fillMissingUnitPrices(data);
         cleanSupplierName(data);
-        fillMissingDocumentNumber(data, ocrText);
+        if (!priceList) {
+            fillMissingDocumentNumber(data, text);
+        }
         return data;
     }
 
-    private String extractTextWithTesseract(byte[] imageBytes, String mediaType) {
+    // ───────────────────────── Extracció del text ─────────────────────────
+
+    private String extractText(byte[] bytes, String mediaType, int maxPages) {
+        try {
+            String text;
+            if (MEDIA_CSV.equals(mediaType)) {
+                text = csvToText(bytes);
+            } else if (MEDIA_XLS.equals(mediaType) || MEDIA_XLSX.equals(mediaType)) {
+                text = spreadsheetToText(bytes);
+            } else if (mediaType != null && mediaType.contains("pdf")) {
+                text = pdfToText(bytes, maxPages);
+            } else {
+                text = ocr(bytes);
+            }
+            text = text == null ? "" : text.trim();
+            if (text.length() < 20) {
+                throw new InvoiceReadException("error.invoice.unreadable", null);
+            }
+            return text;
+        } catch (InvoiceReadException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error llegint el document ({})", mediaType, e);
+            throw new InvoiceReadException("error.invoice.unreadable", e);
+        }
+    }
+
+    /** PDF digital: el seu text directament; PDF escanejat: OCR pàgina a pàgina. */
+    private String pdfToText(byte[] pdfBytes, int maxPages) throws IOException {
+        try (PDDocument document = PDDocument.load(new ByteArrayInputStream(pdfBytes))) {
+            int pages = Math.min(document.getNumberOfPages(), maxPages);
+            PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setSortByPosition(true);
+            stripper.setStartPage(1);
+            stripper.setEndPage(pages);
+            String embedded = stripper.getText(document);
+            if (embedded.replaceAll("[^\\p{L}\\p{N}]", "").length() >= MIN_PDF_TEXT_CHARS) {
+                return embedded;
+            }
+            PDFRenderer renderer = new PDFRenderer(document);
+            StringBuilder text = new StringBuilder();
+            for (int i = 0; i < pages; i++) {
+                BufferedImage image = renderer.renderImageWithDPI(i, 250);
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                ImageIO.write(image, "PNG", out);
+                text.append(ocr(out.toByteArray())).append("\n\n");
+            }
+            return text.toString();
+        }
+    }
+
+    /** Full de càlcul (.xlsx o .xls): una línia per fila amb les cel·les separades per " | ". */
+    static String spreadsheetToText(byte[] bytes) throws IOException {
+        DataFormatter formatter = new DataFormatter(Locale.forLanguageTag("es-ES"));
+        StringBuilder text = new StringBuilder();
+        int rows = 0;
+        try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
+            for (int s = 0; s < workbook.getNumberOfSheets() && rows < MAX_SHEET_ROWS; s++) {
+                if (workbook.isSheetHidden(s) || workbook.isSheetVeryHidden(s)) {
+                    continue;
+                }
+                Sheet sheet = workbook.getSheetAt(s);
+                text.append("## ").append(sheet.getSheetName()).append('\n');
+                for (Row row : sheet) {
+                    List<String> cells = new ArrayList<>();
+                    int last = Math.min(row.getLastCellNum(), MAX_SHEET_COLUMNS);
+                    for (int c = 0; c < last; c++) {
+                        String value = cellText(row.getCell(c), formatter);
+                        if (!value.isBlank()) {
+                            cells.add(value.trim().replaceAll("\\s+", " "));
+                        }
+                    }
+                    if (!cells.isEmpty()) {
+                        text.append(String.join(" | ", cells)).append('\n');
+                        if (++rows >= MAX_SHEET_ROWS) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return text.toString();
+    }
+
+    /** Valor visible d'una cel·la; de les fórmules, el darrer resultat desat (no es recalculen). */
+    private static String cellText(Cell cell, DataFormatter formatter) {
+        if (cell == null) {
+            return "";
+        }
+        if (cell.getCellType() != CellType.FORMULA) {
+            return formatter.formatCellValue(cell);
+        }
+        return switch (cell.getCachedFormulaResultType()) {
+            case NUMERIC -> formatter.formatRawCellContents(cell.getNumericCellValue(),
+                    cell.getCellStyle().getDataFormat(), cell.getCellStyle().getDataFormatString());
+            case STRING -> cell.getStringCellValue();
+            case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
+            default -> "";
+        };
+    }
+
+    /** CSV en UTF-8 o, si no ho és, en la codificació d'Excel a Windows. */
+    static String csvToText(byte[] bytes) {
+        String text = new String(bytes, StandardCharsets.UTF_8);
+        if (text.indexOf('\uFFFD') >= 0) {
+            text = new String(bytes, Charset.forName("windows-1252"));
+        }
+        return text.startsWith("\uFEFF") ? text.substring(1) : text;
+    }
+
+    private String ocr(byte[] imageBytes) {
         String id = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
         Path tmp = Path.of(System.getProperty("java.io.tmpdir"));
         Path input = tmp.resolve("invoice_" + id + ".png");
@@ -135,8 +309,7 @@ public class AiVisionServiceImpl implements AiVisionService {
         Path processLog = tmp.resolve("invoice_" + id + "_log.txt");
 
         try {
-            byte[] png = mediaType != null && mediaType.contains("pdf") ? renderPdfFirstPageToPng(imageBytes) : imageBytes;
-            Files.write(input, png);
+            Files.write(input, imageBytes);
 
             Process process = new ProcessBuilder(tesseractCommand, input.toString(), outputBase.toString(), "-l", "spa+cat")
                     .redirectErrorStream(true)
@@ -150,12 +323,7 @@ public class AiVisionServiceImpl implements AiVisionService {
                 log.error("Tesseract ha fallat (exit={}): {}", process.exitValue(), Files.readString(processLog, StandardCharsets.UTF_8));
                 throw new InvoiceReadException("error.invoice.ocrFailed", null);
             }
-
-            String text = Files.readString(outputTxt).trim();
-            if (text.length() < 20) {
-                throw new InvoiceReadException("error.invoice.unreadable", null);
-            }
-            return text.length() > MAX_OCR_CHARS ? text.substring(0, MAX_OCR_CHARS) : text;
+            return Files.readString(outputTxt).trim();
 
         } catch (InvoiceReadException e) {
             throw e;
@@ -172,21 +340,14 @@ public class AiVisionServiceImpl implements AiVisionService {
         }
     }
 
-    private byte[] renderPdfFirstPageToPng(byte[] pdfBytes) throws IOException {
-        try (PDDocument document = PDDocument.load(new ByteArrayInputStream(pdfBytes))) {
-            BufferedImage image = new PDFRenderer(document).renderImageWithDPI(0, 250);
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            ImageIO.write(image, "PNG", out);
-            return out.toByteArray();
-        }
-    }
+    // ───────────────────────── IA ─────────────────────────
 
-    private AiInvoiceDataDTO structureWithAi(String ocrText) {
+    private AiInvoiceDataDTO structureWithAi(String text, boolean priceList) {
         Map<String, Object> requestBody = Map.of(
                 "model", model,
                 "messages", List.of(
-                        Map.of("role", "system", "content", SYSTEM_PROMPT),
-                        Map.of("role", "user", "content", "Texto OCR del documento:\n\n" + ocrText)),
+                        Map.of("role", "system", "content", priceList ? PRICE_LIST_PROMPT : INVOICE_PROMPT),
+                        Map.of("role", "user", "content", "Texto del documento:\n\n" + text)),
                 "response_format", Map.of("type", "json_object"),
                 "temperature", 0,
                 "stream", false
@@ -198,7 +359,7 @@ public class AiVisionServiceImpl implements AiVisionService {
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .timeout(Duration.ofSeconds(60))
+                    .timeout(Duration.ofSeconds(priceList ? 180 : 60))
                     .block();
 
             JsonNode root = objectMapper.readTree(responseJson);
@@ -209,21 +370,24 @@ public class AiVisionServiceImpl implements AiVisionService {
             return objectMapper.readValue(content, AiInvoiceDataDTO.class);
 
         } catch (Exception e) {
-            log.error("Error de la IA en estructurar l'albarà: {}", e.getMessage());
+            log.error("Error de la IA en estructurar el document: {}", e.getMessage());
             throw new InvoiceReadException("error.invoice.aiFailed", e);
         }
     }
 
+    // ───────────────────────── Neteja de la resposta ─────────────────────────
+
     /** Paraules del tipus de document que la IA de vegades enganxa al nom del proveïdor. */
     private static final Pattern DOCUMENT_WORDS = Pattern.compile(
-            "(?iU)\\b(albar[aáà]n(es)?|albar[aà]ns?|factura|facturas|factures|tiquet|ticket|nota de entrega)\\b");
+            "(?iU)\\b(albar[aáà]n(es)?|albar[aà]ns?|factura|facturas|factures|tiquet|ticket|nota de entrega"
+                    + "|tarifa|tarifas|tarifes|presupuesto|pressupost|lista de precios|llista de preus)\\b");
 
     /** "Albarán nº A-1234", "Factura núm. 2026/15", "Nº: 8812"… (només si la IA no ha trobat el número). */
     private static final Pattern DOCUMENT_NUMBER = Pattern.compile(
             "(?iU)\\b(?:albar[aáà]n|albar[aà]|factura|n[uú]m(?:ero)?\\.?|n[ºo°]\\.?)\\s*(?:n[ºo°]\\.?|n[uú]m(?:ero)?\\.?)?"
                     + "\\s*[:#.]?\\s*([A-Z0-9][A-Z0-9/\\-.]{1,30})");
 
-    /** Treu del nom del proveïdor paraules com "albarán" o "factura" ("DISTRIBUCIONES LÓPEZ ALBARÁN"). */
+    /** Treu del nom del proveïdor paraules com "albarán", "factura" o "tarifa" ("DISTRIBUCIONES LÓPEZ ALBARÁN"). */
     static void cleanSupplierName(AiInvoiceDataDTO data) {
         if (data.getSupplier() == null || data.getSupplier().getName() == null) {
             return;

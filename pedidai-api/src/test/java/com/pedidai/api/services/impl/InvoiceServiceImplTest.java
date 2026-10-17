@@ -189,6 +189,61 @@ class InvoiceServiceImplTest {
     }
 
     @Test
+    @DisplayName("una tarifa es desa com a preu ofert, sense quantitat i amb la validesa")
+    void priceListIsRecordedAsQuote() {
+        Supplier supplier = Supplier.builder().id(9L).uuid("s1").name("Fruites").company(company).build();
+        when(supplierRepository.findByUuidAndCompany_Id("s1", 1L)).thenReturn(Optional.of(supplier));
+        when(productRepository.findBySupplier_IdAndIsActiveTrue(9L)).thenReturn(new ArrayList<>());
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        LocalDate date = LocalDate.now().minusDays(3);
+        LocalDate until = LocalDate.now().plusDays(60);
+
+        service.confirmInvoice(InvoiceConfirmRequestDTO.builder().supplierUuid("s1")
+                .documentKind(AiVisionService.DocumentKind.PRICE_LIST)
+                .invoiceDate(date.toString()).invoiceNumber("T-2026").validUntil(until.toString())
+                .products(List.of(line("TOMAQUET PERA", "tomate pera", "1.55", null))).build());
+
+        verify(priceService).recordObservation(any(), eq(new BigDecimal("1.55")), eq("kg"), isNull(),
+                eq(date), eq(PriceHistory.Source.QUOTE), eq("T-2026"), eq(until));
+    }
+
+    @Test
+    @DisplayName("una validesa anterior a la data de la tarifa s'ignora")
+    void priceListIgnoresValidUntilBeforeDate() {
+        Supplier supplier = Supplier.builder().id(9L).uuid("s1").name("Fruites").company(company).build();
+        when(supplierRepository.findByUuidAndCompany_Id("s1", 1L)).thenReturn(Optional.of(supplier));
+        when(productRepository.findBySupplier_IdAndIsActiveTrue(9L)).thenReturn(new ArrayList<>());
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        LocalDate date = LocalDate.now().minusDays(3);
+
+        service.confirmInvoice(InvoiceConfirmRequestDTO.builder().supplierUuid("s1")
+                .documentKind(AiVisionService.DocumentKind.PRICE_LIST)
+                .invoiceDate(date.toString()).validUntil(date.minusDays(10).toString())
+                .products(List.of(line("TOMAQUET PERA", "tomate pera", "1.55", null))).build());
+
+        verify(priceService).recordObservation(any(), any(), any(), isNull(), eq(date),
+                eq(PriceHistory.Source.QUOTE), isNull(), isNull());
+    }
+
+    @Test
+    @DisplayName("accepta tarifes en Excel i CSV, comprovant el contingut i no només l'extensió")
+    void acceptsSpreadsheetsAndCsv() {
+        var xlsx = new MockMultipartFile("image", "tarifa.xlsx", "application/octet-stream",
+                new byte[]{'P', 'K', 3, 4, 0, 0, 0, 0});
+        var xls = new MockMultipartFile("image", "TARIFA.XLS", "application/octet-stream",
+                new byte[]{(byte) 0xD0, (byte) 0xCF, 0x11, (byte) 0xE0, (byte) 0xA1, (byte) 0xB1, 0x1A, (byte) 0xE1});
+        var csv = new MockMultipartFile("image", "tarifa.csv", "text/csv",
+                "Producto;Precio\nTomate pera;1,55\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        var fakeCsv = new MockMultipartFile("image", "tarifa.csv", "text/csv", new byte[]{'M', 'Z', 0, 0, 1, 2});
+
+        assertThat(InvoiceServiceImpl.validateFile(xlsx)).isEqualTo(AiVisionServiceImpl.MEDIA_XLSX);
+        assertThat(InvoiceServiceImpl.validateFile(xls)).isEqualTo(AiVisionServiceImpl.MEDIA_XLS);
+        assertThat(InvoiceServiceImpl.validateFile(csv)).isEqualTo(AiVisionServiceImpl.MEDIA_CSV);
+        assertThatThrownBy(() -> InvoiceServiceImpl.validateFile(fakeCsv))
+                .isInstanceOf(BadRequestException.class).hasMessage("error.invoice.invalidFormat");
+    }
+
+    @Test
     @DisplayName("només s'accepten JPG, PNG, WebP o PDF reals")
     void rejectsOtherFiles() {
         var html = new MockMultipartFile("image", "albara.png", "image/png", "<html></html>".getBytes());

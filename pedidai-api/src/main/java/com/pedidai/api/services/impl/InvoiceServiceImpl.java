@@ -12,6 +12,7 @@ import com.pedidai.api.repositories.SupplierRepository;
 import com.pedidai.api.security.CurrentUser;
 import com.pedidai.api.security.RateLimiter;
 import com.pedidai.api.services.AiVisionService;
+import com.pedidai.api.services.AiVisionService.DocumentKind;
 import com.pedidai.api.services.InvoiceService;
 import com.pedidai.api.services.PriceService;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +31,9 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 
 /**
- * Albarans i factures: lectura amb IA ({@link #scanInvoice}) i confirmació, que desa cada línia
- * a l'historial de preus amb la data del document ({@link #confirmInvoice}).
+ * Albarans, factures i tarifes: lectura amb IA ({@link #scanInvoice}) i confirmació, que desa cada línia
+ * a l'historial de preus amb la data del document ({@link #confirmInvoice}). Els preus d'un albarà o factura
+ * són preus pagats; els d'una tarifa o pressupost, preus oferts ({@link PriceHistory.Source#QUOTE}).
  */
 @Slf4j
 @Service
@@ -51,8 +53,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Override
     @Transactional(readOnly = true)
-    public InvoiceScanResultDTO scanInvoice(MultipartFile image, String supplierUuid) {
+    public InvoiceScanResultDTO scanInvoice(MultipartFile image, String supplierUuid, DocumentKind kind) {
         Company company = currentUser.company();
+        DocumentKind documentKind = kind != null ? kind : DocumentKind.INVOICE;
         String mediaType = validateFile(image);
 
         // Si s'ha triat un proveïdor, ha de ser de l'empresa (es valida abans de gastar IA)
@@ -62,7 +65,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         AiInvoiceDataDTO aiData;
         try {
-            aiData = aiVisionService.analyzeInvoice(image.getBytes(), mediaType);
+            aiData = aiVisionService.analyzeDocument(image.getBytes(), mediaType, documentKind);
         } catch (AiVisionServiceImpl.InvoiceReadException e) {
             throw new BadRequestException(e.getMessage());
         } catch (IOException e) {
@@ -106,6 +109,9 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .detectedSupplierPhone(s != null ? s.getPhone() : null)
                 .invoiceNumber(inv != null ? inv.getNumber() : null)
                 .invoiceDate(inv != null ? inv.getDate() : null)
+                .documentKind(documentKind)
+                .validUntil(documentKind == DocumentKind.PRICE_LIST && inv != null ? inv.getValidUntil() : null)
+                .truncated(aiData.isTextTruncated())
                 .products(lines)
                 .totalAmount(aiData.getTotals() != null ? aiData.getTotals().getTotal() : null)
                 .totalIva(aiData.getTotals() != null ? aiData.getTotals().getIva() : null)
@@ -125,6 +131,9 @@ public class InvoiceServiceImpl implements InvoiceService {
         Supplier supplier = resolveSupplier(request, company);
         LocalDate documentDate = parseDocumentDate(request.getInvoiceDate());
         String documentRef = request.getInvoiceNumber() != null ? request.getInvoiceNumber().trim() : null;
+        boolean priceList = request.getDocumentKind() == DocumentKind.PRICE_LIST;
+        PriceHistory.Source source = priceList ? PriceHistory.Source.QUOTE : PriceHistory.Source.INVOICE;
+        LocalDate validUntil = priceList ? parseValidUntil(request.getValidUntil(), documentDate) : null;
 
         List<Product> supplierProducts = new ArrayList<>(productRepository.findBySupplier_IdAndIsActiveTrue(supplier.getId()));
         int created = 0;
@@ -157,8 +166,13 @@ public class InvoiceServiceImpl implements InvoiceService {
                 }
             }
 
-            if (priceService.recordObservation(product, line.getUnitPrice(), line.getUnit(), line.getQuantity(),
-                    documentDate, PriceHistory.Source.INVOICE, documentRef) && previous != null) {
+            // Una tarifa no porta quantitats comprades: només el preu ofert i, si n'hi ha, la validesa
+            boolean changed = priceList
+                    ? priceService.recordObservation(product, line.getUnitPrice(), line.getUnit(), null,
+                            documentDate, source, documentRef, validUntil)
+                    : priceService.recordObservation(product, line.getUnitPrice(), line.getUnit(), line.getQuantity(),
+                            documentDate, source, documentRef);
+            if (changed && previous != null) {
                 updated++;
                 if (product.getPrice().compareTo(previous) > 0) {
                     increases++;
@@ -237,7 +251,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             return null;
         }
         String cleaned = c.replaceAll("\\b(s ?l ?u?|s ?a|s ?c ?p|s ?c ?c ?l|c ?b|sll)\\b", " ")
-                .replaceAll("\\b(albaran(es)?|albara(ns)?|factura|facturas|factures|tiquet|ticket)\\b", " ")
+                .replaceAll("\\b(albaran(es)?|albara(ns)?|factura|facturas|factures|tiquet|ticket|tarifas?|tarifes|presupuesto|pressupost)\\b", " ")
                 .trim().replaceAll("\\s+", " ");
         return cleaned.isEmpty() ? c : cleaned;
     }
@@ -321,8 +335,11 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     // ───────────────────────── Validacions ─────────────────────────
 
-    /** Accepta JPG, PNG, WebP o PDF de fins a 10 MB, comprovant la signatura del fitxer. */
-    private static String validateFile(MultipartFile file) {
+    /**
+     * Accepta JPG, PNG, WebP, PDF, Excel (.xlsx, .xls) o CSV de fins a 10 MB, comprovant la signatura del fitxer
+     * (i l'extensió en els fulls de càlcul i el CSV, que no en tenen una de pròpia).
+     */
+    static String validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new BadRequestException("error.invoice.fileRequired");
         }
@@ -343,10 +360,47 @@ public class InvoiceServiceImpl implements InvoiceService {
             if (h.length >= 12 && h[0] == 'R' && h[1] == 'I' && h[2] == 'F' && h[3] == 'F' && h[8] == 'W' && h[9] == 'E') {
                 return "image/webp";
             }
+            String name = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase(Locale.ROOT) : "";
+            if (name.endsWith(".xlsx") && h.length >= 4 && h[0] == 'P' && h[1] == 'K' && h[2] == 3 && h[3] == 4) {
+                return AiVisionServiceImpl.MEDIA_XLSX;
+            }
+            if (name.endsWith(".xls") && h.length >= 8 && (h[0] & 0xFF) == 0xD0 && (h[1] & 0xFF) == 0xCF
+                    && (h[2] & 0xFF) == 0x11 && (h[3] & 0xFF) == 0xE0) {
+                return AiVisionServiceImpl.MEDIA_XLS;
+            }
+            if (name.endsWith(".csv") && isPlainText(file)) {
+                return AiVisionServiceImpl.MEDIA_CSV;
+            }
         } catch (IOException e) {
             throw new BadRequestException("error.invoice.unreadable");
         }
         throw new BadRequestException("error.invoice.invalidFormat");
+    }
+
+    /** Text pla: sense bytes nuls ni de control (a part de salts de línia i tabuladors) al principi del fitxer. */
+    private static boolean isPlainText(MultipartFile file) throws IOException {
+        try (InputStream in = file.getInputStream()) {
+            for (byte b : in.readNBytes(4096)) {
+                int c = b & 0xFF;
+                if (c < 0x09 || (c > 0x0D && c < 0x20)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    /** Validesa d'una tarifa: ha de ser una data llegible i no anterior a la del document. */
+    private static LocalDate parseValidUntil(String value, LocalDate documentDate) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            LocalDate date = LocalDate.parse(value.trim());
+            return date.isBefore(documentDate) ? null : date;
+        } catch (DateTimeParseException e) {
+            return null;
+        }
     }
 
     /** Data del document; si no es pot llegir o és futura, s'usa la d'avui. */

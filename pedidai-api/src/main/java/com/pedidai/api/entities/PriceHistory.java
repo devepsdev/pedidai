@@ -8,9 +8,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Cada preu observat d'un producte (una línia d'albarà, una edició manual...).
+ * Cada preu observat d'un producte (una línia d'albarà, una edició manual, una línia de tarifa...).
  * Permet comparar proveïdors i detectar pujades de preu encara que els albarans
  * es pugin desordenats: el preu vigent del producte és el del document més recent.
+ * Els preus de tarifa ({@link Source#QUOTE}) són preus oferts: compten per comparar proveïdors,
+ * però no per a les pujades ni per al que s'ha pagat de més.
  */
 @Entity
 @Table(name = "price_history")
@@ -20,7 +22,7 @@ import java.time.LocalDateTime;
 @Builder
 public class PriceHistory {
 
-    public enum Source { INVOICE, MANUAL }
+    public enum Source { INVOICE, MANUAL, QUOTE }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,6 +59,10 @@ public class PriceHistory {
 
     @Column(name = "document_ref", length = 100)
     private String documentRef;
+
+    /** Només en tarifes: fins quan és vàlid el preu ofert, si el document ho indica. */
+    @Column(name = "valid_until")
+    private LocalDate validUntil;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -20,7 +20,8 @@ pedidai-db/
 └── migrations/
     ├── 001_lanzamiento.sql        # CIF opcional, idioma del usuario, nombre genérico de producto, historial de precios
     ├── 002_empresa_suspendida.sql # Estado SUSPENDED en companies.status
-    └── 003_avisos_prueba.sql      # Fecha de envío de los avisos de la prueba al cliente
+    ├── 003_avisos_prueba.sql      # Fecha de envío de los avisos de la prueba al cliente
+    └── 004_tarifas.sql            # price_history.valid_until (validez de los precios de tarifa)
 ```
 
 Las migraciones se aplican **en orden** sobre el esquema base. Cada una se aplica una sola vez.
@@ -47,6 +48,7 @@ mysql -u pedidai_user -p pedidai_db < pedidai-db/pedidai_db_schema.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/001_lanzamiento.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/002_empresa_suspendida.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/003_avisos_prueba.sql
+mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/004_tarifas.sql
 ```
 
 ### 3. Comprobación

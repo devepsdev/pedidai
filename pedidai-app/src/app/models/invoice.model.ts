@@ -1,3 +1,6 @@
+/** INVOICE: albarán o factura (precios pagados) · PRICE_LIST: tarifa o presupuesto (precios ofrecidos). */
+export type DocumentKind = 'INVOICE' | 'PRICE_LIST';
+
 /** NEW: producto nuevo · CHANGED: precio distinto del último conocido · SAME: mismo precio. */
 export type InvoiceLineStatus = 'NEW' | 'CHANGED' | 'SAME';
 
@@ -22,6 +25,10 @@ export interface InvoiceScanResultDTO {
   detectedSupplierPhone?: string;
   invoiceNumber?: string;
   invoiceDate?: string;
+  documentKind?: DocumentKind;
+  validUntil?: string;
+  /** El documento era muy largo y solo se ha leído una parte. */
+  truncated?: boolean;
   products: InvoiceProductDTO[];
   totalAmount?: number;
   totalIva?: number;
@@ -48,5 +55,7 @@ export interface InvoiceConfirmRequestDTO {
   newSupplier?: { name: string; email?: string; phone?: string };
   invoiceNumber?: string;
   invoiceDate?: string;
+  documentKind?: DocumentKind;
+  validUntil?: string;
   products: InvoiceProductConfirmDTO[];
 }

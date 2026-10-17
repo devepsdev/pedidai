@@ -1,5 +1,6 @@
 package com.pedidai.api.dto;
 
+import com.pedidai.api.services.AiVisionService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,12 @@ public class InvoiceConfirmRequestDTO {
 
     /** Data del document en format AAAA-MM-DD; si falta, la d'avui. */
     private String invoiceDate;
+
+    /** Albarà o factura (per defecte) o tarifa o pressupost: els preus d'una tarifa es desen com a oferts. */
+    private AiVisionService.DocumentKind documentKind;
+
+    /** Només en tarifes: fins quan són vàlids els preus (AAAA-MM-DD). */
+    private String validUntil;
 
     @NotEmpty(message = "{validation.invoice.productsRequired}")
     @Size(max = 300, message = "{validation.order.tooManyItems}")

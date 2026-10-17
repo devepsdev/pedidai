@@ -26,4 +26,8 @@ public class PriceOfferDTO {
     /** Variació del darrer preu respecte a l'anterior, en %. Null si només hi ha una observació. */
     private BigDecimal changePercent;
     private boolean cheapest;
+    /** El preu vigent ve d'una tarifa o pressupost (preu ofert, encara no pagat). */
+    private boolean quoted;
+    /** Fins quan és vàlid el preu ofert (només si {@code quoted}). */
+    private LocalDate validUntil;
 }

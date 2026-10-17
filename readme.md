@@ -4,7 +4,7 @@
 
 PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) que hacen sus propias compras:
 
-1. **Haces una foto a tus albaranes** y PedidAI lee productos, cantidades y precios.
+1. **Haces una foto a tus albaranes** (o subes las tarifas de tus proveedores) y PedidAI lee productos, cantidades y precios.
 2. **Compara lo que te cobra cada proveedor** por el mismo producto y te avisa cuando te suben un precio.
 3. **Pides por chat** («10 kg de tomates y 5 garrafas de agua»): el asistente prepara el pedido al proveedor más barato y tú lo envías por email con un clic.
 
@@ -12,7 +12,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 - **API (Swagger):** [pedidai.es/swagger-ui.html](https://pedidai.es/swagger-ui.html)
 - **Repositorios:** [devepsdev/pedidai](https://github.com/devepsdev/pedidai) (web, API y base de datos) y [devepsdev/orderflow](https://github.com/devepsdev/orderflow) (asistente de pedidos por chat y automatizaciones con n8n)
 
-**Versión:** 2.3.1 · **Última actualización:** 7 de octubre de 2026
+**Versión:** 2.4.0 · **Última actualización:** 17 de octubre de 2026
 
 ---
 
@@ -82,7 +82,8 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 
 - **Registro en 1 minuto** (nombre del negocio, nombre, email y contraseña), sin tarjeta. Empieza una **prueba gratuita de 14 días**.
 - **Verificación de email** necesaria para enviar pedidos a proveedores.
-- **Lectura de albaranes y facturas** (foto o PDF) con OCR + IA, con revisión línea a línea antes de guardar. La unidad de cada línea es la del precio (kg, l, docena o el envase: garrafa, caja, barril…), y solo se comparan productos con la misma unidad. El proveedor ya existente se reconoce aunque la IA añada palabras como «albarán» al nombre, y si no lee el número del documento se busca en el texto del OCR.
+- **Lectura de albaranes y facturas** (foto o PDF) con OCR + IA, con revisión línea a línea antes de guardar. La unidad de cada línea es la del precio (kg, l, docena o el envase: garrafa, caja, barril…), y solo se comparan productos con la misma unidad. El proveedor ya existente se reconoce aunque la IA añada palabras como «albarán» al nombre, y si no lee el número del documento se busca en el texto del OCR. De los PDF digitales se usa su propio texto (sin OCR) y se leen hasta 3 páginas.
+- **Tarifas y presupuestos de proveedores** (PDF, Excel `.xlsx`/`.xls`, CSV o foto): se leen igual que los albaranes, pero sus precios se guardan como **precio ofrecido** (`price_history.source = QUOTE`, sin cantidad y con `valid_until` si el documento lo indica; si no, 180 días). Cuentan en la comparativa entre proveedores y en el chat, pero no en las subidas de precio ni en el «pagado de más». Hasta 8 páginas o 3.000 filas; si el texto supera 40.000 caracteres se avisa de que solo se ha leído una parte.
 - **Mis precios:** comparativa del mismo producto entre proveedores, avisos de subidas (≥ 2 %) y estimación de lo pagado de más.
 - **Asistente IA por chat:** prepara pedidos al proveedor más barato a partir de una frase. El ahorro frente al proveedor más caro lo calcula el asistente en código al crear el pedido; la IA solo lo comunica.
 - **Sugerencias de pedido:** productos que el cliente pide con frecuencia (últimos 180 días), con urgencia según la frecuencia y si ya se han pedido en las últimas 48 h, cantidad habitual y el proveedor más barato según el historial de precios. Se calculan con reglas a partir del análisis de consumo (`GET /api/orders/consumption-analysis`), sin IA; el usuario crea el pedido pendiente con un clic. También aparecen en el panel de inicio.
@@ -224,7 +225,7 @@ companies ─┬─< users
 - `companies.trial_ends_at`: fin de la prueba (`NULL` = cliente de pago).
 - `users.language`: idioma del usuario (`es`/`ca`) para emails y PDF.
 - `products.canonical_name`: nombre genérico para comparar el mismo producto entre proveedores.
-- `price_history`: cada precio leído de un albarán (o introducido a mano), con su fecha.
+- `price_history`: cada precio leído de un albarán, de una tarifa (`source = QUOTE`, con `valid_until`) o introducido a mano, con su fecha.
 - El esquema lo gestionan los scripts (`ddl-auto=none`): `pedidai-db/pedidai_db_schema.sql` y, en orden, las migraciones de `pedidai-db/migrations/`.
 
 Detalle de columnas en [`pedidai-db/readme.md`](pedidai-db/readme.md).
@@ -277,6 +278,7 @@ mysql -u pedidai_user -p pedidai_db < pedidai-db/pedidai_db_schema.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/001_lanzamiento.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/002_empresa_suspendida.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/003_avisos_prueba.sql
+mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/004_tarifas.sql
 ```
 
 ### 8.2. Backend

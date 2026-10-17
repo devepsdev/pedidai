@@ -62,6 +62,48 @@ class AiVisionServiceImplTest {
     }
 
     @Test
+    @DisplayName("treu «tarifa» del nom del proveïdor")
+    void cleansPriceListWordFromSupplierName() {
+        AiInvoiceDataDTO d = data("Tarifa Fruites del Maresme SL", null);
+        AiVisionServiceImpl.cleanSupplierName(d);
+        assertThat(d.getSupplier().getName()).isEqualTo("Fruites del Maresme SL");
+    }
+
+    @Test
+    @DisplayName("un Excel es converteix en una línia per fila i se salten els fulls ocults")
+    void spreadsheetToText() throws Exception {
+        byte[] bytes;
+        try (var wb = new org.apache.poi.xssf.usermodel.XSSFWorkbook(); var out = new java.io.ByteArrayOutputStream()) {
+            var sheet = wb.createSheet("Tarifa");
+            var header = sheet.createRow(0);
+            header.createCell(0).setCellValue("Producto");
+            header.createCell(1).setCellValue("Precio €/kg");
+            var row = sheet.createRow(2);
+            row.createCell(0).setCellValue("Tomate pera");
+            row.createCell(1).setCellValue(1.55);
+            wb.createSheet("Interno").createRow(0).createCell(0).setCellValue("coste interno");
+            wb.setSheetHidden(1, true);
+            wb.write(out);
+            bytes = out.toByteArray();
+        }
+
+        String text = AiVisionServiceImpl.spreadsheetToText(bytes);
+
+        assertThat(text).contains("## Tarifa").contains("Producto | Precio €/kg").contains("Tomate pera | 1,55")
+                .doesNotContain("coste interno");
+    }
+
+    @Test
+    @DisplayName("un CSV desat amb Excel a Windows es llegeix amb els accents correctes")
+    void csvInWindowsEncoding() {
+        byte[] latin = "Tomàquet pera;1,55\n".getBytes(java.nio.charset.Charset.forName("windows-1252"));
+        byte[] utf8Bom = "﻿Agua mineral;0,40\n".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+        assertThat(AiVisionServiceImpl.csvToText(latin)).isEqualTo("Tomàquet pera;1,55\n");
+        assertThat(AiVisionServiceImpl.csvToText(utf8Bom)).isEqualTo("Agua mineral;0,40\n");
+    }
+
+    @Test
     @DisplayName("si la IA ja ha trobat el número, no el canvia")
     void keepsNumberFoundByAi() {
         AiInvoiceDataDTO d = data("X", "H-55120");

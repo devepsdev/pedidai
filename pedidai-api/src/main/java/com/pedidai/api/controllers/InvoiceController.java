@@ -3,6 +3,7 @@ package com.pedidai.api.controllers;
 import com.pedidai.api.dto.ApiResponseDTO;
 import com.pedidai.api.dto.InvoiceConfirmRequestDTO;
 import com.pedidai.api.dto.InvoiceScanResultDTO;
+import com.pedidai.api.services.AiVisionService;
 import com.pedidai.api.services.InvoiceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +19,16 @@ public class InvoiceController {
 
     private final InvoiceService invoiceService;
 
-    /** Llegeix un albarà o factura amb IA i proposa les línies; encara no desa res. */
+    /**
+     * Llegeix amb IA un albarà o factura ({@code kind=INVOICE}, per defecte) o una tarifa o pressupost
+     * ({@code kind=PRICE_LIST}, també en Excel o CSV) i proposa les línies; encara no desa res.
+     */
     @PostMapping(value = "/scan", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponseDTO<InvoiceScanResultDTO>> scanInvoice(
             @RequestPart("image") MultipartFile image,
-            @RequestParam(value = "supplierUuid", required = false) String supplierUuid) {
-        return ResponseEntity.ok(ApiResponseDTO.success(invoiceService.scanInvoice(image, supplierUuid),
+            @RequestParam(value = "supplierUuid", required = false) String supplierUuid,
+            @RequestParam(value = "kind", defaultValue = "INVOICE") AiVisionService.DocumentKind kind) {
+        return ResponseEntity.ok(ApiResponseDTO.success(invoiceService.scanInvoice(image, supplierUuid, kind),
                 "success.invoice.scanned"));
     }
 

@@ -60,6 +60,17 @@ export class Prices implements OnInit {
     return ((offer.latestPrice - group.cheapestPrice) / group.cheapestPrice) * 100;
   }
 
+  /**
+   * Si el más barato es un precio ofrecido (tarifa) y hay un proveedor al que ya se compra más caro,
+   * cuánto se ahorraría: «Pagas 1,80 € a García; Maresme te lo ofrece a 1,55 €».
+   */
+  quoteHint(group: PriceGroup): { offer: PriceOffer; paid: PriceOffer; pct: number } | null {
+    const offer = group.offers[0];
+    const paid = group.offers.find(o => !o.quoted);
+    if (!offer?.quoted || !paid || paid.latestPrice <= offer.latestPrice) return null;
+    return { offer, paid, pct: ((paid.latestPrice - offer.latestPrice) / paid.latestPrice) * 100 };
+  }
+
   money(v: number | null | undefined) {
     return formatMoney(v, this.language.current());
   }

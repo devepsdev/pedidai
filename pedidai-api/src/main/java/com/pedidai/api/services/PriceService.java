@@ -17,8 +17,15 @@ public interface PriceService {
      *
      * @return true si ha canviat el preu vigent del producte
      */
+    default boolean recordObservation(Product product, BigDecimal unitPrice, String unit, BigDecimal quantity,
+                                      LocalDate documentDate, PriceHistory.Source source, String documentRef) {
+        return recordObservation(product, unitPrice, unit, quantity, documentDate, source, documentRef, null);
+    }
+
+    /** Com l'anterior, amb la data fins a la qual és vàlid un preu de tarifa ({@code validUntil}, opcional). */
     boolean recordObservation(Product product, BigDecimal unitPrice, String unit, BigDecimal quantity,
-                              LocalDate documentDate, PriceHistory.Source source, String documentRef);
+                              LocalDate documentDate, PriceHistory.Source source, String documentRef,
+                              LocalDate validUntil);
 
     /** Resum de preus de l'empresa de l'usuari en els darrers {@code days} dies. */
     PriceOverviewDTO getOverview(int days);
