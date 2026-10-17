@@ -12,6 +12,6 @@ import { LanguageService } from '../../services/language.service';
 export class PricingSection {
   private language = inject(LanguageService);
 
-  /** F6 («en catalán y castellano») solo se muestra en la versión en catalán. */
-  readonly features = computed(() => this.language.current() === 'ca' ? [1, 2, 3, 4, 5, 6] : [1, 2, 3, 4, 5]);
+  /** F7 (comprobación del albarán con el pedido) va tras las subidas; F6 («en catalán y castellano») solo en catalán. */
+  readonly features = computed(() => this.language.current() === 'ca' ? [1, 2, 3, 7, 4, 5, 6] : [1, 2, 3, 7, 4, 5]);
 }

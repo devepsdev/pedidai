@@ -2,11 +2,13 @@ package com.pedidai.api.services.impl;
 
 import com.pedidai.api.dto.*;
 import com.pedidai.api.entities.Company;
+import com.pedidai.api.entities.Order;
 import com.pedidai.api.entities.PriceHistory;
 import com.pedidai.api.entities.Product;
 import com.pedidai.api.entities.Supplier;
 import com.pedidai.api.exceptions.BadRequestException;
 import com.pedidai.api.exceptions.ResourceNotFoundException;
+import com.pedidai.api.repositories.OrderRepository;
 import com.pedidai.api.repositories.ProductRepository;
 import com.pedidai.api.repositories.SupplierRepository;
 import com.pedidai.api.security.CurrentUser;
@@ -43,6 +45,11 @@ public class InvoiceServiceImpl implements InvoiceService {
     private static final long MAX_FILE_BYTES = 10L * 1024 * 1024;
     /** Lectures d'albarans per empresa i dia (limita el cost de la IA). */
     private static final int MAX_SCANS_PER_DAY = 40;
+    /** Comandes que pot servir un albarà: enviades al proveïdor o ja confirmades o rebudes. */
+    private static final Set<Order.OrderStatus> DELIVERABLE_ORDERS =
+            EnumSet.of(Order.OrderStatus.SENT, Order.OrderStatus.CONFIRMED, Order.OrderStatus.COMPLETED);
+    /** Com a molt, quants dies abans de l'albarà es pot haver fet la comanda. */
+    private static final int ORDER_WINDOW_DAYS = 21;
 
     private final AiVisionService aiVisionService;
     private final SupplierRepository supplierRepository;
@@ -50,6 +57,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final PriceService priceService;
     private final CurrentUser currentUser;
     private final RateLimiter rateLimiter;
+    private final OrderRepository orderRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -115,6 +123,8 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .documentKind(documentKind)
                 .validUntil(documentKind == DocumentKind.PRICE_LIST && inv != null ? inv.getValidUntil() : null)
                 .truncated(aiData.isTextTruncated())
+                .matchedOrder(documentKind == DocumentKind.INVOICE && supplier != null
+                        ? findMatchingOrder(company.getId(), supplier.getId(), inv != null ? inv.getDate() : null) : null)
                 .products(lines)
                 .totalAmount(aiData.getTotals() != null ? aiData.getTotals().getTotal() : null)
                 .totalIva(aiData.getTotals() != null ? aiData.getTotals().getIva() : null)
@@ -267,6 +277,36 @@ public class InvoiceServiceImpl implements InvoiceService {
         String shorter = a.length() <= b.length() ? a : b;
         String longer = shorter == a ? b : a;
         return shorter.split(" ").length >= 2 && (" " + longer + " ").contains(" " + shorter + " ");
+    }
+
+    /**
+     * Última comanda enviada al proveïdor en els {@value #ORDER_WINDOW_DAYS} dies anteriors a la data de l'albarà
+     * (o d'avui): la que probablement serveix. La comparació línia a línia la fa la web.
+     */
+    private InvoiceOrderDTO findMatchingOrder(Long companyId, Long supplierId, String documentDate) {
+        LocalDate date = parseDocumentDate(documentDate);
+        List<Order> orders = orderRepository.findBySupplierAndStatusesBetween(companyId, supplierId, DELIVERABLE_ORDERS,
+                date.minusDays(ORDER_WINDOW_DAYS).atStartOfDay(), date.plusDays(1).atStartOfDay());
+        if (orders.isEmpty()) {
+            return null;
+        }
+        Order order = orders.get(0);
+        return InvoiceOrderDTO.builder()
+                .uuid(order.getUuid())
+                .name(order.getName())
+                .status(order.getStatus().name())
+                .date(order.getCreatedAt().toLocalDate())
+                .items(order.getItems().stream()
+                        .filter(i -> i.getProduct() != null)
+                        .map(i -> InvoiceOrderDTO.Item.builder()
+                                .productUuid(i.getProduct().getUuid())
+                                .productName(i.getProduct().getName())
+                                .quantity(i.getQuantity())
+                                .unit(i.getProduct().getUnit())
+                                .unitPrice(i.getUnitPrice())
+                                .build())
+                        .toList())
+                .build();
     }
 
     // ───────────────────────── Línies ─────────────────────────

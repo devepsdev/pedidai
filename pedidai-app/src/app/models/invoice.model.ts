@@ -21,6 +21,15 @@ export interface InvoiceProductDTO {
   priceChangePercent?: number;
 }
 
+/** Pedido enviado al proveedor que probablemente sirve el albarán, para comparar lo servido con lo pedido. */
+export interface InvoiceOrderDTO {
+  uuid: string;
+  name: string;
+  status: string;
+  date: string;
+  items: { productUuid: string; productName: string; quantity?: number; unit?: string; unitPrice?: number }[];
+}
+
 export interface InvoiceScanResultDTO {
   success: boolean;
   detectedSupplierName?: string;
@@ -32,6 +41,7 @@ export interface InvoiceScanResultDTO {
   validUntil?: string;
   /** El documento era muy largo y solo se ha leído una parte. */
   truncated?: boolean;
+  matchedOrder?: InvoiceOrderDTO;
   products: InvoiceProductDTO[];
   totalAmount?: number;
   totalIva?: number;

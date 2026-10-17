@@ -7,7 +7,7 @@ import { SupplierService } from '../../../services/supplier';
 import { LanguageService } from '../../../services/language.service';
 import { DocumentKind, InvoiceConfirmRequestDTO, InvoiceLineStatus, InvoiceScanResultDTO } from '../../../models/invoice.model';
 import { SupplierResponse } from '../../../models/supplier.model';
-import { formatMoney } from '../../../shared/format';
+import { formatDate, formatMoney, formatNumber } from '../../../shared/format';
 
 /** Línea del albarán que el usuario puede revisar y corregir antes de guardarla. */
 interface EditableLine {
@@ -20,6 +20,15 @@ interface EditableLine {
   status: InvoiceLineStatus;
   matchedProductUuid?: string;
   previousPrice?: number;
+}
+
+/** Diferencia entre el albarán y el pedido: cantidad, precio, producto que falta o que no se pidió. */
+interface OrderIssue {
+  type: 'QTY' | 'PRICE_UP' | 'PRICE_DOWN' | 'MISSING' | 'EXTRA';
+  product: string;
+  ordered?: number;
+  received?: number;
+  unit?: string;
 }
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
@@ -82,6 +91,45 @@ export class InvoiceScan implements OnInit, OnDestroy {
   selectedCount = computed(() => this.lines().filter(l => l.selected).length);
   allSelected = computed(() => this.lines().length > 0 && this.lines().every(l => l.selected));
   increases = computed(() => this.lines().filter(l => l.selected && this.change(l) !== null && this.change(l)! > 0).length);
+
+  /**
+   * Lo servido frente a lo pedido: compara las líneas marcadas con el último pedido enviado a este proveedor.
+   * Se recalcula al corregir una línea. Solo para albaranes o facturas del proveedor reconocido.
+   */
+  orderCheck = computed(() => {
+    const result = this.scanResult();
+    const order = result?.matchedOrder;
+    if (!order || this.isPriceList() || !this.supplierUuid() || this.supplierUuid() !== result.matchedSupplierUuid) return null;
+    const items = new Map(order.items.map(i => [i.productUuid, i]));
+    const received = new Set<string>();
+    const issues: OrderIssue[] = [];
+    let matching = 0;
+    for (const l of this.lines().filter(x => x.selected)) {
+      const item = l.matchedProductUuid ? items.get(l.matchedProductUuid) : undefined;
+      if (!item) {
+        issues.push({ type: 'EXTRA', product: l.name });
+        continue;
+      }
+      received.add(item.productUuid);
+      let same = true;
+      if (l.quantity != null && item.quantity != null && Math.abs(l.quantity - item.quantity) > 0.001) {
+        issues.push({ type: 'QTY', product: item.productName, ordered: item.quantity, received: l.quantity, unit: item.unit });
+        same = false;
+      }
+      if (l.unitPrice != null && item.unitPrice != null && Math.abs(l.unitPrice - item.unitPrice) >= 0.005) {
+        issues.push({ type: l.unitPrice > item.unitPrice ? 'PRICE_UP' : 'PRICE_DOWN', product: item.productName,
+          ordered: item.unitPrice, received: l.unitPrice, unit: item.unit });
+        same = false;
+      }
+      if (same) matching++;
+    }
+    for (const item of order.items) {
+      if (!received.has(item.productUuid)) {
+        issues.push({ type: 'MISSING', product: item.productName, ordered: item.quantity, unit: item.unit });
+      }
+    }
+    return { order, issues, matching };
+  });
 
   ngOnInit() {
     this.loadSuppliers();
@@ -289,6 +337,19 @@ export class InvoiceScan implements OnInit, OnDestroy {
     const prices = this.plural(this.isPriceList() ? 'INVOICE_SCAN.PRICES_OFFERED' : 'INVOICE_SCAN.PRICES_SAVED', r.pricesRecorded ?? 0);
     const products = this.plural('INVOICE_SCAN.NEW_PRODUCTS', r.productsCreated ?? 0);
     return this.translate.instant('INVOICE_SCAN.DONE_TEXT' + this.k(), { prices, products });
+  }
+
+  /** «Tomate pera: pediste 20 kg y el albarán dice 15 kg.» */
+  issueText(i: OrderIssue): string {
+    const isPrice = i.type === 'PRICE_UP' || i.type === 'PRICE_DOWN';
+    const fmt = (v?: number) => (isPrice ? this.money(v) + (i.unit ? '/' + i.unit : '') : formatNumber(v, this.language.current(), 3));
+    return this.translate.instant('INVOICE_SCAN.ORDER_CHECK_' + i.type, {
+      product: i.product, ordered: fmt(i.ordered), received: fmt(i.received), unit: i.unit ?? '',
+    });
+  }
+
+  date(v: string | null | undefined) {
+    return formatDate(v, this.language.current());
   }
 
   money(v: number | null | undefined) {

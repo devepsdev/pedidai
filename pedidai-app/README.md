@@ -25,8 +25,8 @@ Aplicación web de [PedidAI](https://pedidai.es) para **bares y restaurantes**: 
 
 | Ruta | Pantalla |
 | --- | --- |
-| `/dashboard` | Inicio: avisos de verificación de email y de fin de prueba, primeros pasos, resumen de precios, pedidos y gasto del mes, últimos pedidos y sugerencias de pedido |
-| `/invoices/scan` | Leer albarán o tarifa: foto, PDF, Excel o CSV. El tipo lo detecta la IA (`kind=AUTO`) y se puede cambiar en la revisión; revisión y corrección línea a línea, validez de la tarifa, alta de proveedor nuevo |
+| `/dashboard` | Inicio: avisos de verificación de email y de fin de prueba; primeros pasos en 4 pasos con progreso (documento del proveedor principal, segundo proveedor, comparativa y primer pedido por chat), que se marcan solos con los datos de la cuenta y se pueden ocultar (`localStorage`); resumen de precios (también avisa cuando una tarifa ofrece más barato lo que se compra), pedidos y gasto del mes, últimos pedidos y sugerencias de pedido |
+| `/invoices/scan` | Leer albarán o tarifa: foto, PDF, Excel o CSV. El tipo lo detecta la IA (`kind=AUTO`) y se puede cambiar en la revisión; revisión y corrección línea a línea, validez de la tarifa, alta de proveedor nuevo. En albaranes de un proveedor reconocido, comparación con el último pedido enviado (cantidades, precios, lo que falta y lo que no se pidió), recalculada al corregir las líneas |
 | `/prices` | Mis precios: comparativa del mismo producto entre proveedores (los precios de tarifa se marcan como «precio ofrecido», con su validez, y se avisa cuando una tarifa mejora lo que se paga), subidas de precio y estimación de lo pagado de más |
 | `/chat` | Pedir por chat: el asistente prepara pedidos pendientes al proveedor más barato |
 | `/suggestions` | Sugerencias de pedido: productos habituales con urgencia, cantidad y proveedor más barato; crean un pedido pendiente con un clic |

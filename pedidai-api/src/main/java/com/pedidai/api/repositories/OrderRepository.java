@@ -21,6 +21,27 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
     /** Comanda només si pertany a l'empresa indicada. */
     Optional<Order> findByUuidAndCompany_Id(String uuid, Long companyId);
 
+    /** Comandes d'un proveïdor amb aquests estats creades dins l'interval, de la més recent a la més antiga. */
+    @Query("""
+        SELECT DISTINCT o
+        FROM Order o
+        LEFT JOIN FETCH o.items i
+        LEFT JOIN FETCH i.product
+        WHERE o.company.id = :companyId
+          AND o.supplier.id = :supplierId
+          AND o.status IN :statuses
+          AND o.createdAt >= :from
+          AND o.createdAt < :to
+        ORDER BY o.createdAt DESC
+    """)
+    List<Order> findBySupplierAndStatusesBetween(
+            @Param("companyId") Long companyId,
+            @Param("supplierId") Long supplierId,
+            @Param("statuses") java.util.Collection<Order.OrderStatus> statuses,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to
+    );
+
     long countByCompany_IdAndStatusAndUpdatedAtAfter(Long companyId, Order.OrderStatus status, java.time.LocalDateTime after);
 
     @Query("""

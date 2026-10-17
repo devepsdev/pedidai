@@ -115,6 +115,32 @@
         </div>
       </div>
 
+      <!-- Lo servido frente a lo pedido -->
+      @if (orderCheck(); as c) {
+        <div class="bg-white rounded-xl shadow-sm border p-4" [class]="c.issues.length ? 'border-amber-300' : 'border-emerald-200'" role="status">
+          <p class="text-sm font-semibold text-gray-800">{{ 'INVOICE_SCAN.ORDER_CHECK_TITLE' | translate: { name: c.order.name, date: date(c.order.date) } }}</p>
+          @if (!c.issues.length) {
+            <p class="mt-1 text-sm text-emerald-700"><span aria-hidden="true">✓ </span>{{ 'INVOICE_SCAN.ORDER_CHECK_OK' | translate }}</p>
+          } @else {
+            <p class="mt-1 text-xs text-gray-500">{{ 'INVOICE_SCAN.ORDER_CHECK_HINT' | translate }}</p>
+            <ul class="mt-2 space-y-1.5 text-sm">
+              @for (i of c.issues; track $index) {
+                <li class="flex gap-2">
+                  <span class="shrink-0 w-4 text-center font-bold" aria-hidden="true"
+                    [class]="i.type === 'PRICE_DOWN' ? 'text-emerald-600' : i.type === 'EXTRA' ? 'text-sky-600' : i.type === 'PRICE_UP' ? 'text-red-600' : 'text-amber-600'">
+                    {{ i.type === 'PRICE_UP' ? '▲' : i.type === 'PRICE_DOWN' ? '▼' : i.type === 'EXTRA' ? '+' : '!' }}
+                  </span>
+                  <span class="text-gray-700">{{ issueText(i) }}</span>
+                </li>
+              }
+            </ul>
+            @if (c.matching) {
+              <p class="mt-2 text-xs text-emerald-700">{{ plural('INVOICE_SCAN.ORDER_CHECK_MATCHING', c.matching) }}</p>
+            }
+          }
+        </div>
+      }
+
       @if (scanResult()!.truncated) {
         <div class="p-3.5 bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl" role="status">{{ 'INVOICE_SCAN.TRUNCATED' | translate }}</div>
       }

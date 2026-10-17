@@ -27,6 +27,8 @@ public class InvoiceScanResultDTO {
     private String validUntil;
     /** El document era massa llarg i només se n'ha llegit una part. */
     private boolean truncated;
+    /** Només en albarans i factures d'un proveïdor conegut: la comanda enviada a la qual correspon. */
+    private InvoiceOrderDTO matchedOrder;
     private List<InvoiceProductDTO> products;
     private BigDecimal totalAmount;
     private BigDecimal totalIva;

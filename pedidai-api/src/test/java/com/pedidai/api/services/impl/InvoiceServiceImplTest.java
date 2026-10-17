@@ -4,11 +4,14 @@ import com.pedidai.api.dto.AiInvoiceDataDTO;
 import com.pedidai.api.dto.InvoiceConfirmRequestDTO;
 import com.pedidai.api.dto.InvoiceProductConfirmDTO;
 import com.pedidai.api.entities.Company;
+import com.pedidai.api.entities.Order;
+import com.pedidai.api.entities.OrderItem;
 import com.pedidai.api.entities.PriceHistory;
 import com.pedidai.api.entities.Product;
 import com.pedidai.api.entities.Supplier;
 import com.pedidai.api.exceptions.BadRequestException;
 import com.pedidai.api.exceptions.ResourceNotFoundException;
+import com.pedidai.api.repositories.OrderRepository;
 import com.pedidai.api.repositories.ProductRepository;
 import com.pedidai.api.repositories.SupplierRepository;
 import com.pedidai.api.security.CurrentUser;
@@ -43,6 +46,7 @@ class InvoiceServiceImplTest {
     @Mock private ProductRepository productRepository;
     @Mock private PriceService priceService;
     @Mock private CurrentUser currentUser;
+    @Mock private OrderRepository orderRepository;
 
     private InvoiceServiceImpl service;
     private Company company;
@@ -50,7 +54,7 @@ class InvoiceServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new InvoiceServiceImpl(aiVisionService, supplierRepository, productRepository, priceService,
-                currentUser, new RateLimiter());
+                currentUser, new RateLimiter(), orderRepository);
         company = Company.builder().id(1L).uuid("c1").build();
         lenient().when(currentUser.company()).thenReturn(company);
     }
@@ -264,6 +268,40 @@ class InvoiceServiceImplTest {
 
         assertThat(result.getDocumentKind()).isEqualTo(AiVisionService.DocumentKind.PRICE_LIST);
         assertThat(result.getValidUntil()).isEqualTo("2026-11-14");
+    }
+
+    @Test
+    @DisplayName("un albarà d'un proveïdor conegut porta l'última comanda enviada per comparar-la")
+    void invoiceScanReturnsMatchingOrder() {
+        Supplier supplier = Supplier.builder().id(9L).uuid("s1").name("Distribuciones López").company(company).build();
+        when(supplierRepository.findByUuidAndCompany_Id("s1", 1L)).thenReturn(Optional.of(supplier));
+        Product tomato = Product.builder().id(5L).uuid("p-tomate").name("Tomate pera").unit("kg").supplier(supplier).build();
+        when(productRepository.findBySupplier_IdAndIsActiveTrue(9L)).thenReturn(List.of(tomato));
+        Order order = Order.builder().uuid("o1").name("Pedido 12/10").status(Order.OrderStatus.SENT)
+                .createdAt(LocalDate.now().minusDays(2).atTime(9, 0)).build();
+        order.getItems().add(OrderItem.builder().product(tomato).quantity(new BigDecimal("20"))
+                .unitPrice(new BigDecimal("1.72")).build());
+        when(orderRepository.findBySupplierAndStatusesBetween(eq(1L), eq(9L), any(), any(), any())).thenReturn(List.of(order));
+        AiInvoiceDataDTO ai = new AiInvoiceDataDTO();
+        AiInvoiceDataDTO.ProductData p = new AiInvoiceDataDTO.ProductData();
+        p.setName("Tomate pera");
+        p.setQuantity(new BigDecimal("15"));
+        p.setUnit("kg");
+        p.setUnitPrice(new BigDecimal("1.85"));
+        ai.setProducts(List.of(p));
+        when(aiVisionService.analyzeDocument(any(), any(), eq(AiVisionService.DocumentKind.INVOICE))).thenReturn(ai);
+        var png = new MockMultipartFile("image", "albaran.png", "image/png", new byte[]{(byte) 0x89, 'P', 'N', 'G', 0, 0});
+
+        var result = service.scanInvoice(png, "s1", AiVisionService.DocumentKind.INVOICE);
+
+        assertThat(result.getMatchedOrder().getUuid()).isEqualTo("o1");
+        assertThat(result.getMatchedOrder().getItems()).singleElement()
+                .satisfies(i -> {
+                    assertThat(i.getProductUuid()).isEqualTo("p-tomate");
+                    assertThat(i.getQuantity()).isEqualByComparingTo("20");
+                    assertThat(i.getUnitPrice()).isEqualByComparingTo("1.72");
+                });
+        assertThat(result.getProducts().get(0).getMatchedProductUuid()).isEqualTo("p-tomate");
     }
 
     @Test

@@ -52,6 +52,32 @@ export class Dashboard implements OnInit {
   statsError = signal('');
   suggestionsError = signal('');
 
+  /**
+   * Primeros pasos: subir un documento del proveedor principal, añadir un segundo proveedor, ver dónde se compra
+   * más barato y hacer el primer pedido por chat. Cada paso se marca solo según los datos de la cuenta.
+   */
+  onboarding = computed(() => {
+    const p = this.prices();
+    if (!p || this.loadingOrders()) return null;
+    const steps = [
+      { n: 1, done: p.suppliersTracked >= 1, link: '/invoices/scan' },
+      { n: 2, done: p.suppliersTracked >= 2, link: '/invoices/scan' },
+      { n: 3, done: p.comparable.length > 0, link: '/prices' },
+      { n: 4, done: this.recentOrders().length > 0, link: '/chat' },
+    ];
+    const done = steps.filter(s => s.done).length;
+    const current = steps.find(s => !s.done)?.n ?? null;
+    return { steps, done, current, noMatch: p.suppliersTracked >= 2 && p.comparable.length === 0 };
+  });
+  /** Productos que otro proveedor ofrece en su tarifa más baratos de lo que se paga ahora. */
+  cheaperOffers = computed(() => (this.prices()?.comparable ?? []).filter(g => {
+    const cheapest = g.offers[0];
+    return cheapest?.quoted && g.offers.some(o => !o.quoted && o.latestPrice > cheapest.latestPrice);
+  }).length);
+
+  /** El usuario ha ocultado los primeros pasos (solo en este navegador). */
+  onboardingHidden = signal(this.readOnboardingHidden());
+
   /** Días restantes de trial. null = sin trial (cliente de pago o no cargado aún). */
   trialDaysLeft = computed(() => {
     const plan = this.myPlan();
@@ -119,6 +145,19 @@ export class Dashboard implements OnInit {
         this.loadingSuggestions.set(false);
       }
     });
+  }
+
+  hideOnboarding() {
+    this.onboardingHidden.set(true);
+    try { localStorage.setItem(this.onboardingKey(), '1'); } catch { /* almacenamiento no disponible */ }
+  }
+
+  private readOnboardingHidden(): boolean {
+    try { return localStorage.getItem(this.onboardingKey()) === '1'; } catch { return false; }
+  }
+
+  private onboardingKey(): string {
+    return 'onboarding-hidden:' + (this.auth.getCurrentUser()?.uuid ?? '');
   }
 
   resendVerification() {
