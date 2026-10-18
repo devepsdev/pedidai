@@ -177,6 +177,23 @@ class InvoiceServiceImplTest {
     }
 
     @Test
+    @DisplayName("reconeix el proveïdor encara que el nom llegit comenci per les sigles del logotip")
+    void reusesSupplierWhenNameStartsWithLogoInitials() {
+        Supplier existing = Supplier.builder().id(9L).uuid("s1").name("Distribuciones López S.L.").company(company).build();
+        lenient().when(supplierRepository.findActiveByCompanyIdAndNameContaining(1L, "dl")).thenReturn(List.of());
+        when(supplierRepository.findActiveByCompanyIdAndNameContaining(1L, "distribuciones")).thenReturn(List.of(existing));
+        when(productRepository.findBySupplier_IdAndIsActiveTrue(9L)).thenReturn(new ArrayList<>());
+        when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        var result = service.confirmInvoice(InvoiceConfirmRequestDTO.builder()
+                .newSupplier(InvoiceConfirmRequestDTO.NewSupplier.builder().name("DL Distribuciones López S.L.").build())
+                .products(List.of(line("PATATA", "patata", "0.70", null))).build());
+
+        verify(supplierRepository, never()).save(any());
+        assertThat(result.getMatchedSupplierUuid()).isEqualTo("s1");
+    }
+
+    @Test
     @DisplayName("si dos proveïdors encaixen parcialment no n'escull cap i en crea un de nou")
     void ambiguousPartialMatchCreatesSupplier() {
         Supplier a = Supplier.builder().id(9L).uuid("s1").name("Distribuciones López").company(company).build();

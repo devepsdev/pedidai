@@ -1,0 +1,9 @@
+{
+  "name": "pedidai-marketing",
+  "private": true,
+  "type": "module",
+  "description": "Grabación de vídeos promocionales de PedidAI (Instagram y TikTok) sobre la copia local",
+  "dependencies": {
+    "playwright-core": "^1.48.2"
+  }
+}

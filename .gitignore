@@ -29,3 +29,8 @@ dist/
 
 # Logs
 *.log
+
+# Vídeos promocionales: solo se versionan los guiones y scripts
+marketing/node_modules/
+marketing/salida/
+marketing/demo/

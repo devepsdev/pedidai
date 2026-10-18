@@ -1,0 +1,106 @@
+{
+  "_nota": "voz: lo que se locuta (números en letra); texto: subtítulo en pantalla. Una escena = una frase o dos.",
+  "foto-albaran": [
+    {
+      "id": "hook",
+      "voz": "¿Sabes cuánto te cobran de más tus proveedores? Te lo enseño en treinta segundos.",
+      "texto": "¿Sabes cuánto te cobran de más tus proveedores?"
+    },
+    {
+      "id": "foto",
+      "voz": "Le haces una foto al albarán con el móvil, y listo.",
+      "texto": "Haz una foto al albarán con el móvil"
+    },
+    {
+      "id": "lectura",
+      "voz": "PedidAI lee los productos, las cantidades y los precios, y te marca lo que te han subido desde el último albarán.",
+      "texto": "Lee productos, cantidades y precios… y marca lo que te han subido"
+    },
+    {
+      "id": "comparativa",
+      "voz": "Luego lo compara con tus otros proveedores y te dice dónde tienes cada producto más barato.",
+      "texto": "Y te dice dónde tienes cada producto más barato"
+    },
+    {
+      "id": "cta",
+      "voz": "Pruébalo gratis catorce días en pedidai punto es. Sin tarjeta y sin permanencia.",
+      "texto": ""
+    }
+  ],
+  "tarifa": [
+    {
+      "id": "hook",
+      "voz": "¿Te ha llegado la tarifa nueva de un proveedor? No la revises línea a línea.",
+      "texto": "¿Te ha llegado la tarifa nueva de un proveedor?"
+    },
+    {
+      "id": "subir",
+      "voz": "Súbela a PedidAI tal cual, en Excel o en PDF. Detecta solo que es una tarifa y lee todos los precios.",
+      "texto": "Súbela tal cual, en Excel o PDF: la lee entera"
+    },
+    {
+      "id": "comparar",
+      "voz": "Y te dice qué productos te salen más baratos con él que con lo que ya estás pagando.",
+      "texto": "Y te dice qué te sale más barato que lo que ya pagas"
+    },
+    {
+      "id": "cta",
+      "voz": "Pruébalo gratis catorce días en pedidai punto es. Sin tarjeta y sin permanencia.",
+      "texto": ""
+    }
+  ],
+  "pedido": [
+    {
+      "id": "hook",
+      "voz": "¿Te han servido exactamente lo que pediste? Compruébalo en un momento.",
+      "texto": "¿Te han servido exactamente lo que pediste?"
+    },
+    {
+      "id": "subir",
+      "voz": "Haces la foto al albarán y PedidAI lo compara con tu pedido.",
+      "texto": "Foto al albarán y lo compara con tu pedido"
+    },
+    {
+      "id": "diferencias",
+      "voz": "Aquí faltan cinco kilos de tomate, el aceite te lo cobran más caro y el agua no ha llegado.",
+      "texto": "Faltan 5 kg de tomate, el aceite más caro y el agua no ha llegado"
+    },
+    {
+      "id": "cierre",
+      "voz": "Lo ves al momento, y se lo puedes reclamar al proveedor.",
+      "texto": "Lo ves al momento y lo reclamas"
+    },
+    {
+      "id": "cta",
+      "voz": "Pruébalo gratis catorce días en pedidai punto es. Sin tarjeta y sin permanencia.",
+      "texto": ""
+    }
+  ],
+  "chat": [
+    {
+      "id": "hook",
+      "voz": "¿Todavía haces los pedidos a tus proveedores por teléfono? Mira esto.",
+      "texto": "¿Todavía haces los pedidos por teléfono?"
+    },
+    {
+      "id": "escribir",
+      "voz": "Escribes lo que necesitas, como si fuera un WhatsApp.",
+      "texto": "Escribe lo que necesitas, como un WhatsApp"
+    },
+    {
+      "id": "respuesta",
+      "voz": "PedidAI busca quién te lo vende más barato y te prepara un pedido para cada proveedor.",
+      "texto": "Busca el más barato y prepara un pedido por proveedor"
+    },
+    {
+      "id": "enviar",
+      "voz": "Lo revisas, y se lo envías por email con un clic.",
+      "texto": "Lo revisas y lo envías con un clic"
+    },
+    {
+      "id": "cta",
+      "voz": "Pruébalo gratis catorce días en pedidai punto es. Sin tarjeta y sin permanencia.",
+      "texto": ""
+    }
+  ]
+}

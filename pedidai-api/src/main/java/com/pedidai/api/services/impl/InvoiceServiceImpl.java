@@ -238,24 +238,37 @@ public class InvoiceServiceImpl implements InvoiceService {
      * Proveïdor actiu de l'empresa amb el mateix nom (ignorant majúscules, accents, forma jurídica i paraules
      * com "albarán"). Si no n'hi ha cap d'idèntic, s'accepta l'únic el nom del qual està contingut sencer al
      * detectat o a l'inrevés ("Distribuciones López" ↔ "Distribuciones López Hostelería").
+     * Els candidats es busquen per la primera paraula i, si no surt cap coincidència, per les següents
+     * (el nom llegit pot començar per unes sigles del logotip: "DL Distribuciones López").
      */
     private Supplier matchSupplierByName(Long companyId, String name) {
         String wanted = supplierKey(name);
         if (wanted == null) {
             return null;
         }
-        String firstWord = wanted.split(" ")[0];
-        List<Supplier> candidates = supplierRepository.findActiveByCompanyIdAndNameContaining(companyId, firstWord);
-        Optional<Supplier> exact = candidates.stream()
-                .filter(s -> wanted.equals(supplierKey(s.getName())))
-                .findFirst();
-        if (exact.isPresent()) {
-            return exact.get();
+        String[] words = wanted.split(" ");
+        for (int i = 0; i < words.length; i++) {
+            if (i > 0 && words[i].length() < 3) {
+                continue;
+            }
+            List<Supplier> candidates = supplierRepository.findActiveByCompanyIdAndNameContaining(companyId, words[i]);
+            Optional<Supplier> exact = candidates.stream()
+                    .filter(s -> wanted.equals(supplierKey(s.getName())))
+                    .findFirst();
+            if (exact.isPresent()) {
+                return exact.get();
+            }
+            List<Supplier> partial = candidates.stream()
+                    .filter(s -> containsPhrase(wanted, supplierKey(s.getName())))
+                    .toList();
+            if (partial.size() == 1) {
+                return partial.get(0);
+            }
+            if (partial.size() > 1) {
+                return null;
+            }
         }
-        List<Supplier> partial = candidates.stream()
-                .filter(s -> containsPhrase(wanted, supplierKey(s.getName())))
-                .toList();
-        return partial.size() == 1 ? partial.get(0) : null;
+        return null;
     }
 
     static String supplierKey(String name) {

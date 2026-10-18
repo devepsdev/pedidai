@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PedidAI · Cierre</title>
+<style>
+  :root { --azul: #2563eb; --cian: #06b6d4; --verde: #10b981; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif; color: #fff; overflow: hidden;
+    background: radial-gradient(120% 80% at 50% 0%, #1e3a8a 0%, #0f172a 60%, #020617 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  }
+  .logo { width: 132px; height: 132px; border-radius: 30px; background: #fff; display: grid; place-items: center;
+    box-shadow: 0 18px 50px rgba(6, 182, 212, .35); animation: entra .7s cubic-bezier(.2,.9,.3,1.2) both; }
+  .logo img { width: 96px; height: 96px; object-fit: contain; }
+  h1 { font-size: 46px; margin: 26px 0 0; letter-spacing: -1px; animation: sube .6s .15s both; }
+  h1 span { color: var(--cian); }
+  .lema { font-size: 19px; color: #cbd5e1; margin: 8px 30px 0; line-height: 1.35; animation: sube .6s .3s both; }
+  .oferta { margin-top: 38px; background: var(--verde); color: #052e16; font-weight: 800; font-size: 25px;
+    padding: 16px 26px; border-radius: 18px; box-shadow: 0 12px 30px rgba(16, 185, 129, .35); animation: sube .6s .45s both; }
+  .web { margin-top: 26px; font-size: 40px; font-weight: 800; letter-spacing: -.5px; animation: sube .6s .6s both; }
+  .letra { margin-top: 12px; font-size: 17px; color: #94a3b8; animation: sube .6s .75s both; }
+  @keyframes entra { from { transform: scale(.4); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+  @keyframes sube { from { transform: translateY(24px); opacity: 0 } to { transform: none; opacity: 1 } }
+</style>
+</head>
+<body>
+  <div class="logo"><img src="http://localhost:4200/logo-hero.png" alt=""></div>
+  <h1>Pedid<span>AI</span></h1>
+  <p class="lema">Descubre cuánto pagas de más<br>a tus proveedores</p>
+  <div class="oferta">Pruébalo gratis 14 días</div>
+  <div class="web">pedidai.es</div>
+  <p class="letra">Sin tarjeta · Sin permanencia · Para bares y restaurantes</p>
+</body>
+</html>
