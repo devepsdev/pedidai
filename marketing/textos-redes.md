@@ -29,7 +29,7 @@ En TikTok, «enlace en el perfil» se sustituye por «en pedidai.es» en todos l
 
 ## Vídeos
 
-Al publicar: subir el vídeo directamente en cada app, marcar **contenido generado por IA** (la voz es un clon de la del autor), **sin ubicación** (para no asociar la marca a una ciudad) y, en Instagram, invitar a `deveps.dev` como colaborador. En TikTok Studio, además: portada `<vídeo>-portada.jpg` y «Disclose post content → Your brand».
+Al publicar: subir el vídeo directamente en cada app, marcar **contenido generado por IA** (la voz es un clon de la del autor), **sin ubicación** (para no asociar la marca a una ciudad) y, en Instagram, invitar a `deveps.dev` como colaborador. Portada: `<vídeo>-portada.jpg` (sale de `node portadas.mjs`, mismo diseño para los cuatro). En TikTok Studio, además, «Disclose post content → Your brand».
 
 ### 1. foto-albaran.mp4
 
@@ -47,9 +47,9 @@ Para bares y restaurantes. Prueba gratis 14 días, sin tarjeta: enlace en el per
 ### 2. tarifa.mp4
 
 ```
-¿Te ha llegado la tarifa nueva de un proveedor? No la revises línea a línea 📄
+¿Te ha llegado una tarifa nueva de un proveedor? No la revises línea a línea 📄
 
-Súbela a PedidAI tal cual, en Excel o en PDF. Detecta sola que es una tarifa, lee todos los precios y te dice qué productos te salen más baratos que lo que ya pagas.
+Súbela a PedidAI tal cual, en Excel o en PDF: lee todos los precios y te dice qué productos te salen más baratos que lo que pagas ahora.
 
 Prueba gratis 14 días, sin tarjeta: enlace en el perfil.
 (Bar y datos de ejemplo)
@@ -60,7 +60,7 @@ Prueba gratis 14 días, sin tarjeta: enlace en el perfil.
 ### 3. pedido.mp4
 
 ```
-¿Te han servido exactamente lo que pediste? 📦
+¿Te han traído todo lo que pediste? 📦
 
 Haz la foto al albarán y PedidAI lo compara con tu pedido: lo que falta, lo que te cobran más caro y lo que no pediste. Lo ves al momento y lo reclamas al proveedor.
 

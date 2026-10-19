@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { abrir, tocar, desplazar, espera, Grabacion, WEB } from './grabador.mjs';
+import { abrir, tocar, desplazar, resaltar, apagar, espera, exportarRedes, Grabacion, WEB } from './grabador.mjs';
 
 const RAIZ = path.dirname(fileURLToPath(import.meta.url));
 const DEMO = path.join(RAIZ, 'demo');
@@ -16,7 +16,7 @@ const PASSWORD = acceso.match(/Contraseña: (.+)/)[1].trim();
 
 /** Vuelve a dejar la demo como al principio (con el pedido enviado y Huerta del Valle si hacen falta). */
 function reiniciarDemo(video) {
-  const opciones = [...(video.pedido ? ['--pedido'] : []), ...(video.web ? ['--huerta'] : [])];
+  const opciones = [...(video.pedido ? ['--pedido'] : []), ...(video.huerta ? ['--huerta'] : [])];
   const sql = execFileSync('python', [path.join(RAIZ, 'seed_demo.py'), ...opciones], { encoding: 'utf8' });
   execFileSync('docker', ['exec', '-i', 'pedidai-mysql-local', 'sh', '-c',
     'mysql --default-character-set=utf8mb4 -uroot -p"$MYSQL_ROOT_PASSWORD" pedidai_db'], { input: sql, stdio: ['pipe', 'ignore', 'ignore'] });
@@ -84,6 +84,7 @@ const VIDEOS = {
 
   tarifa: {
     pedido: false,
+    huerta: true,
     async grabar(page, g, d) {
       await g.escena('hook', d.hook, async () => {
         await espera(1500);
@@ -92,16 +93,22 @@ const VIDEOS = {
       });
       await g.escena('subir', d.subir, async () => {
         await subirYLeer(page, g, 'tarifa-huerta-del-valle.xlsx');
-        await espera(800);
-        await desplazar(page, 520, 1600);
-        await espera(800);
-        await desplazar(page, 380, 1300);
+        await resaltar(page, page.getByRole('radiogroup').first());
+        await espera(1300);
+        await apagar(page);
+        await desplazar(page, 560, 1600);
+        await espera(500);
+        await desplazar(page, 420, 1300);
       });
       await g.escena('comparar', d.comparar, async () => {
         await guardarYVerPrecios(page, g);
-        await espera(500);
-        await desplazar(page, 440, 1400);
-        await espera(1500);
+        await espera(400);
+        const oferta = page.getByText(/te lo ofrece a/).first();
+        await oferta.scrollIntoViewIfNeeded();
+        await desplazar(page, 120, 600);
+        await resaltar(page, oferta);
+        await espera(2000);
+        await apagar(page);
         await desplazar(page, 300, 1200);
       });
       await g.escena('cta', d.cta, async () => { await page.goto(OUTRO); });
@@ -123,11 +130,12 @@ const VIDEOS = {
         const tarjeta = page.getByText(/Comparado con tu pedido/);
         await tarjeta.scrollIntoViewIfNeeded();
         await desplazar(page, 60, 500);
-        await espera(500);
-        const b = await tarjeta.boundingBox();
-        await page.evaluate(([x, y]) => window.__tap(x, y), [b.x + 60, b.y + 10]);
+        await espera(300);
+        await resaltar(page, page.locator('[role=status]', { hasText: 'Comparado con tu pedido' }));
+        await espera(2600);
       });
       await g.escena('cierre', d.cierre, async () => {
+        await apagar(page);
         await desplazar(page, 300, 1400);
       });
       await g.escena('cta', d.cta, async () => { await page.goto(OUTRO); });
@@ -136,15 +144,19 @@ const VIDEOS = {
 
   chat: {
     pedido: false,
+    subArriba: true,
     async grabar(page, g, d) {
       await g.escena('hook', d.hook, async () => {
-        await espera(1300);
-        await page.goto(`${WEB}/chat`, { waitUntil: 'networkidle' });
+        await espera(1500);
+        await desplazar(page, 200, 1200);
       });
       await g.escena('escribir', d.escribir, async () => {
+        await desplazar(page, -200, 400);
+        await tocar(page, page.locator('main').getByText('Pedir por chat').first());
         const caja = page.getByRole('textbox');
+        await caja.waitFor();
         await tocar(page, caja);
-        await caja.pressSequentially('15 kg de tomates, 10 kg de patatas y 2 garrafas de aceite', { delay: 45 });
+        await caja.pressSequentially('15 kg de tomates, 10 kg de patatas y 2 garrafas de aceite', { delay: 38 });
         await espera(300);
       });
       await g.escena('respuesta', d.respuesta, async () => {
@@ -152,14 +164,21 @@ const VIDEOS = {
         await espera(1200);
         await g.sinGrabar(() => page.getByText('Pedido pendiente para').first().waitFor({ timeout: 180000 }), 0.8);
         await espera(500);
-        await desplazar(page, 420, 1500);
+        const tarjeta = page.getByText('Pedido pendiente para').first();
+        await tarjeta.scrollIntoViewIfNeeded();
+        await desplazar(page, 140, 700);
+        await resaltar(page, tarjeta.locator('xpath=ancestor::div[contains(@class,"rounded-xl")][1]'));
+        await espera(1500);
       });
       await g.escena('enviar', d.enviar, async () => {
+        await apagar(page);
         const boton = page.getByRole('button', { name: 'Enviar al proveedor' }).first();
         await boton.scrollIntoViewIfNeeded();
         await espera(400);
         const b = await boton.boundingBox();
         await page.evaluate(([x, y]) => window.__tap(x, y), [b.x + b.width / 2, b.y + b.height / 2]);
+        await espera(500);
+        await desplazar(page, 380, 1200);
       });
       await g.escena('cta', d.cta, async () => { await page.goto(OUTRO); });
     },
@@ -168,6 +187,7 @@ const VIDEOS = {
   // Vídeo de la home: todas las funciones en uno (albarán, pedido, precios, tarifa y chat)
   home: {
     pedido: true,
+    huerta: true,
     web: true,
     async grabar(page, g, d) {
       await g.escena('hook', d.hook, async () => {
@@ -256,13 +276,15 @@ async function main() {
   try {
     await page.goto(`${WEB}/dashboard`, { waitUntil: 'networkidle' });
     await espera(1500);
-    const g = new Grabacion(page, carpeta, { calidad: video.web ? 100 : 92 });
+    const g = new Grabacion(page, carpeta);
     await g.empezar();
     await video.grabar(page, g, durs);
     await g.terminar();
     const voces = Object.fromEntries(guion.map(e => [e.id, path.join(carpeta, 'voz', `${e.id}.wav`)]));
     const textos = Object.fromEntries(guion.map(e => [e.id, e.texto]));
-    console.log('Vídeo:', g.montar({ nombre, voces, textos, web: video.web }));
+    const mp4 = g.montar({ nombre, voces, textos, web: video.web, subArriba: video.subArriba });
+    console.log('Vídeo:', mp4);
+    if (!video.web) console.log('Para redes:', exportarRedes(mp4));
   } finally {
     await browser.close();
   }

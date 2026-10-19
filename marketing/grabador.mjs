@@ -8,7 +8,8 @@ import { execFileSync } from 'node:child_process';
 
 export const API = 'http://localhost:8085/api';
 export const WEB = 'http://localhost:4200';
-const ANCHO = 405, ALTO = 720, ESCALA = 1080 / ANCHO;
+// 360 px de ancho (el de la mayoría de Android) a 3×: la interfaz sale más grande y legible en el móvil
+const ANCHO = 360, ALTO = 640, ESCALA = 1080 / ANCHO;
 const FFMPEG_DIR = path.join(process.env.LOCALAPPDATA, 'Microsoft', 'WinGet', 'Packages',
   'Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe', 'ffmpeg-9.0.2-full_build', 'bin');
 const FFMPEG = path.join(FFMPEG_DIR, 'ffmpeg.exe');
@@ -87,8 +88,41 @@ export async function desplazar(page, px, ms = 900) {
   }, [px, ms]);
 }
 
+/**
+ * Pone el foco en un elemento: oscurece el resto de la pantalla y lo enmarca en amarillo.
+ * (Un zoom recortaría los lados: las tarjetas de la app ocupan todo el ancho del móvil.)
+ */
+export async function resaltar(page, locator, { margen = 6, ms = 350 } = {}) {
+  await locator.waitFor({ state: 'visible' });
+  const b = await locator.boundingBox();
+  await page.evaluate(([x, y, w, h, ms]) => {
+    document.getElementById('__foco')?.remove();
+    const d = document.createElement('div');
+    d.id = '__foco';
+    Object.assign(d.style, {
+      position: 'fixed', left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', borderRadius: '14px',
+      border: '3px solid #FACC15', boxShadow: '0 0 0 200vmax rgba(2,6,23,.55), 0 0 22px 4px rgba(250,204,21,.55)',
+      pointerEvents: 'none', zIndex: 2147483646, opacity: 0, transition: `opacity ${ms}ms ease`,
+    });
+    document.body.appendChild(d);
+    requestAnimationFrame(() => requestAnimationFrame(() => { d.style.opacity = 1; }));
+  }, [b.x - margen, b.y - margen, b.width + 2 * margen, b.height + 2 * margen, ms]);
+  await espera(ms + 50);
+}
+
+export async function apagar(page, ms = 300) {
+  await page.evaluate(ms => {
+    const d = document.getElementById('__foco');
+    if (!d) return;
+    d.style.transition = `opacity ${ms}ms ease`;
+    d.style.opacity = 0;
+    setTimeout(() => d.remove(), ms);
+  }, ms);
+  await espera(ms + 50);
+}
+
 export class Grabacion {
-  constructor(page, carpeta, { calidad = 92 } = {}) {
+  constructor(page, carpeta, { calidad = 100 } = {}) {
     this.page = page;
     this.carpeta = carpeta;
     this.calidad = calidad;
@@ -154,7 +188,7 @@ export class Grabacion {
   }
 
   /** Monta el MP4: imagen a 30 fps, voz de cada escena en su sitio a −14 LUFS y subtítulos quemados. */
-  montar({ nombre, voces, textos, web = false }) {
+  montar({ nombre, voces, textos, web = false, subArriba = false }) {
     // Remuestreo a 30 fps exactos: a cada instante k/30 le toca el último fotograma capturado hasta entonces.
     // (El concat de ffmpeg alarga a 1/25 s los fotogramas más cortos y el vídeo saldría más largo que la voz.)
     const FPS = 30;
@@ -181,7 +215,7 @@ export class Grabacion {
       inicio: this.final(m.t) + 0.05,
       fin: Math.min(this.final(m.t) + m.duracion + 0.25, i + 1 < this.marcas.length ? this.final(this.marcas[i + 1].t) : 1e9),
       texto: textos[m.id], gancho: i === 0,
-    })), web), 'utf8');
+    })), web, subArriba), 'utf8');
 
     const salida = path.join(this.carpeta, `${nombre}.mp4`);
     const args = ['-y', '-v', 'error', '-framerate', String(FPS), '-i', path.join(dirSec, 's%06d.jpg')];
@@ -206,24 +240,46 @@ export class Grabacion {
 }
 
 /**
- * Subtítulos ASS: el gancho arriba y grande; el resto abajo, por encima de los botones de TikTok.
- * Con web=true (vídeo de la home, sin interfaz encima) van más pegados a los bordes.
+ * Versión para subir desde el navegador (< 10 MB): la mejor calidad que quepa, probando de menos a más
+ * compresión. Las portadas salen aparte, con portadas.mjs.
  */
-function subtitulos(lineas, web = false) {
-  const [margenSub, margenGancho] = web ? [150, 170] : [360, 250];
+export function exportarRedes(mp4, { maxMB = 9.5 } = {}) {
+  const salida = mp4.replace(/\.mp4$/, '-redes.mp4');
+  for (const crf of [18, 20, 22, 24, 26, 28]) {
+    execFileSync(FFMPEG, ['-y', '-v', 'error', '-i', mp4, '-c:v', 'libx264', '-preset', 'veryslow', '-tune', 'stillimage',
+      '-crf', String(crf), '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-c:a', 'copy', '-movflags', '+faststart', salida]);
+    if (fs.statSync(salida).size <= maxMB * 1024 * 1024) break;
+  }
+  return salida;
+}
+
+/**
+ * Subtítulos ASS: el gancho arriba y grande; el resto abajo, por encima de los botones de TikTok.
+ * Letra gruesa con contorno oscuro ancho (estilo de los subtítulos de TikTok). Lo que va entre *asteriscos* sale en amarillo y cada frase entra con un pequeño «pop».
+ * Con web=true (vídeo de la home, sin interfaz encima) van más pegados a los bordes; con subArriba=true
+ * el resto de frases también va arriba (cuando lo importante pasa abajo, como el cuadro del chat).
+ */
+function subtitulos(lineas, web = false, subArriba = false) {
+  const [margenSub, margenGancho] = web ? [150, 170] : [subArriba ? 330 : 360, 230];
+  const alineaSub = subArriba ? 8 : 2;
+  const AMARILLO = '&H0000E5FF&', BLANCO = '&H00FFFFFF&';
   const ts = s => {
     const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, x = (s % 60).toFixed(2).padStart(5, '0');
     return `${h}:${String(m).padStart(2, '0')}:${x}`;
   };
+  // Parte en filas por la longitud visible (sin asteriscos) y luego cambia los asteriscos por colores
   const partir = (t, max) => {
     const palabras = t.split(' '), filas = [''];
+    const largo = s => s.replace(/\*/g, '').length;
     for (const p of palabras) {
       const f = filas.length - 1;
-      if ((filas[f] + ' ' + p).trim().length > max && filas[f]) filas.push(p);
+      if (largo(filas[f] + ' ' + p) > max && filas[f]) filas.push(p);
       else filas[f] = (filas[f] + ' ' + p).trim();
     }
-    return filas.join('\\N');
+    let dentro = false;
+    return filas.join('\\N').replace(/\*/g, () => (dentro = !dentro) ? `{\\c${AMARILLO}}` : `{\\c${BLANCO}}`);
   };
+  const pop = '{\\fad(120,60)\\fscx88\\fscy88\\t(0,160,\\fscx100\\fscy100)}';
   return `[Script Info]
 ScriptType: v4.00+
 PlayResX: 1080
@@ -232,11 +288,11 @@ WrapStyle: 2
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Sub,Arial,60,&H00FFFFFF,&H00FFFFFF,&H00151515,&H96000000,-1,0,0,0,100,100,0,0,1,5,2,2,70,70,${margenSub},1
-Style: Gancho,Arial,74,&H0000E5FF,&H00FFFFFF,&H00151515,&H96000000,-1,0,0,0,100,100,0,0,1,6,3,8,60,60,${margenGancho},1
+Style: Sub,Segoe UI Black,76,&H00FFFFFF,&H00FFFFFF,&H002A170F,&H80000000,900,0,0,0,100,100,0,0,1,8,3,${alineaSub},60,60,${margenSub},1
+Style: Gancho,Segoe UI Black,94,&H00FFFFFF,&H00FFFFFF,&H002A170F,&H80000000,900,0,0,0,100,100,0,0,1,10,4,8,60,60,${margenGancho},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-${lineas.filter(l => l.texto).map(l => `Dialogue: 0,${ts(l.inicio)},${ts(l.fin)},${l.gancho ? 'Gancho' : 'Sub'},,0,0,0,,${partir(l.texto, l.gancho ? 22 : 28)}`).join('\n')}
+${lineas.filter(l => l.texto).map(l => `Dialogue: 0,${ts(l.inicio)},${ts(l.fin)},${l.gancho ? 'Gancho' : 'Sub'},,0,0,0,,${pop}${partir(l.texto, l.gancho ? 19 : 24)}`).join('\n')}
 `;
 }

@@ -1,5 +1,5 @@
 {
-  "_nota": "voz: lo que se locuta (números en letra); texto: subtítulo en pantalla. Una escena = una frase o dos.",
+  "_nota": "voz: lo que se locuta (números en letra, sin «PedidAI» a media frase: la síntesis lo deforma); texto: subtítulo en pantalla, entre *asteriscos* lo que se resalta. Una escena = una frase o dos; si una frase es larga, partirla en párrafos (línea en blanco): cada uno se locuta aparte y no sale acelerado.",
   "foto-albaran": [
     {
       "id": "hook",
@@ -30,18 +30,18 @@
   "tarifa": [
     {
       "id": "hook",
-      "voz": "¿Te ha llegado la tarifa nueva de un proveedor? No la revises línea a línea.",
-      "texto": "¿Te ha llegado la tarifa nueva de un proveedor?"
+      "voz": "¿Te ha llegado una tarifa nueva de un proveedor? No la revises línea a línea.",
+      "texto": "¿Te ha llegado *una tarifa nueva*?"
     },
     {
       "id": "subir",
-      "voz": "Súbela a PedidAI tal cual, en Excel o en PDF. Detecta solo que es una tarifa y lee todos los precios.",
-      "texto": "Súbela tal cual, en Excel o PDF: la lee entera"
+      "voz": "Súbela tal cual, en Excel o en PDF. En un momento tienes todos los precios leídos.",
+      "texto": "Súbela tal cual, *en Excel o PDF*"
     },
     {
       "id": "comparar",
-      "voz": "Y te dice qué productos te salen más baratos con él que con lo que ya estás pagando.",
-      "texto": "Y te dice qué te sale más barato que lo que ya pagas"
+      "voz": "Y te dice qué productos te salen más baratos que lo que pagas ahora.",
+      "texto": "Y te dice qué te sale *más barato* que ahora"
     },
     {
       "id": "cta",
@@ -52,23 +52,23 @@
   "pedido": [
     {
       "id": "hook",
-      "voz": "¿Te han servido exactamente lo que pediste? Compruébalo en un momento.",
-      "texto": "¿Te han servido exactamente lo que pediste?"
+      "voz": "¿Te han traído todo lo que pediste? Míralo en un momento.",
+      "texto": "¿Te han traído *todo lo que pediste*?"
     },
     {
       "id": "subir",
-      "voz": "Haces la foto al albarán y PedidAI lo compara con tu pedido.",
-      "texto": "Foto al albarán y lo compara con tu pedido"
+      "voz": "Haz una foto al albarán, y lo compara con tu pedido.",
+      "texto": "Foto al albarán y *lo compara con tu pedido*"
     },
     {
       "id": "diferencias",
-      "voz": "Aquí faltan cinco kilos de tomate, el aceite te lo cobran más caro y el agua no ha llegado.",
-      "texto": "Faltan 5 kg de tomate, el aceite más caro y el agua no ha llegado"
+      "voz": "Te han traído cinco kilos menos de tomate.\n\nEl aceite te lo cobran más caro.\n\nY el agua no ha llegado.",
+      "texto": "*5 kg menos* de tomate, el aceite *más caro* y *sin agua*"
     },
     {
       "id": "cierre",
-      "voz": "Lo ves al momento, y se lo puedes reclamar al proveedor.",
-      "texto": "Lo ves al momento y lo reclamas"
+      "voz": "Lo ves al momento, y se lo reclamas al proveedor.",
+      "texto": "Lo ves al momento y *lo reclamas*"
     },
     {
       "id": "cta",
@@ -79,23 +79,23 @@
   "chat": [
     {
       "id": "hook",
-      "voz": "¿Todavía haces los pedidos a tus proveedores por teléfono? Mira esto.",
-      "texto": "¿Todavía haces los pedidos por teléfono?"
+      "voz": "¿Todavía haces los pedidos por teléfono a tus proveedores? Mira esto.",
+      "texto": "¿Todavía haces los pedidos *por teléfono*?"
     },
     {
       "id": "escribir",
       "voz": "Escribes lo que necesitas, como si fuera un WhatsApp.",
-      "texto": "Escribe lo que necesitas, como un WhatsApp"
+      "texto": "Escribe lo que necesitas, *como en un WhatsApp*"
     },
     {
       "id": "respuesta",
-      "voz": "PedidAI busca quién te lo vende más barato y te prepara un pedido para cada proveedor.",
-      "texto": "Busca el más barato y prepara un pedido por proveedor"
+      "voz": "Busca quién te lo vende más barato, y te prepara los pedidos, uno por proveedor.",
+      "texto": "Busca *el más barato* y te prepara cada pedido"
     },
     {
       "id": "enviar",
-      "voz": "Lo revisas, y se lo envías por email con un clic.",
-      "texto": "Lo revisas y lo envías con un clic"
+      "voz": "Los revisas, y los envías con un clic.",
+      "texto": "Los revisas y los envías *con un clic*"
     },
     {
       "id": "cta",

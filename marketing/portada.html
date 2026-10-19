@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>PedidAI · Portada</title>
+<style>
+  html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; position: relative; }
+  .fondo { position: absolute; inset: 0; background-size: cover; background-position: center; filter: saturate(.9); }
+  .velo { position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(2,6,23,.45) 0%, rgba(2,6,23,.9) 30%, rgba(2,6,23,.92) 70%, rgba(2,6,23,.5) 100%); }
+  /* La cuadrícula del perfil recorta a 3:4 por el centro (de y=240 a y=1680): todo lo importante va ahí */
+  .centro { position: absolute; left: 70px; right: 70px; top: 240px; height: 1440px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #fff; }
+  .marca { display: flex; align-items: center; gap: 18px; font-size: 46px; font-weight: 800; letter-spacing: -1px; }
+  .marca img { width: 78px; height: 78px; border-radius: 20px; background: #fff; padding: 8px; box-sizing: border-box; }
+  .marca b { font-weight: 800; }
+  .marca span { color: #22d3ee; }
+  h1 { margin: 56px 0 0; font-size: 128px; line-height: 1.04; font-weight: 900; letter-spacing: -3px; }
+  h1 em { font-style: normal; color: #FACC15; }
+  .linea { margin-top: 54px; font-size: 42px; color: #cbd5e1; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="fondo" id="fondo"></div>
+  <div class="velo"></div>
+  <div class="centro">
+    <div class="marca"><img src="http://localhost:4200/logo-hero.png" alt=""><b>Pedid<span>AI</span></b></div>
+    <h1 id="titulo"></h1>
+    <p class="linea">Para bares y restaurantes</p>
+  </div>
+  <script>
+    const q = new URLSearchParams(location.search);
+    document.getElementById('fondo').style.backgroundImage = `url("${q.get('fondo')}")`;
+    // *texto* = resaltado en amarillo; | = salto de línea
+    document.getElementById('titulo').innerHTML = (q.get('titulo') || '')
+      .replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+      .replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/\|/g, '<br>');
+  </script>
+</body>
+</html>
