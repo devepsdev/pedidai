@@ -102,5 +102,52 @@
       "voz": "Pruébalo gratis catorce días en pedidai punto es. Sin tarjeta y sin permanencia.",
       "texto": ""
     }
+  ],
+  "home": [
+    {
+      "id": "hook",
+      "voz": "¿Sabes cuánto pagas de más a tus proveedores? PedidAI te lo dice. Te lo enseño en un minuto.",
+      "texto": "¿Cuánto pagas de más a tus proveedores?"
+    },
+    {
+      "id": "foto",
+      "voz": "Haces una foto al albarán con el móvil.",
+      "texto": "Haz una foto al albarán"
+    },
+    {
+      "id": "lectura",
+      "voz": "PedidAI lee cada producto, la cantidad y el precio, y te marca lo que te han subido.",
+      "texto": "Lee productos, cantidades y precios, y marca las subidas"
+    },
+    {
+      "id": "pedido",
+      "voz": "Y lo compara con tu pedido: si falta algo o te lo cobran más caro, lo ves al momento.",
+      "texto": "Lo compara con tu pedido: faltas y precios distintos"
+    },
+    {
+      "id": "precios",
+      "voz": "Con cada albarán guarda tus precios, y te dice qué proveedor te vende cada producto más barato.",
+      "texto": "Te dice dónde tienes cada producto más barato"
+    },
+    {
+      "id": "tarifa",
+      "voz": "¿Te llega una tarifa nueva? Súbela en Excel o en PDF, y te dice qué te sale más barato que lo que ya pagas.",
+      "texto": "Sube tarifas en Excel o PDF y compáralas"
+    },
+    {
+      "id": "chat",
+      "voz": "Y los pedidos, por chat. Escribes lo que necesitas, como en un WhatsApp.",
+      "texto": "Haz los pedidos por chat, como un WhatsApp"
+    },
+    {
+      "id": "respuesta",
+      "voz": "Busca quién te lo vende más barato, prepara un pedido para cada proveedor, y lo envías con un clic.",
+      "texto": "Un pedido por proveedor y lo envías con un clic"
+    },
+    {
+      "id": "cta",
+      "voz": "Pruébalo gratis catorce días. Sin tarjeta y sin permanencia.",
+      "texto": ""
+    }
   ]
 }

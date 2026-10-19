@@ -35,7 +35,7 @@
           [class]="msg.role === 'user' ? 'bg-blue-600 text-white rounded-br-sm'
             : msg.isError ? 'bg-red-50 text-red-800 border border-red-200 rounded-bl-sm'
             : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm'">
-          {{ msg.content }}
+          @for (s of msg.content | bold; track $index) {@if (s.bold) {<strong>{{ s.text }}</strong>} @else {<span>{{ s.text }}</span>}}
         </div>
       </div>
 

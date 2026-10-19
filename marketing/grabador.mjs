@@ -88,9 +88,10 @@ export async function desplazar(page, px, ms = 900) {
 }
 
 export class Grabacion {
-  constructor(page, carpeta) {
+  constructor(page, carpeta, { calidad = 92 } = {}) {
     this.page = page;
     this.carpeta = carpeta;
+    this.calidad = calidad;
     this.dirFotos = path.join(carpeta, 'fotogramas');
     fs.rmSync(this.dirFotos, { recursive: true, force: true });
     fs.mkdirSync(this.dirFotos, { recursive: true });
@@ -110,7 +111,7 @@ export class Grabacion {
       this.pendientes.push(fs.promises.writeFile(archivo, Buffer.from(data, 'base64')));
       this.cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {});
     });
-    await this.cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: 1080, maxHeight: 1920 });
+    await this.cdp.send('Page.startScreencast', { format: 'jpeg', quality: this.calidad, maxWidth: 1080, maxHeight: 1920 });
     // Fuerza un primer fotograma aunque la página no cambie
     await this.page.evaluate(() => { document.body.style.outline = '0 solid transparent'; });
     await espera(300);
@@ -153,7 +154,7 @@ export class Grabacion {
   }
 
   /** Monta el MP4: imagen a 30 fps, voz de cada escena en su sitio a −14 LUFS y subtítulos quemados. */
-  montar({ nombre, voces, textos }) {
+  montar({ nombre, voces, textos, web = false }) {
     // Remuestreo a 30 fps exactos: a cada instante k/30 le toca el último fotograma capturado hasta entonces.
     // (El concat de ffmpeg alarga a 1/25 s los fotogramas más cortos y el vídeo saldría más largo que la voz.)
     const FPS = 30;
@@ -180,7 +181,7 @@ export class Grabacion {
       inicio: this.final(m.t) + 0.05,
       fin: Math.min(this.final(m.t) + m.duracion + 0.25, i + 1 < this.marcas.length ? this.final(this.marcas[i + 1].t) : 1e9),
       texto: textos[m.id], gancho: i === 0,
-    }))), 'utf8');
+    })), web), 'utf8');
 
     const salida = path.join(this.carpeta, `${nombre}.mp4`);
     const args = ['-y', '-v', 'error', '-framerate', String(FPS), '-i', path.join(dirSec, 's%06d.jpg')];
@@ -204,8 +205,12 @@ export class Grabacion {
   }
 }
 
-/** Subtítulos ASS: el gancho arriba y grande; el resto abajo, por encima de los botones de TikTok. */
-function subtitulos(lineas) {
+/**
+ * Subtítulos ASS: el gancho arriba y grande; el resto abajo, por encima de los botones de TikTok.
+ * Con web=true (vídeo de la home, sin interfaz encima) van más pegados a los bordes.
+ */
+function subtitulos(lineas, web = false) {
+  const [margenSub, margenGancho] = web ? [150, 170] : [360, 250];
   const ts = s => {
     const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, x = (s % 60).toFixed(2).padStart(5, '0');
     return `${h}:${String(m).padStart(2, '0')}:${x}`;
@@ -227,8 +232,8 @@ WrapStyle: 2
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Sub,Arial,60,&H00FFFFFF,&H00FFFFFF,&H00151515,&H96000000,-1,0,0,0,100,100,0,0,1,5,2,2,70,70,360,1
-Style: Gancho,Arial,74,&H0000E5FF,&H00FFFFFF,&H00151515,&H96000000,-1,0,0,0,100,100,0,0,1,6,3,8,60,60,250,1
+Style: Sub,Arial,60,&H00FFFFFF,&H00FFFFFF,&H00151515,&H96000000,-1,0,0,0,100,100,0,0,1,5,2,2,70,70,${margenSub},1
+Style: Gancho,Arial,74,&H0000E5FF,&H00FFFFFF,&H00151515,&H96000000,-1,0,0,0,100,100,0,0,1,6,3,8,60,60,${margenGancho},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text

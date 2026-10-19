@@ -1,5 +1,5 @@
 // Graba los vídeos promocionales sobre la copia local de PedidAI con la cuenta demo «Bar La Plaza».
-//   node videos.mjs foto-albaran      (o tarifa, pedido)
+//   node videos.mjs foto-albaran      (o tarifa, pedido, chat, home)
 // Antes: voz generada con locutar.py y datos de la demo cargados con seed_demo.py (--pedido para «pedido»).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,9 +14,10 @@ const acceso = fs.readFileSync(path.join(DEMO, 'acceso.txt'), 'utf8');
 const EMAIL = acceso.match(/Email: (.+)/)[1].trim();
 const PASSWORD = acceso.match(/Contraseña: (.+)/)[1].trim();
 
-/** Vuelve a dejar la demo como al principio (con el pedido enviado si hace falta). */
-function reiniciarDemo(conPedido) {
-  const sql = execFileSync('python', [path.join(RAIZ, 'seed_demo.py'), ...(conPedido ? ['--pedido'] : [])], { encoding: 'utf8' });
+/** Vuelve a dejar la demo como al principio (con el pedido enviado y Huerta del Valle si hacen falta). */
+function reiniciarDemo(video) {
+  const opciones = [...(video.pedido ? ['--pedido'] : []), ...(video.web ? ['--huerta'] : [])];
+  const sql = execFileSync('python', [path.join(RAIZ, 'seed_demo.py'), ...opciones], { encoding: 'utf8' });
   execFileSync('docker', ['exec', '-i', 'pedidai-mysql-local', 'sh', '-c',
     'mysql --default-character-set=utf8mb4 -uroot -p"$MYSQL_ROOT_PASSWORD" pedidai_db'], { input: sql, stdio: ['pipe', 'ignore', 'ignore'] });
 }
@@ -163,6 +164,83 @@ const VIDEOS = {
       await g.escena('cta', d.cta, async () => { await page.goto(OUTRO); });
     },
   },
+
+  // Vídeo de la home: todas las funciones en uno (albarán, pedido, precios, tarifa y chat)
+  home: {
+    pedido: true,
+    web: true,
+    async grabar(page, g, d) {
+      await g.escena('hook', d.hook, async () => {
+        await espera(1800);
+        await desplazar(page, 260, 1300);
+        await espera(900);
+        await desplazar(page, -260, 700);
+      });
+      await g.escena('foto', d.foto, async () => {
+        await tocar(page, page.getByRole('link', { name: 'Subir albarán o tarifa' }).first());
+        await page.getByRole('button', { name: /Arrastra aquí/ }).waitFor();
+        await espera(400);
+        await elegirArchivo(page, 'albaran-lopez.jpg');
+      });
+      await g.escena('lectura', d.lectura, async () => {
+        await tocar(page, page.getByRole('button', { name: 'Leer documento' }));
+        await g.sinGrabar(() => page.getByText('Revisa y corrige').waitFor({ timeout: 180000 }), 1.4);
+        await espera(500);
+        await desplazar(page, 520, 1500);
+      });
+      await g.escena('pedido', d.pedido, async () => {
+        const tarjeta = page.getByText(/Comparado con tu pedido/);
+        await tarjeta.scrollIntoViewIfNeeded();
+        await desplazar(page, 60, 500);
+        await espera(500);
+        const b = await tarjeta.boundingBox();
+        await page.evaluate(([x, y]) => window.__tap(x, y), [b.x + 60, b.y + 10]);
+        await espera(1600);
+        await desplazar(page, 260, 1200);
+      });
+      await g.escena('precios', d.precios, async () => {
+        await guardarYVerPrecios(page, g);
+        await espera(500);
+        await desplazar(page, 470, 1500);
+        await espera(1100);
+        await desplazar(page, 330, 1300);
+      });
+      await g.escena('tarifa', d.tarifa, async () => {
+        await desplazar(page, -2000, 700);
+        await tocar(page, page.getByRole('link', { name: 'Subir albarán o tarifa' }).first());
+        await page.getByRole('button', { name: /Arrastra aquí/ }).waitFor();
+        await subirYLeer(page, g, 'tarifa-huerta-del-valle.xlsx');
+        await desplazar(page, 420, 1300);
+        await guardarYVerPrecios(page, g);
+        await espera(400);
+        await desplazar(page, 440, 1400);
+        await espera(1200);
+      });
+      await g.escena('chat', d.chat, async () => {
+        await tocar(page, page.locator('app-navbar button').first());
+        await espera(500);
+        await tocar(page, page.locator('app-sidebar a[href="/chat"]'));
+        const caja = page.getByRole('textbox');
+        await caja.waitFor();
+        await tocar(page, caja);
+        await caja.pressSequentially('15 kg de tomates, 10 kg de patatas y 2 garrafas de aceite', { delay: 40 });
+        await espera(300);
+      });
+      await g.escena('respuesta', d.respuesta, async () => {
+        await tocar(page, page.getByRole('button', { name: 'Enviar', exact: true }));
+        await espera(1200);
+        await g.sinGrabar(() => page.getByText('Pedido pendiente para').first().waitFor({ timeout: 180000 }), 0.8);
+        await espera(500);
+        await desplazar(page, 420, 1500);
+        const boton = page.getByRole('button', { name: 'Enviar al proveedor' }).first();
+        await boton.scrollIntoViewIfNeeded();
+        await espera(400);
+        const b = await boton.boundingBox();
+        await page.evaluate(([x, y]) => window.__tap(x, y), [b.x + b.width / 2, b.y + b.height / 2]);
+      });
+      await g.escena('cta', d.cta, async () => { await page.goto(OUTRO); });
+    },
+  },
 };
 
 async function main() {
@@ -173,18 +251,18 @@ async function main() {
   const durs = JSON.parse(fs.readFileSync(path.join(carpeta, 'voz', 'duraciones.json'), 'utf8'));
   const guion = JSON.parse(fs.readFileSync(path.join(RAIZ, 'guiones.json'), 'utf8'))[nombre];
 
-  reiniciarDemo(video.pedido);
+  reiniciarDemo(video);
   const { browser, page } = await abrir(EMAIL, PASSWORD);
   try {
     await page.goto(`${WEB}/dashboard`, { waitUntil: 'networkidle' });
     await espera(1500);
-    const g = new Grabacion(page, carpeta);
+    const g = new Grabacion(page, carpeta, { calidad: video.web ? 100 : 92 });
     await g.empezar();
     await video.grabar(page, g, durs);
     await g.terminar();
     const voces = Object.fromEntries(guion.map(e => [e.id, path.join(carpeta, 'voz', `${e.id}.wav`)]));
     const textos = Object.fromEntries(guion.map(e => [e.id, e.texto]));
-    console.log('Vídeo:', g.montar({ nombre, voces, textos }));
+    console.log('Vídeo:', g.montar({ nombre, voces, textos, web: video.web }));
   } finally {
     await browser.close();
   }

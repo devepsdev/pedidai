@@ -7,7 +7,7 @@ import { SupplierService } from '../../../services/supplier';
 import { LanguageService } from '../../../services/language.service';
 import { DocumentKind, InvoiceConfirmRequestDTO, InvoiceLineStatus, InvoiceScanResultDTO } from '../../../models/invoice.model';
 import { SupplierResponse } from '../../../models/supplier.model';
-import { formatDate, formatMoney, formatNumber } from '../../../shared/format';
+import { formatDate, formatMoney, formatNumber, unitFor } from '../../../shared/format';
 
 /** Línea del albarán que el usuario puede revisar y corregir antes de guardarla. */
 interface EditableLine {
@@ -343,8 +343,10 @@ export class InvoiceScan implements OnInit, OnDestroy {
   issueText(i: OrderIssue): string {
     const isPrice = i.type === 'PRICE_UP' || i.type === 'PRICE_DOWN';
     const fmt = (v?: number) => (isPrice ? this.money(v) + (i.unit ? '/' + i.unit : '') : formatNumber(v, this.language.current(), 3));
+    const lang = this.language.current();
     return this.translate.instant('INVOICE_SCAN.ORDER_CHECK_' + i.type, {
-      product: i.product, ordered: fmt(i.ordered), received: fmt(i.received), unit: i.unit ?? '',
+      product: i.product, ordered: fmt(i.ordered), received: fmt(i.received),
+      orderedUnit: unitFor(i.unit, i.ordered, lang), receivedUnit: unitFor(i.unit, i.received, lang),
     });
   }
 

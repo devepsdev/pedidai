@@ -5,6 +5,8 @@ Borra la demo anterior y la vuelve a crear, así cada toma empieza igual:
     docker exec -i pedidai-mysql-local sh -c 'mysql --default-character-set=utf8mb4 -uroot -p"$MYSQL_ROOT_PASSWORD" pedidai_db' < demo/seed.sql
 
 --pedido añade un pedido enviado a Distribuciones López hace 2 días (para el vídeo «¿Te han servido lo que pediste?»).
+--huerta da de alta Huerta del Valle (sin precios) con su email, para que la tarifa se asocie a ella y el chat
+pueda enviarle el pedido (vídeo de la home).
 El hash de la contraseña se lee de demo/hash.txt (fuera del repositorio).
 """
 import sys
@@ -76,8 +78,11 @@ def main():
                 out.append(f"INSERT INTO price_history (company_id, supplier_id, product_id, unit_price, unit, quantity, document_date, source, document_ref) VALUES "
                            f"(@c, @s{i}, @p_{clave}, {precio:.4f}, {q(unidad)}, {cantidad}, DATE_SUB(CURDATE(), INTERVAL {dias} DAY), 'INVOICE', "
                            f"{q('A-2026-%04d' % (900 - dias))});")
+    if '--huerta' in sys.argv:
+        out.append(f"INSERT INTO suppliers (uuid, company_id, name, email, is_active) VALUES "
+                   f"({q(uuid.uuid4())}, @c, 'Huerta del Valle', 'pedidos@huertadelvalle.test', 1);")
     if pedido:
-        total = sum(c * p for _, c, p in PEDIDO)
+        total =sum(c * p for _, c, p in PEDIDO)
         out.append(f"INSERT INTO orders (uuid, company_id, supplier_id, user_id, name, status, total_amount, created_at) VALUES "
                    f"({q(uuid.uuid4())}, @c, @s0, @u, 'Pedido semanal', 'SENT', {total:.2f}, NOW() - INTERVAL 2 DAY);")
         out.append('SET @o := LAST_INSERT_ID();')

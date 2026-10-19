@@ -8,6 +8,7 @@ import { AuthService } from '../../../services/auth';
 import { LanguageService } from '../../../services/language.service';
 import { AiMessage, ChatOrder } from '../../../models/ai.model';
 import { formatMoney, formatNumber } from '../../../shared/format';
+import { BoldPipe } from '../../../shared/bold.pipe';
 
 type SendState = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -17,7 +18,7 @@ type SendState = 'idle' | 'sending' | 'sent' | 'error';
  */
 @Component({
   selector: 'app-ai-chat',
-  imports: [ReactiveFormsModule, TranslateModule, RouterLink],
+  imports: [ReactiveFormsModule, TranslateModule, RouterLink, BoldPipe],
   templateUrl: './ai-chat.html',
 })
 export class AiChat implements OnInit, AfterViewChecked {

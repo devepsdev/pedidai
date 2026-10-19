@@ -848,10 +848,10 @@
     "ORDER_CHECK_TITLE": "Comparat amb la teva comanda «{{name}}» del {{date}}",
     "ORDER_CHECK_OK": "Tot coincideix amb el que vas demanar.",
     "ORDER_CHECK_HINT": "Revisa aquestes diferències amb el proveïdor abans de donar l’albarà per bo:",
-    "ORDER_CHECK_QTY": "{{product}}: vas demanar {{ordered}} {{unit}} i l’albarà diu {{received}} {{unit}}.",
+    "ORDER_CHECK_QTY": "{{product}}: vas demanar {{ordered}} {{orderedUnit}} i l’albarà diu {{received}} {{receivedUnit}}.",
     "ORDER_CHECK_PRICE_UP": "{{product}}: el vas demanar a {{ordered}} i te’l cobren a {{received}}.",
     "ORDER_CHECK_PRICE_DOWN": "{{product}}: el vas demanar a {{ordered}} i te’l cobren a {{received}} (més barat).",
-    "ORDER_CHECK_MISSING": "Falta {{product}}: en vas demanar {{ordered}} {{unit}}.",
+    "ORDER_CHECK_MISSING": "Falta {{product}}: en vas demanar {{ordered}} {{orderedUnit}}.",
     "ORDER_CHECK_EXTRA": "{{product}} no era a la comanda.",
     "ORDER_CHECK_MATCHING": "{{count}} productes coincideixen amb la comanda.",
     "ORDER_CHECK_MATCHING_ONE": "1 producte coincideix amb la comanda."
@@ -899,19 +899,15 @@
     "LOGIN": "Accedir"
   },
   "LANDING": {
-    "EXAMPLE_TAG": "Exemple",
     "HERO": {
       "BADGE": "Per a bars i restaurants que fan les seves pròpies compres",
       "TITLE": "Descobreix quant pagues de més\nals teus proveïdors",
       "SUBTITLE": "Fes una foto als teus albarans o puja les tarifes que t’envien.\nPedidAI compara el que et cobra cada proveïdor.\nT’avisa quan t’apugen un preu.\nI et prepara la comanda al més barat.",
       "MICROCOPY": "Sense targeta de crèdit · Sense permanència · A punt en 1 minut",
-      "CARD_TITLE": "Tomàquet pera",
-      "CARD_SUPPLIER_A": "Fruites Martínez",
-      "CARD_SUPPLIER_B": "Distribucions López",
-      "CARD_ALERT": "Distribucions López t’ha apujat el tomàquet.\n+16 % des de l’últim albarà.",
-      "CARD_CHAT_USER": "10 kg de tomàquets i 5 garrafes d’aigua",
-      "CARD_CHAT_BOT": "Comanda a punt amb Fruites Martínez.\nÉs el més barat: 20,40 €.",
-      "CARD_SEND": "Enviar al proveïdor"
+      "VIDEO_LABEL": "Vídeo: com funciona PedidAI amb un bar d’exemple",
+      "VIDEO_UNMUTE": "Activa el so",
+      "VIDEO_MUTE": "Silencia",
+      "VIDEO_CAPTION": "Bar i dades d’exemple"
     },
     "HOW": {
       "TITLE": "Com funciona",

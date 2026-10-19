@@ -848,10 +848,10 @@
     "ORDER_CHECK_TITLE": "Comparado con tu pedido «{{name}}» del {{date}}",
     "ORDER_CHECK_OK": "Todo coincide con lo que pediste.",
     "ORDER_CHECK_HINT": "Revisa estas diferencias con tu proveedor antes de dar el albarán por bueno:",
-    "ORDER_CHECK_QTY": "{{product}}: pediste {{ordered}} {{unit}} y el albarán dice {{received}} {{unit}}.",
+    "ORDER_CHECK_QTY": "{{product}}: pediste {{ordered}} {{orderedUnit}} y el albarán dice {{received}} {{receivedUnit}}.",
     "ORDER_CHECK_PRICE_UP": "{{product}}: lo pediste a {{ordered}} y te lo cobran a {{received}}.",
     "ORDER_CHECK_PRICE_DOWN": "{{product}}: lo pediste a {{ordered}} y te lo cobran a {{received}} (más barato).",
-    "ORDER_CHECK_MISSING": "Falta {{product}}: pediste {{ordered}} {{unit}}.",
+    "ORDER_CHECK_MISSING": "Falta {{product}}: pediste {{ordered}} {{orderedUnit}}.",
     "ORDER_CHECK_EXTRA": "{{product}} no estaba en el pedido.",
     "ORDER_CHECK_MATCHING": "{{count}} productos coinciden con el pedido.",
     "ORDER_CHECK_MATCHING_ONE": "1 producto coincide con el pedido."
@@ -899,19 +899,15 @@
     "LOGIN": "Acceder"
   },
   "LANDING": {
-    "EXAMPLE_TAG": "Ejemplo",
     "HERO": {
       "BADGE": "Para bares y restaurantes que hacen sus propias compras",
       "TITLE": "Descubre cuánto pagas de más\na tus proveedores",
       "SUBTITLE": "Haz una foto a tus albaranes o sube las tarifas que te envían.\nPedidAI compara lo que te cobra cada proveedor.\nTe avisa cuando te suben un precio.\nY te prepara el pedido al más barato.",
       "MICROCOPY": "Sin tarjeta de crédito · Sin permanencia · Listo en 1 minuto",
-      "CARD_TITLE": "Tomate pera",
-      "CARD_SUPPLIER_A": "Frutas Martínez",
-      "CARD_SUPPLIER_B": "Distribuciones López",
-      "CARD_ALERT": "Distribuciones López te ha subido el tomate.\n+16 % desde el último albarán.",
-      "CARD_CHAT_USER": "10 kg de tomates y 5 garrafas de agua",
-      "CARD_CHAT_BOT": "Pedido listo con Frutas Martínez.\nEs el más barato: 20,40 €.",
-      "CARD_SEND": "Enviar al proveedor"
+      "VIDEO_LABEL": "Vídeo: cómo funciona PedidAI con un bar de ejemplo",
+      "VIDEO_UNMUTE": "Activar sonido",
+      "VIDEO_MUTE": "Silenciar",
+      "VIDEO_CAPTION": "Bar y datos de ejemplo"
     },
     "HOW": {
       "TITLE": "Cómo funciona",
