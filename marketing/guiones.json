@@ -4,22 +4,22 @@
     {
       "id": "hook",
       "voz": "¿Sabes cuánto te cobran de más tus proveedores? Te lo enseño en treinta segundos.",
-      "texto": "¿Sabes cuánto te cobran de más tus proveedores?"
+      "texto": "¿Sabes cuánto te cobran *de más* tus proveedores?"
     },
     {
       "id": "foto",
       "voz": "Le haces una foto al albarán con el móvil, y listo.",
-      "texto": "Haz una foto al albarán con el móvil"
+      "texto": "Haz una foto al albarán *con el móvil*"
     },
     {
       "id": "lectura",
       "voz": "PedidAI lee los productos, las cantidades y los precios, y te marca lo que te han subido desde el último albarán.",
-      "texto": "Lee productos, cantidades y precios… y marca lo que te han subido"
+      "texto": "Lee los precios y *marca lo que te han subido*"
     },
     {
       "id": "comparativa",
       "voz": "Luego lo compara con tus otros proveedores y te dice dónde tienes cada producto más barato.",
-      "texto": "Y te dice dónde tienes cada producto más barato"
+      "texto": "Y te dice dónde lo tienes *más barato*"
     },
     {
       "id": "cta",

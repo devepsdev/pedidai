@@ -52,31 +52,40 @@ const VIDEOS = {
   'foto-albaran': {
     pedido: false,
     async grabar(page, g, d) {
+      const tarjeta = t => t.locator('xpath=ancestor::*[contains(@class,"rounded")][1]');
       await g.escena('hook', d.hook, async () => {
-        await espera(1600);
-        await desplazar(page, 260, 1200);
+        await espera(900);
+        await resaltar(page, tarjeta(page.getByText(/Has pagado unos/).first()));
+        await espera(2200);
+        await apagar(page);
       });
       await g.escena('foto', d.foto, async () => {
-        await desplazar(page, -260, 600);
         await tocar(page, page.getByRole('link', { name: 'Subir albarán o tarifa' }).first());
         await page.getByRole('button', { name: /Arrastra aquí/ }).waitFor();
-        await espera(500);
+        await espera(400);
         await elegirArchivo(page, 'albaran-lopez.jpg');
       });
       await g.escena('lectura', d.lectura, async () => {
         await tocar(page, page.getByRole('button', { name: 'Leer documento' }));
         await g.sinGrabar(() => page.getByText('Revisa y corrige').waitFor({ timeout: 180000 }), 1.4);
-        await espera(600);
-        await desplazar(page, 560, 1600);
-        await espera(900);
-        await desplazar(page, 420, 1400);
+        await espera(400);
+        const subida = page.getByText(/antes \d/).first();
+        await subida.scrollIntoViewIfNeeded();
+        await desplazar(page, 160, 700);
+        await resaltar(page, tarjeta(subida));
+        await espera(1800);
+        await apagar(page);
+        await desplazar(page, 380, 1300);
       });
       await g.escena('comparativa', d.comparativa, async () => {
         await guardarYVerPrecios(page, g);
-        await espera(600);
-        await desplazar(page, 470, 1500);
-        await espera(1200);
-        await desplazar(page, 330, 1300);
+        await espera(400);
+        const producto = page.getByText(/El más caro cuesta un/).first();
+        await producto.scrollIntoViewIfNeeded();
+        await desplazar(page, 120, 600);
+        await resaltar(page, tarjeta(producto));
+        await espera(2200);
+        await apagar(page);
       });
       await g.escena('cta', d.cta, async () => { await page.goto(OUTRO); });
     },
