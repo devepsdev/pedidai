@@ -11,16 +11,20 @@
   </div>
 
   <div class="relative max-w-7xl mx-auto px-5 lg:px-8 pt-28 pb-16 lg:pt-36 lg:pb-24">
-    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_24rem] xl:grid-cols-[minmax(0,1fr)_24rem] gap-12 items-center">
-      <!-- Texto -->
-      <div class="text-center lg:text-left">
+    <!-- En móvil: título, vídeo y luego el texto y el botón (el vídeo se ve sin desplazarse).
+         En ordenador: texto a la izquierda y vídeo a la derecha. -->
+    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_24rem] gap-y-8 lg:gap-y-0 lg:gap-x-12 items-center">
+      <div class="text-center lg:text-left lg:col-start-1 lg:row-start-1 lg:self-end">
         <p class="inline-block px-3 py-1.5 bg-emerald-500/15 text-emerald-300 text-xs sm:text-sm font-semibold rounded-full border border-emerald-400/30 mb-6 text-balance sm:text-nowrap">
           {{ 'LANDING.HERO.BADGE' | translate }}
         </p>
         <h1 class="text-4xl sm:text-5xl lg:text-[2rem] xl:text-[2.875rem] font-extrabold text-white leading-tight tracking-tight">
           @for (line of ('LANDING.HERO.TITLE' | translate | lines); track $index) {<span class="sm:block">{{ line }} </span>}
         </h1>
-        <p class="mt-6 text-lg sm:text-xl text-slate-300 max-w-xl lg:max-w-none mx-auto lg:mx-0">
+      </div>
+
+      <div class="text-center lg:text-left lg:col-start-1 lg:row-start-2 lg:self-start">
+        <p class="lg:mt-6 text-lg sm:text-xl text-slate-300 max-w-xl lg:max-w-none mx-auto lg:mx-0">
           @for (line of ('LANDING.HERO.SUBTITLE' | translate | lines); track $index) {<span class="lg:block">{{ line }} </span>}
         </p>
         <div class="mt-8 flex flex-col items-center lg:items-start gap-3">
@@ -33,7 +37,7 @@
       </div>
 
       <!-- Vídeo del producto (bar y datos de ejemplo), en un marco de móvil -->
-      <figure class="relative mx-auto w-[280px] sm:w-[300px] lg:w-[320px]">
+      <figure class="relative mx-auto w-[280px] sm:w-[300px] lg:w-[320px] row-start-2 lg:col-start-2 lg:row-start-1 lg:row-span-2">
         <div class="relative rounded-[2.25rem] bg-slate-800 p-2 shadow-2xl shadow-black/50 ring-1 ring-white/10">
           <video #demo class="block w-full aspect-[9/16] rounded-[1.75rem] bg-slate-900 object-cover"
             poster="video/pedidai-demo-poster.jpg" preload="none" playsinline loop [muted]="muted()"
