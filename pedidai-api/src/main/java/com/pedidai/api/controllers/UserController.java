@@ -128,11 +128,11 @@ public class UserController {
     }
 
     @PatchMapping("/{uuid}/change-password")
-    public ResponseEntity<ApiResponseDTO<Void>> changePassword(
+    public ResponseEntity<ApiResponseDTO<LoginResponseDTO>> changePassword(
             @PathVariable @NotBlank(message = "{validation.uuid.required}") String uuid,
             @Valid @RequestBody PasswordChangeDTO passwordChangeDTO) {
-        userService.changePassword(uuid, passwordChangeDTO);
-        return ResponseEntity.ok(ApiResponseDTO.success(null, "success.password.changed"));
+        LoginResponseDTO session = userService.changePassword(uuid, passwordChangeDTO);
+        return ResponseEntity.ok(ApiResponseDTO.success(session, "success.password.changed"));
     }
 
     @DeleteMapping("/{uuid}")

@@ -158,6 +158,7 @@ CREATE TABLE `users` (
   `password_reset_token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `password_reset_expires` timestamp NULL DEFAULT NULL,
   `last_login` timestamp NULL DEFAULT NULL,
+  `token_version` int NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

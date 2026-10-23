@@ -113,7 +113,7 @@ class UserServiceImplTest {
             admin.setEmailVerified(false);
             when(userRepository.findByEmail("admin@bar.test")).thenReturn(Optional.of(admin));
             when(passwordEncoder.matches("Bar12345", "hash")).thenReturn(true);
-            when(jwtUtil.generateToken("admin@bar.test", "ADMIN")).thenReturn("jwt");
+            when(jwtUtil.generateToken("admin@bar.test", "ADMIN", 0)).thenReturn("jwt");
 
             LoginResponseDTO response = service.login(login(" Admin@Bar.test ", "Bar12345"), "1.1.1.1");
 
@@ -143,6 +143,52 @@ class UserServiceImplTest {
         service.requestPasswordReset("nobody@bar.test", "1.1.1.1");
 
         verifyNoInteractions(emailService);
+    }
+
+    @Nested
+    @DisplayName("sessions de 30 dies")
+    class Sessions {
+
+        @Test
+        @DisplayName("restablir la contrasenya tanca totes les sessions obertes")
+        void resetClosesSessions() {
+            admin.setTokenVersion(2);
+            when(userRepository.findByValidResetToken(eq("reset-tok"), any())).thenReturn(Optional.of(admin));
+            when(passwordEncoder.encode("Nova12345")).thenReturn("hash2");
+
+            service.resetPassword(new PasswordResetDTO("reset-tok", "Nova12345"));
+
+            assertThat(admin.getTokenVersion()).isEqualTo(3);
+            verify(userRepository).save(admin);
+        }
+
+        @Test
+        @DisplayName("canviar la contrasenya tanca les altres sessions i dona un token nou a aquest dispositiu")
+        void changeKeepsThisDevice() {
+            when(currentUser.get()).thenReturn(admin);
+            when(passwordEncoder.matches("Bar12345", "hash")).thenReturn(true);
+            when(passwordEncoder.encode("Nova12345")).thenReturn("hash2");
+            when(jwtUtil.generateToken("admin@bar.test", "ADMIN", 1)).thenReturn("jwt-nou");
+            PasswordChangeDTO dto = new PasswordChangeDTO();
+            dto.setCurrentPassword("Bar12345");
+            dto.setNewPassword("Nova12345");
+
+            LoginResponseDTO session = service.changePassword("admin-uuid", dto);
+
+            assertThat(admin.getTokenVersion()).isEqualTo(1);
+            assertThat(session.getToken()).isEqualTo("jwt-nou");
+        }
+
+        @Test
+        @DisplayName("renovar la sessió dona un token amb la versió vigent")
+        void renew() {
+            admin.setTokenVersion(4);
+            when(currentUser.get()).thenReturn(admin);
+            when(jwtUtil.generateToken("admin@bar.test", "ADMIN", 4)).thenReturn("jwt-renovat");
+
+            assertThat(service.renewSession().getToken()).isEqualTo("jwt-renovat");
+            assertThat(admin.getTokenVersion()).isEqualTo(4);
+        }
     }
 
     @Nested

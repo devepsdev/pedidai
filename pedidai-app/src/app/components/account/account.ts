@@ -52,7 +52,8 @@ export class Account {
     this.error.set('');
     this.success.set(false);
     this.userService.changePassword(this.user.uuid, currentPassword!, newPassword!).subscribe({
-      next: () => {
+      next: session => {
+        this.auth.startSession(session);
         this.saving.set(false);
         this.success.set(true);
         this.form.reset();

@@ -390,7 +390,8 @@ class UserControllerTest {
     void changePassword_ShouldChangePassword() throws Exception {
         // Given
         String uuid = "user-uuid-123";
-        Mockito.doNothing().when(userService).changePassword(eq(uuid), any(PasswordChangeDTO.class));
+        Mockito.when(userService.changePassword(eq(uuid), any(PasswordChangeDTO.class)))
+                .thenReturn(LoginResponseDTO.builder().token("jwt.nou").build());
 
         String requestBody = """
                 {
@@ -405,7 +406,8 @@ class UserControllerTest {
                         .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("success.password.changed"));
+                .andExpect(jsonPath("$.message").value("success.password.changed"))
+                .andExpect(jsonPath("$.data.token").value("jwt.nou"));
     }
 
     @Test

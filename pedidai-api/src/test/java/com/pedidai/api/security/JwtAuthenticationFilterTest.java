@@ -119,6 +119,43 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
+    @DisplayName("token de la sessió vigent: autentica")
+    void currentSessionVersion() throws Exception {
+        user.setTokenVersion(3);
+        withValidToken();
+        when(jwtUtil.getTokenVersion("tok")).thenReturn(3);
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(authenticated()).isTrue();
+    }
+
+    @Test
+    @DisplayName("contrasenya canviada: els tokens d'abans deixen de servir")
+    void oldSessionVersion() throws Exception {
+        user.setTokenVersion(3);
+        withValidToken();
+        when(jwtUtil.getTokenVersion("tok")).thenReturn(2);
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(authenticated()).isFalse();
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    @DisplayName("token d'una hora d'abans del canvi (sense versió): val fins que caduca")
+    void legacyTokenWithoutVersion() throws Exception {
+        user.setTokenVersion(3);
+        withValidToken();
+        when(jwtUtil.getTokenVersion("tok")).thenReturn(null);
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(authenticated()).isTrue();
+    }
+
+    @Test
     @DisplayName("token manipulat: no autentica")
     void invalidToken() throws Exception {
         when(request.getHeader("Authorization")).thenReturn("Bearer dolent");

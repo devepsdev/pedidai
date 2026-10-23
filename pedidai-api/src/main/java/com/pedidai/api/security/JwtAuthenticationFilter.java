@@ -22,7 +22,8 @@ import java.util.List;
 
 /**
  * Autentica cada petició amb el token JWT. El rol i l'estat es llegeixen de la base de dades
- * (no del token), de manera que desactivar un usuari o acabar-se la prova té efecte immediat.
+ * (no del token), de manera que desactivar un usuari, acabar-se la prova o canviar la contrasenya
+ * té efecte immediat encara que el token duri 30 dies.
  */
 @Slf4j
 @Component
@@ -48,7 +49,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             if (email != null && jwtUtil.validateToken(token, email)) {
+                Integer tokenVersion = jwtUtil.getTokenVersion(token);
                 userRepository.findWithCompanyByEmail(email)
+                        .filter(user -> isCurrentSession(tokenVersion, user))
                         .filter(this::canUseService)
                         .ifPresent(user -> {
                             var auth = new UsernamePasswordAuthenticationToken(user.getEmail(), null,
@@ -60,6 +63,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * El token ha de ser de la sessió vigent: si l'usuari ha canviat la contrasenya, la versió ha pujat.
+     * Els tokens sense versió (d'una hora, d'abans d'aquest canvi) valen fins que caduquen.
+     */
+    private boolean isCurrentSession(Integer tokenVersion, User user) {
+        return tokenVersion == null || tokenVersion.equals(user.getTokenVersion());
     }
 
     private boolean canUseService(User user) {

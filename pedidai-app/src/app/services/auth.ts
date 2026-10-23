@@ -13,6 +13,10 @@ export class AuthService {
   private router = inject(Router);
   private language = inject(LanguageService);
 
+  /** A partir de un día se pide un token nuevo: la sesión dura 30 días desde la última renovación. */
+  private static readonly RENEW_AFTER_MS = 24 * 60 * 60 * 1000;
+  private renewing = false;
+
   private _authenticated$ = new BehaviorSubject<boolean>(this.hasToken());
   readonly authenticated$ = this._authenticated$.asObservable();
 
@@ -35,11 +39,42 @@ export class AuthService {
     );
   }
 
-  private startSession(data: LoginResponse): void {
+  /** Guarda la sesión (login, alta, renovación o cambio de contraseña, que da un token nuevo). */
+  startSession(data: LoginResponse): void {
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     this.language.adoptFromAccount(data.user?.language);
     this._authenticated$.next(true);
+  }
+
+  /**
+   * Mantiene la sesión abierta mientras se usa la app: si el token tiene más de un día (o es de los
+   * antiguos de una hora, sin versión), pide uno nuevo. Se llama al arrancar y al volver a la pestaña.
+   */
+  renewIfNeeded(): void {
+    const token = this.getToken();
+    if (!token || this.renewing) return;
+    const payload = this.payload(token);
+    if (!payload) return;
+    const old = typeof payload['iat'] === 'number' && Date.now() - payload['iat'] * 1000 > AuthService.RENEW_AFTER_MS;
+    if (!old && payload['tv'] !== undefined) return;
+    this.renewing = true;
+    this.api.post<ApiResponse<LoginResponse>>('/auth/refresh', {}).subscribe({
+      next: res => {
+        this.startSession(res.data);
+        this.renewing = false;
+      },
+      // Si el token ya no vale, el errorInterceptor cierra la sesión (401)
+      error: () => (this.renewing = false),
+    });
+  }
+
+  private payload(token: string): Record<string, unknown> | null {
+    try {
+      return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    } catch {
+      return null;
+    }
   }
 
   /** Datos actualizados del usuario (p. ej. si ya ha verificado el email). */

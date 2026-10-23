@@ -3,6 +3,7 @@ import { Observable, map } from 'rxjs';
 import { ApiService } from './api';
 import { ApiResponse, PagedResponse } from '../models/shared.model';
 import { UserResponse, UserRequest } from '../models/user.model';
+import { LoginResponse } from '../models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -38,10 +39,13 @@ export class UserService {
       .pipe(map(r => r.data));
   }
 
-  /** Cambia la contraseña del propio usuario (la API solo lo permite sobre uno mismo). */
-  changePassword(uuid: string, currentPassword: string, newPassword: string): Observable<void> {
-    return this.api.patch<ApiResponse<void>>(`/users/${uuid}/change-password`, { currentPassword, newPassword })
-      .pipe(map(() => undefined));
+  /**
+   * Cambia la contraseña del propio usuario (la API solo lo permite sobre uno mismo).
+   * Cierra las sesiones de los otros dispositivos y devuelve una nueva para este.
+   */
+  changePassword(uuid: string, currentPassword: string, newPassword: string): Observable<LoginResponse> {
+    return this.api.patch<ApiResponse<LoginResponse>>(`/users/${uuid}/change-password`, { currentPassword, newPassword })
+      .pipe(map(r => r.data));
   }
 
   toggleStatus(uuid: string, isActive: boolean): Observable<UserResponse> {

@@ -7,7 +7,7 @@ API de [PedidAI](https://pedidai.es), la aplicación para bares y restaurantes q
 | **Framework** | Spring Boot 3.5 |
 | **Lenguaje** | Java 25 |
 | **Base de datos** | MySQL 8 (H2 en memoria para los tests) |
-| **Autenticación** | JWT (HS512, 1 hora) |
+| **Autenticación** | JWT (HS512, 30 días renovables; `app.jwt.expiration-days`) |
 | **Idiomas** | Castellano y catalán (`Accept-Language`) |
 | **Documentación interactiva** | [pedidai.es/swagger-ui.html](https://pedidai.es/swagger-ui.html) |
 
@@ -119,7 +119,8 @@ Todas las rutas empiezan por `/api`. Salvo las públicas, necesitan `Authorizati
 | POST | `/verify-email` | Verifica el email con el token recibido |
 | POST | `/resend-verification` | Reenvía el email de verificación |
 | POST | `/forgot-password` | Envía el enlace de recuperación (misma respuesta exista o no la cuenta) |
-| POST | `/reset-password` | Cambia la contraseña con el token |
+| POST | `/reset-password` | Cambia la contraseña con el token y cierra las sesiones abiertas |
+| POST | `/refresh` | Devuelve un token nuevo de 30 días (requiere sesión; la web lo pide cada día) |
 
 ### Empresas — `/api/companies`
 
@@ -150,7 +151,7 @@ Opcionales: `adminLastName`, `taxId`, `companyPhone`, `companyAddress`, `company
 | GET | `/me` | Usuario de la sesión |
 | PATCH | `/me/language` | Idioma del usuario (`es`/`ca`) para emails y PDF |
 | POST | `/me/resend-verification` | Reenvía la verificación del propio email |
-| PATCH | `/{uuid}/change-password` | Cambia la contraseña (solo la propia) |
+| PATCH | `/{uuid}/change-password` | Cambia la contraseña (solo la propia), cierra las otras sesiones y devuelve un token nuevo |
 | GET, POST | `/` | Listar y crear usuarios de la empresa (ADMIN) |
 | GET, PUT, DELETE | `/{uuid}` | Ver, editar y borrar (baja lógica con email anonimizado) (ADMIN) |
 | PATCH | `/{uuid}/status` | Activar o desactivar (ADMIN) |

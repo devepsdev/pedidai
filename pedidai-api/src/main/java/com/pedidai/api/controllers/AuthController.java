@@ -23,6 +23,12 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponseDTO.success(response, "success.login"));
     }
 
+    /** Renova el token de l'usuari autenticat (la sessió dura 30 dies des de l'última renovació). */
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponseDTO<LoginResponseDTO>> refresh() {
+        return ResponseEntity.ok(ApiResponseDTO.success(userService.renewSession(), "success.session.renewed"));
+    }
+
     /** Sempre respon igual, existeixi o no el compte, per no revelar quins emails estan registrats. */
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponseDTO<Void>> forgotPassword(@Valid @RequestBody PasswordResetRequestDTO requestDTO,

@@ -85,12 +85,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginResponseDTO issueSession(User user) {
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getTokenVersion());
         return LoginResponseDTO.builder()
                 .token(token)
                 .type("Bearer")
                 .user(mapToResponseDTO(user))
                 .build();
+    }
+
+    @Override
+    public LoginResponseDTO renewSession() {
+        return issueSession(currentUser.get());
+    }
+
+    /** Tanca totes les sessions obertes de l'usuari: els tokens amb la versió anterior deixen de servir. */
+    private void closeAllSessions(User user) {
+        user.setTokenVersion(user.getTokenVersion() + 1);
     }
 
     /** Llança excepció si l'empresa està suspesa o la prova ha acabat sense contractar. */
@@ -140,6 +150,7 @@ public class UserServiceImpl implements UserService {
         user.setPasswordResetExpires(null);
         // Si ha rebut l'enllaç al correu, l'adreça queda verificada
         user.setEmailVerified(true);
+        closeAllSessions(user);
         userRepository.save(user);
     }
 
@@ -338,7 +349,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(String uuid, PasswordChangeDTO passwordChangeDTO) {
+    public LoginResponseDTO changePassword(String uuid, PasswordChangeDTO passwordChangeDTO) {
         User user = currentUser.get();
         // Cada usuari només pot canviar la seva pròpia contrasenya
         if (!user.getUuid().equals(uuid)) {
@@ -348,7 +359,10 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("error.user.wrongCurrentPassword");
         }
         user.setPassword(passwordEncoder.encode(passwordChangeDTO.getNewPassword()));
+        // Les altres sessions es tanquen; aquest dispositiu continua amb un token nou
+        closeAllSessions(user);
         userRepository.save(user);
+        return issueSession(user);
     }
 
     @Override

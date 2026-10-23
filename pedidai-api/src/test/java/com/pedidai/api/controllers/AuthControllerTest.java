@@ -70,6 +70,20 @@ class AuthControllerTest {
     }
 
     // -------------------
+    // REFRESH
+    // -------------------
+    @Test
+    void refresh_shouldReturnNewToken() throws Exception {
+        Mockito.when(userService.renewSession())
+                .thenReturn(LoginResponseDTO.builder().token("jwt.renovat").build());
+
+        mockMvc.perform(post("/api/auth/refresh"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("success.session.renewed"))
+                .andExpect(jsonPath("$.data.token").value("jwt.renovat"));
+    }
+
+    // -------------------
     // RESET PASSWORD
     // -------------------
     @Test

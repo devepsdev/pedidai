@@ -39,10 +39,14 @@ public interface UserService {
 
     UserResponseDTO changeUserStatus(String uuid, Boolean isActive);
 
-    void changePassword(String uuid, PasswordChangeDTO passwordChangeDTO);
+    /** Canvia la contrasenya, tanca les altres sessions i torna una sessió nova per a aquest dispositiu. */
+    LoginResponseDTO changePassword(String uuid, PasswordChangeDTO passwordChangeDTO);
 
     void deleteUser(String uuid);
 
     /** Genera el token de sessió per a un usuari ja validat (login automàtic després del registre). */
     LoginResponseDTO issueSession(com.pedidai.api.entities.User user);
+
+    /** Token nou per a l'usuari autenticat: la web el demana cada dia perquè la sessió no caduqui mentre s'usa. */
+    LoginResponseDTO renewSession();
 }

@@ -78,6 +78,11 @@ public class User {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
+    /** Va dins del token (claim «tv»): pujar-la tanca totes les sessions obertes de l'usuari. */
+    @Column(name = "token_version", nullable = false)
+    @Builder.Default
+    private Integer tokenVersion = 0;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

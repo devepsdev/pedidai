@@ -237,7 +237,7 @@ Detalle de columnas en [`pedidai-db/readme.md`](pedidai-db/readme.md).
 
 - **Aislamiento por empresa:** cada consulta se filtra por la empresa del usuario autenticado (`CurrentUser`); no se puede leer ni modificar nada de otra empresa.
 - **Roles:** `USER` (pedidos), `ADMIN` (además informes, datos de la empresa y usuarios) y `SUPER_ADMIN` (plataforma). Los permisos se aplican en la API (`CurrentUser.requireAdmin()`) y la web oculta el menú y protege las rutas (`admin.guard`). Nadie puede asignarse un rol superior al suyo.
-- **JWT de 1 hora**; en cada petición se vuelve a comprobar en la base de datos que el usuario y la empresa siguen activos.
+- **Sesión de 30 días:** JWT que la web renueva cada día mientras se usa (`POST /api/auth/refresh`), así que solo caduca tras 30 días sin abrir la app. Lleva la versión de sesión del usuario (`users.token_version`): al cambiar o restablecer la contraseña sube y se cierran las sesiones de los demás dispositivos. En cada petición se vuelve a comprobar en la base de datos que el usuario y la empresa siguen activos.
 - **Límites de uso:** intentos de login, registros por IP, recuperación de contraseña y lecturas de albaranes por día.
 - **Contraseñas:** mínimo 8 caracteres con letras y números, guardadas con BCrypt.
 - **Errores sin detalles internos** y mensajes que no revelan si un email existe.
@@ -280,6 +280,7 @@ mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/001_lanzamiento.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/002_empresa_suspendida.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/003_avisos_prueba.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/004_tarifas.sql
+mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/005_sesion_larga.sql
 ```
 
 Con Docker, en lugar de instalar MySQL (los scripts se cargan igual, con `docker exec -i pedidai-mysql-local mysql …`):
@@ -390,7 +391,7 @@ Se ejecutan con `ssh -t vps …` para que puedan pedir datos por teclado.
 | `Port 8085 is already in use` | Ya hay otra instancia de la API en marcha. |
 | La lectura de albaranes falla | Tesseract no instalado o sin los idiomas `spa`/`cat`; revisa `app.ocr.tesseract-command`. En Windows, `TESSDATA_PREFIX` debe apuntar a la carpeta con `spa` y `cat`. |
 | Una tarifa larga da error al cabo de un minuto | Falta en nginx `location = /api/invoices/scan` con `proxy_read_timeout 240s` (el valor por defecto es 60 s). |
-| El chat responde 401 | Sesión caducada (el token dura 1 hora): vuelve a entrar. |
+| El chat responde 401 | Sesión caducada (30 días sin usar la app) o cerrada al cambiar la contraseña en otro dispositivo: vuelve a entrar. |
 | Tras desplegar se ven textos antiguos | Caché del navegador: recarga forzando (Ctrl+F5). En producción `index.html` e `/i18n/` ya se sirven con `no-cache`. |
 | No llegan las alertas de n8n | Flujo sin publicar o credencial SMTP incorrecta en n8n; comprueba también `N8N_NEW_COMPANY_WEBHOOK` en el `.env` de la API. |
 | No llegan los emails | Revisa `MAIL_USER_PEDIDAI` / `MAIL_PASS_PEDIDAI` (contraseña de aplicación) y los logs: `journalctl -u pedidai-api`. |
