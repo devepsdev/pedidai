@@ -4,6 +4,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AiService } from '../../../services/ai';
 import { OrderService } from '../../../services/order';
+import { SupplierService } from '../../../services/supplier';
+import { SupplierResponse } from '../../../models/supplier.model';
+import { switchMap } from 'rxjs';
 import { AuthService } from '../../../services/auth';
 import { LanguageService } from '../../../services/language.service';
 import { AiMessage, ChatOrder } from '../../../models/ai.model';
@@ -24,6 +27,7 @@ type SendState = 'idle' | 'sending' | 'sent' | 'error';
 export class AiChat implements OnInit, AfterViewChecked {
   private aiService = inject(AiService);
   private orderService = inject(OrderService);
+  private supplierService = inject(SupplierService);
   private auth = inject(AuthService);
   private route = inject(ActivatedRoute);
   private translate = inject(TranslateService);
@@ -35,6 +39,10 @@ export class AiChat implements OnInit, AfterViewChecked {
   loading = signal(false);
   sendState = signal<Record<string, SendState>>({});
   sendError = signal<Record<string, string>>({});
+  /** Pedidos que no se han podido enviar porque el proveedor no tiene email (se pide aquí mismo). */
+  missingEmail = signal<Record<string, SupplierResponse>>({});
+  emailDraft = signal<Record<string, string>>({});
+  emailError = signal<Record<string, string>>({});
   needsVerification = signal(false);
   verificationSent = signal(false);
   private scrollPending = false;
@@ -88,6 +96,45 @@ export class AiChat implements OnInit, AfterViewChecked {
       error: err => {
         if (err?.status === 403) this.needsVerification.set(true);
         this.sendError.update(e => ({ ...e, [order.uuid]: err?.error?.message || this.translate.instant('AI.CHAT.ERR_SEND') }));
+        this.setSend(order.uuid, 'error');
+        if (err?.status === 400) this.checkSupplierEmail(order.uuid);
+      },
+    });
+  }
+
+  /** Si el envío ha fallado porque el proveedor no tiene email, se le pide al usuario sin salir del chat. */
+  private checkSupplierEmail(orderUuid: string) {
+    this.orderService.getByUuid(orderUuid)
+      .pipe(switchMap(o => this.supplierService.getByUuid(o.supplierUuid)))
+      .subscribe(supplier => {
+        if (!supplier.email) this.missingEmail.update(m => ({ ...m, [orderUuid]: supplier }));
+      });
+  }
+
+  setEmailDraft(orderUuid: string, value: string) {
+    this.emailDraft.update(d => ({ ...d, [orderUuid]: value }));
+    this.emailError.update(e => ({ ...e, [orderUuid]: '' }));
+  }
+
+  /** Guarda el email en la ficha del proveedor y vuelve a enviar el pedido. */
+  saveEmailAndSend(order: ChatOrder) {
+    const supplier = this.missingEmail()[order.uuid];
+    const email = (this.emailDraft()[order.uuid] ?? '').trim();
+    if (!supplier) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      this.emailError.update(e => ({ ...e, [order.uuid]: this.translate.instant('AI.CHAT.EMAIL_INVALID') }));
+      return;
+    }
+    this.setSend(order.uuid, 'sending');
+    const { name, contactName, phone, address, notes } = supplier;
+    this.supplierService.update(supplier.uuid, { name, contactName, email, phone, address, notes }).subscribe({
+      next: () => {
+        // El mismo proveedor puede tener más pedidos en esta conversación: ya no les falta el email
+        this.missingEmail.update(m => Object.fromEntries(Object.entries(m).filter(([, s]) => s.uuid !== supplier.uuid)));
+        this.sendOrder(order);
+      },
+      error: err => {
+        this.emailError.update(e => ({ ...e, [order.uuid]: err?.error?.message || this.translate.instant('AI.CHAT.ERR_SEND') }));
         this.setSend(order.uuid, 'error');
       },
     });

@@ -106,9 +106,13 @@ public class AiVisionServiceImpl implements AiVisionService {
             - unit: una de kg, g, l, ml, ud, caja, docena, garrafa, botella, paquete, bandeja, saco, lata, barril. \
               Es la unidad en la que se cuenta la cantidad y a la que corresponde unitPrice: si se venden envases \
               (ej.: "AOVE 5 L", 2 unidades a 32,50) la unidad es el envase (garrafa, botella, caja…), no "l" ni "kg".
+            - quantity es el número de la columna de cantidad, NO el formato que aparece en el nombre: en \
+              "Cerveza lata 33 cl pack 24 | 3 | 18,50 | 55,50" la cantidad es 3 y la unidad "caja" (18,50 es el precio del pack de 24), no 24 ud; "pack 6", "saco 10 kg" \
+              o "caja 12 ud" describen el envase. Comprueba que quantity × unitPrice ≈ subtotal.
             - unitPrice es el precio por unidad SIN IVA y con el descuento aplicado. Si solo aparece el importe de la \
               línea, calcula unitPrice = importe / cantidad. Si el documento no tiene precios (albarán sin valorar), \
               pon unitPrice a null.
+            - subtotal es el importe de la línea tal como aparece en el documento.
             - No inventes datos: si un campo no aparece, pon null. No incluyas portes, envases retornables ni totales como productos.
             - La fecha en formato YYYY-MM-DD (en España las fechas son día/mes/año).
             """;
@@ -183,8 +187,11 @@ public class AiVisionServiceImpl implements AiVisionService {
               categorías, encabezados ni totales como productos.
             - Las fechas en formato YYYY-MM-DD (en España las fechas son día/mes/año).
             Si es INVOICE:
-            - quantity es la cantidad servida. Si solo aparece el importe de la línea, calcula unitPrice = importe / \
-              cantidad. Si no tiene precios (albarán sin valorar), unitPrice null. invoice.validUntil null.
+            - quantity es la cantidad servida: el número de la columna de cantidad, NO el formato que aparece en el \
+              nombre ("Cerveza lata 33 cl pack 24 | 3 | 18,50 | 55,50" → quantity 3 y unit "caja", porque 18,50 es el precio del pack de 24; "pack 6" o "saco 10 kg" \
+              describen el envase). Comprueba que quantity × unitPrice ≈ subtotal (el importe de la línea).
+            - Si solo aparece el importe de la línea, calcula unitPrice = importe / cantidad. Si no tiene precios \
+              (albarán sin valorar), unitPrice null. invoice.validUntil null.
             Si es PRICE_LIST:
             - quantity, subtotal y totals a null. Si los precios llevan el IVA incluido, quítalo. Si hay precios por \
               tramos de cantidad, usa el de la compra más pequeña.

@@ -61,6 +61,16 @@ export class Prices implements OnInit {
   }
 
   /**
+   * «El más caro cuesta un X % más»: el mismo cálculo que el «+X %» de su línea, para que los dos redondeen
+   * igual (la API manda el porcentaje ya redondeado a un decimal: 19,5 → «20 %» frente a «+19 %»).
+   */
+  spreadPercent(group: PriceGroup): number | null {
+    if (!group.cheapestPrice || !group.offers.length) return null;
+    const highest = Math.max(...group.offers.map(o => o.latestPrice));
+    return ((highest - group.cheapestPrice) / group.cheapestPrice) * 100;
+  }
+
+  /**
    * Si el más barato es un precio ofrecido (tarifa) y hay un proveedor al que ya se compra más caro,
    * cuánto se ahorraría: «Pagas 1,80 € a García; Maresme te lo ofrece a 1,55 €».
    */

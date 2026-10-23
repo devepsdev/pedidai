@@ -100,6 +100,9 @@ public class InvoiceServiceImpl implements InvoiceService {
                 if (pd.getName() == null || pd.getName().isBlank()) {
                     continue;
                 }
+                if (documentKind == DocumentKind.INVOICE) {
+                    reconcileLine(pd);
+                }
                 InvoiceProductDTO line = buildLine(pd, supplierProducts);
                 if (line.getPriceChangePercent() != null && line.getPriceChangePercent().signum() > 0) {
                     increases++;
@@ -115,7 +118,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         AiInvoiceDataDTO.InvoiceData inv = aiData.getInvoice();
         return InvoiceScanResultDTO.builder()
                 .success(true)
-                .detectedSupplierName(s != null ? s.getName() : null)
+                .detectedSupplierName(s != null ? withoutLogoInitials(s.getName()) : null)
                 .detectedSupplierCif(s != null ? s.getCif() : null)
                 .detectedSupplierPhone(s != null ? s.getPhone() : null)
                 .invoiceNumber(inv != null ? inv.getNumber() : null)
@@ -270,6 +273,72 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
         return null;
     }
+
+    private static final BigDecimal LINE_TOLERANCE = new BigDecimal("0.02");
+    private static final List<BigDecimal> IVA_RATES = List.of(new BigDecimal("4"), new BigDecimal("5"),
+            new BigDecimal("10"), new BigDecimal("21"));
+
+    /**
+     * Corregeix les línies d'un albarà on quantitat × preu no quadra amb l'import de la línia: la IA de vegades
+     * pren com a quantitat el format del nom («Refresco cola lata 24 ud», 2 caixes a 13,20 € = 26,40 €).
+     * L'import imprès és el més fiable: si import / preu dona una quantitat rodona, es corregeix la quantitat;
+     * si no, el preu. Si la diferència és justament l'IVA (import amb IVA inclòs), no es toca.
+     */
+    static void reconcileLine(AiInvoiceDataDTO.ProductData pd) {
+        BigDecimal q = pd.getQuantity(), p = pd.getUnitPrice(), total = pd.getSubtotal();
+        if (q == null || p == null || total == null || q.signum() <= 0 || p.signum() <= 0 || total.signum() <= 0) {
+            return;
+        }
+        BigDecimal expected = q.multiply(p);
+        BigDecimal tolerance = total.multiply(LINE_TOLERANCE).max(LINE_TOLERANCE);
+        if (expected.subtract(total).abs().compareTo(tolerance) <= 0) {
+            return;
+        }
+        BigDecimal ratio = total.divide(expected, 4, RoundingMode.HALF_UP);
+        List<BigDecimal> rates = pd.getIvaPercent() != null ? List.of(pd.getIvaPercent()) : IVA_RATES;
+        boolean includesIva = rates.stream().anyMatch(r -> ratio.subtract(BigDecimal.ONE.add(r.movePointLeft(2)))
+                .abs().compareTo(new BigDecimal("0.01")) <= 0);
+        if (includesIva) {
+            return;
+        }
+        BigDecimal impliedQty = total.divide(p, 3, RoundingMode.HALF_UP);
+        BigDecimal roundQty = impliedQty.setScale(0, RoundingMode.HALF_UP);
+        if (roundQty.signum() > 0 && impliedQty.subtract(roundQty).abs().compareTo(LINE_TOLERANCE) <= 0) {
+            log.info("Línia «{}»: quantitat {} corregida a {} (import {} / preu {})", pd.getName(), q, roundQty, total, p);
+            pd.setQuantity(roundQty);
+        } else {
+            BigDecimal price = total.divide(q, 4, RoundingMode.HALF_UP);
+            log.info("Línia «{}»: preu {} corregit a {} (import {} / quantitat {})", pd.getName(), p, price, total, q);
+            pd.setUnitPrice(price);
+        }
+    }
+
+    /**
+     * Treu del començament del nom les sigles del logotip quan coincideixen amb les inicials de les paraules
+     * que les segueixen: «DL Distribuciones López S.L.» → «Distribuciones López S.L.».
+     */
+    static String withoutLogoInitials(String name) {
+        if (name == null) {
+            return null;
+        }
+        String[] tokens = name.trim().split("\\s+");
+        if (tokens.length < 3 || !tokens[0].matches("\\p{Lu}{2,4}")) {
+            return name.trim();
+        }
+        String initials = ProductNames.canonical(tokens[0]);
+        List<String> words = Arrays.stream(tokens).skip(1)
+                .map(ProductNames::canonical)
+                .filter(w -> w != null && !w.isBlank() && !CONNECTORS.contains(w))
+                .toList();
+        if (initials == null || words.size() < initials.length()) {
+            return name.trim();
+        }
+        String wordInitials = words.stream().limit(initials.length()).map(w -> w.substring(0, 1))
+                .reduce("", String::concat);
+        return wordInitials.equals(initials) ? String.join(" ", Arrays.copyOfRange(tokens, 1, tokens.length)) : name.trim();
+    }
+
+    private static final Set<String> CONNECTORS = Set.of("de", "del", "la", "las", "los", "el", "y", "e", "i", "d");
 
     static String supplierKey(String name) {
         String c = ProductNames.canonical(name);

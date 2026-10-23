@@ -242,6 +242,31 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("error.supplier.notFound"));
     }
 
+    /**
+     * Percentatges d'un total amb un decimal que sumen exactament 100,0: cada import s'arrodoneix cap avall
+     * i les dècimes que falten van als que tenien més residu (mètode del residu més gran).
+     */
+    static List<BigDecimal> percentagesOf(List<BigDecimal> amounts) {
+        BigDecimal total = amounts.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (total.signum() <= 0) {
+            return amounts.stream().map(a -> BigDecimal.ZERO.setScale(1)).toList();
+        }
+        // En dècimes de punt: 100,0 % = 1000
+        List<BigDecimal> exact = amounts.stream()
+                .map(a -> a.multiply(BigDecimal.valueOf(1000)).divide(total, 6, RoundingMode.HALF_UP)).toList();
+        long[] tenths = exact.stream().mapToLong(e -> e.setScale(0, RoundingMode.FLOOR).longValueExact()).toArray();
+        long missing = 1000 - Arrays.stream(tenths).sum();
+        Integer[] byRemainder = new Integer[amounts.size()];
+        for (int i = 0; i < byRemainder.length; i++) {
+            byRemainder[i] = i;
+        }
+        Arrays.sort(byRemainder, Comparator.comparing((Integer i) -> exact.get(i).subtract(BigDecimal.valueOf(tenths[i]))).reversed());
+        for (int k = 0; k < missing && k < byRemainder.length; k++) {
+            tenths[byRemainder[k]]++;
+        }
+        return Arrays.stream(tenths).mapToObj(t -> BigDecimal.valueOf(t, 1)).toList();
+    }
+
     private OrderResponseDTO mapToResponseDTO(Order order) {
         return OrderResponseDTO.builder()
                 .uuid(order.getUuid())
@@ -280,8 +305,8 @@ public class OrderServiceImpl implements OrderService {
 
         List<Order> orders = orderRepository.getOrdersByCompanyIdAndPeriodWithOrderItems(companyId, startDate, now);
 
+        // Només compten com a despesa les comandes enviades al proveïdor: les pendents són esborranys
         Set<Order.OrderStatus> validStatuses = Set.of(
-                Order.OrderStatus.PENDING,
                 Order.OrderStatus.SENT,
                 Order.OrderStatus.CONFIRMED,
                 Order.OrderStatus.COMPLETED
@@ -362,22 +387,19 @@ public class OrderServiceImpl implements OrderService {
                             .map(Order::getTotalAmount)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-                    BigDecimal percentage = totalSpent.compareTo(BigDecimal.ZERO) > 0
-                            ? supplierTotal.divide(totalSpent, 4, RoundingMode.HALF_UP)
-                                    .multiply(BigDecimal.valueOf(100))
-                                    .setScale(2, RoundingMode.HALF_UP)
-                            : BigDecimal.ZERO;
-
                     return SupplierSpendDTO.builder()
                             .supplierUuid(supplier.getUuid())
                             .supplierName(supplier.getName())
                             .totalSpent(supplierTotal)
-                            .percentage(percentage)
                             .orderCount(supplierOrders.size())
                             .build();
                 })
                 .sorted(Comparator.comparing(SupplierSpendDTO::getTotalSpent).reversed())
                 .collect(Collectors.toList());
+        List<BigDecimal> percentages = percentagesOf(spendBySupplier.stream().map(SupplierSpendDTO::getTotalSpent).toList());
+        for (int i = 0; i < spendBySupplier.size(); i++) {
+            spendBySupplier.get(i).setPercentage(percentages.get(i));
+        }
 
         List<PriceTrendDTO> priceTrends = itemsByProduct.values().stream()
                 .map(productItems -> {

@@ -321,6 +321,66 @@ class InvoiceServiceImplTest {
         assertThat(result.getProducts().get(0).getMatchedProductUuid()).isEqualTo("p-tomate");
     }
 
+    private static AiInvoiceDataDTO.ProductData read(String name, String qty, String price, String subtotal, String iva) {
+        AiInvoiceDataDTO.ProductData p = new AiInvoiceDataDTO.ProductData();
+        p.setName(name);
+        p.setQuantity(qty != null ? new BigDecimal(qty) : null);
+        p.setUnitPrice(price != null ? new BigDecimal(price) : null);
+        p.setSubtotal(subtotal != null ? new BigDecimal(subtotal) : null);
+        p.setIvaPercent(iva != null ? new BigDecimal(iva) : null);
+        return p;
+    }
+
+    @Test
+    @DisplayName("el format del nom llegit com a quantitat es corregeix amb l'import de la línia")
+    void packSizeReadAsQuantity() {
+        var p = read("Refresco cola lata 24 ud", "24", "13.20", "26.40", null);
+
+        InvoiceServiceImpl.reconcileLine(p);
+
+        assertThat(p.getQuantity()).isEqualByComparingTo("2");
+        assertThat(p.getUnitPrice()).isEqualByComparingTo("13.20");
+    }
+
+    @Test
+    @DisplayName("si la quantitat és bona però el preu no quadra, es corregeix el preu")
+    void wrongPriceFixedFromLineTotal() {
+        var p = read("Tomate pera", "12.5", "2.10", "23.75", null);
+
+        InvoiceServiceImpl.reconcileLine(p);
+
+        assertThat(p.getQuantity()).isEqualByComparingTo("12.5");
+        assertThat(p.getUnitPrice()).isEqualByComparingTo("1.90");
+    }
+
+    @Test
+    @DisplayName("una línia que quadra, o un import amb l'IVA inclòs, no es toca")
+    void consistentOrIvaIncludedUntouched() {
+        var ok = read("Patata agria", "20", "0.79", "15.80", null);
+        var ambIva = read("Agua mineral", "6", "2.75", "18.15", "10");
+        var senseImport = read("Limón", "5", "1.90", null, null);
+
+        InvoiceServiceImpl.reconcileLine(ok);
+        InvoiceServiceImpl.reconcileLine(ambIva);
+        InvoiceServiceImpl.reconcileLine(senseImport);
+
+        assertThat(ok.getQuantity()).isEqualByComparingTo("20");
+        assertThat(ambIva.getQuantity()).isEqualByComparingTo("6");
+        assertThat(ambIva.getUnitPrice()).isEqualByComparingTo("2.75");
+        assertThat(senseImport.getUnitPrice()).isEqualByComparingTo("1.90");
+    }
+
+    @Test
+    @DisplayName("les sigles del logotip es treuen del nom del proveïdor només si coincideixen amb les inicials")
+    void logoInitials() {
+        assertThat(InvoiceServiceImpl.withoutLogoInitials("DL Distribuciones López S.L.")).isEqualTo("Distribuciones López S.L.");
+        assertThat(InvoiceServiceImpl.withoutLogoInitials("HV Huerta del Valle")).isEqualTo("Huerta del Valle");
+        assertThat(InvoiceServiceImpl.withoutLogoInitials("EL PUERTO DE MARCOS")).isEqualTo("EL PUERTO DE MARCOS");
+        assertThat(InvoiceServiceImpl.withoutLogoInitials("HUERTA DEL VALLE S.L.")).isEqualTo("HUERTA DEL VALLE S.L.");
+        assertThat(InvoiceServiceImpl.withoutLogoInitials("BEBIDAS COSTA")).isEqualTo("BEBIDAS COSTA");
+        assertThat(InvoiceServiceImpl.withoutLogoInitials(null)).isNull();
+    }
+
     @Test
     @DisplayName("només s'accepten JPG, PNG, WebP o PDF reals")
     void rejectsOtherFiles() {

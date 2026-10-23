@@ -119,7 +119,8 @@ class ReportServiceImplTest {
         // Asserts
         assertThat(dto).isNotNull();
         assertThat(dto.getTotalComandes()).isEqualTo(2);
-        assertThat(dto.getDespesaComandes()).isEqualByComparingTo(BigDecimal.valueOf(150));
+        // La pendent compta com a comanda del mes però no com a despesa (encara no s'ha enviat)
+        assertThat(dto.getDespesaComandes()).isEqualByComparingTo(BigDecimal.valueOf(50));
         assertThat(dto.getComandesPendents()).isEqualTo(1);
 
         // Verificacions
@@ -160,14 +161,15 @@ class ReportServiceImplTest {
         // Executar servei
         ReportGlobalResponseDTO dto = reportService.globalInfo(periodDTO);
 
-        // Despesa total calculada
-        BigDecimal expectedDespesaTotal = testItem.getUnitPrice().multiply(testItem.getQuantity()).multiply(BigDecimal.valueOf(2)).setScale(2);
+        // Despesa total calculada: només la comanda confirmada (la pendent és un esborrany)
+        BigDecimal expectedDespesaTotal = testItem.getUnitPrice().multiply(testItem.getQuantity()).setScale(2);
 
         assertThat(dto).isNotNull();
-        assertThat(dto.getTotalComandes()).isEqualTo(2);
-        assertThat(dto.getComandaMitjana()).isEqualByComparingTo(expectedDespesaTotal.divide(BigDecimal.valueOf(2), 2, BigDecimal.ROUND_HALF_UP));
+        assertThat(dto.getTotalComandes()).isEqualTo(1);
+        assertThat(dto.getComandaMitjana()).isEqualByComparingTo(expectedDespesaTotal);
         assertThat(dto.getDespesaTotal()).isEqualByComparingTo(expectedDespesaTotal);
-        assertThat(dto.getDespesaProveidors()).hasSize(1);
+        assertThat(dto.getDespesaProveidors()).singleElement()
+                .satisfies(d -> assertThat(d.getPercentatge()).isEqualByComparingTo("100.0"));
         assertThat(dto.getTopProductes()).hasSize(1);
 
         verify(currentUser).requireAdmin();

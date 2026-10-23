@@ -29,6 +29,7 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import com.lowagie.text.Document;
 import com.lowagie.text.Paragraph;
@@ -42,6 +43,10 @@ public class ReportServiceImpl implements ReportService {
     private final OrderRepository orderRepository;
     private final CurrentUser currentUser;
     private final Messages messages;
+
+    /** Comandes que compten com a despesa: enviades al proveïdor, confirmades o rebudes. */
+    private static final Set<Order.OrderStatus> SPENT_STATUSES =
+            EnumSet.of(Order.OrderStatus.SENT, Order.OrderStatus.CONFIRMED, Order.OrderStatus.COMPLETED);
 
     public ReportServiceImpl(OrderRepository orderRepository, CurrentUser currentUser, Messages messages) {
         this.orderRepository = orderRepository;
@@ -71,8 +76,10 @@ public class ReportServiceImpl implements ReportService {
         // Calculem el total de comandes
         int totalOrders = activeOrders.size();
 
-        // Calculem l'import total
-        BigDecimal totalAmount = activeOrders.stream().map(Order::getTotalAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        // Calculem l'import total: només les comandes enviades (les pendents són esborranys, encara no és despesa)
+        BigDecimal totalAmount = activeOrders.stream()
+                .filter(o -> o.getStatus() != Order.OrderStatus.PENDING)
+                .map(Order::getTotalAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // Calculem els pendents
         int pendingOrders = (int) activeOrders.stream().filter(o -> o.getStatus() == Order.OrderStatus.PENDING).count();
@@ -91,8 +98,8 @@ public class ReportServiceImpl implements ReportService {
         // Recuperar llistat de comandes
         List<Order> orders = orderRepository.getOrdersByCompanyIdAndPeriodWithOrderItems(companyId, dto.getDataInicial(), dto.getDataFinal());
 
-        // Recuperem només les actives
-        List<Order> activeOrders = orders.stream().filter(o -> EnumSet.of(Order.OrderStatus.PENDING,Order.OrderStatus.SENT,Order.OrderStatus.CONFIRMED,Order.OrderStatus.COMPLETED).contains(o.getStatus())).toList();
+        // Només les comandes enviades al proveïdor: les pendents són esborranys i encara no són despesa
+        List<Order> activeOrders = orders.stream().filter(o -> SPENT_STATUSES.contains(o.getStatus())).toList();
 
         // Calculem el total de comandes
         int totalComandes = activeOrders.size();
@@ -127,20 +134,21 @@ public class ReportServiceImpl implements ReportService {
                             .reduce(BigDecimal.ZERO, BigDecimal::add)
                             .setScale(2, RoundingMode.HALF_UP);
 
-                    // % respecte el total del període
-                    BigDecimal percentatge = despesaTotal.compareTo(BigDecimal.ZERO) > 0
-                            ? totalSupplier.multiply(BigDecimal.valueOf(100))
-                            .divide(despesaTotal, 2, RoundingMode.HALF_UP)
-                            : BigDecimal.ZERO;
-
+                    // El % es calcula després, tots junts, perquè sumin exactament 100,0
                     return new DespesaPerProveidorDTO(
                             supplier.getName(),
                             numComandes,
                             totalSupplier,
-                            percentatge
+                            BigDecimal.ZERO
                     );
                 })
+                .sorted(Comparator.comparing(DespesaPerProveidorDTO::getDespesaTotal).reversed())
                 .toList();
+        List<BigDecimal> percentatges = OrderServiceImpl.percentagesOf(
+                despesaPerProveidor.stream().map(DespesaPerProveidorDTO::getDespesaTotal).toList());
+        for (int i = 0; i < despesaPerProveidor.size(); i++) {
+            despesaPerProveidor.get(i).setPercentatge(percentatges.get(i));
+        }
 
         // Agrupem tots els items per producte
         Map<Product, List<OrderItem>> itemsPerProduct = activeOrders.stream()

@@ -182,4 +182,36 @@ class OrderServiceImplTest {
         assertThatThrownBy(() -> service.cancelOrder("o1")).hasMessage("error.order.notCancellable");
         verify(orderRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("informe de consum: les comandes pendents (esborranys) no compten com a despesa")
+    void consumptionIgnoresPendingOrders() {
+        Order pending = pendingOrder();
+        pending.setTotalAmount(new BigDecimal("27.05"));
+        Order sent = pendingOrder();
+        sent.setUuid("o2");
+        sent.setStatus(Order.OrderStatus.SENT);
+        sent.setTotalAmount(new BigDecimal("59.80"));
+        when(orderRepository.getOrdersByCompanyIdAndPeriodWithOrderItems(eq(1L), any(), any()))
+                .thenReturn(List.of(pending, sent));
+
+        var analysis = service.getConsumptionAnalysis(90);
+
+        assertThat(analysis.getTotalOrders()).isEqualTo(1);
+        assertThat(analysis.getTotalSpent()).isEqualByComparingTo("59.80");
+        assertThat(analysis.getSpendBySupplier()).singleElement()
+                .satisfies(s -> assertThat(s.getPercentage()).isEqualByComparingTo("100.0"));
+    }
+
+    @Test
+    @DisplayName("els percentatges per proveïdor sumen exactament 100,0")
+    void percentagesSumTo100() {
+        var pcts = OrderServiceImpl.percentagesOf(List.of(new BigDecimal("59.80"), new BigDecimal("27.05")));
+        assertThat(pcts).containsExactly(new BigDecimal("68.9"), new BigDecimal("31.1"));
+
+        var tres = OrderServiceImpl.percentagesOf(List.of(BigDecimal.ONE, BigDecimal.ONE, BigDecimal.ONE));
+        assertThat(tres.stream().reduce(BigDecimal.ZERO, BigDecimal::add)).isEqualByComparingTo("100.0");
+
+        assertThat(OrderServiceImpl.percentagesOf(List.of(BigDecimal.ZERO))).containsExactly(new BigDecimal("0.0"));
+    }
 }
