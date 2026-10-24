@@ -9,7 +9,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 3. **Pides por chat** («10 kg de tomates y 5 garrafas de agua»): el asistente prepara el pedido al proveedor más barato y tú lo envías por email con un clic.
 
 - **Web:** [pedidai.es](https://pedidai.es/)
-- **API (Swagger):** [pedidai.es/swagger-ui.html](https://pedidai.es/swagger-ui.html)
+- **API (Swagger):** [pedidai.es/swagger-ui.html](https://pedidai.es/swagger-ui.html) (con contraseña: solo para el equipo)
 - **Repositorios:** [devepsdev/pedidai](https://github.com/devepsdev/pedidai) (web, API y base de datos) y [devepsdev/orderflow](https://github.com/devepsdev/orderflow) (asistente de pedidos por chat y automatizaciones con n8n)
 
 **Versión:** 2.4.0 · **Última actualización:** 17 de octubre de 2026
@@ -245,6 +245,8 @@ Detalle de columnas en [`pedidai-db/readme.md`](pedidai-db/readme.md).
 - **Emails a proveedores** sin HTML inyectable; imágenes validadas por contenido y guardadas con nombre aleatorio.
 - **IA:** se usa Mistral AI (UE), con el uso de los datos para entrenar desactivado; solo se envía el texto necesario (el OCR se hace en nuestro servidor). Está explicado en la política de privacidad.
 - **Endpoints internos** (`/api/internal/`): solo responden a peticiones locales que no pasan por nginx, y nginx además los bloquea; los webhooks de n8n tampoco son accesibles desde fuera.
+- **Paneles con contraseña:** el panel de n8n (`/n8n/`) y Swagger (`/swagger-ui`, `/v3/api-docs`) piden una contraseña de nginx antes de llegar a la aplicación (`/etc/nginx/.htpasswd-pedidai`; las credenciales, en `/root/pedidai-admin-acceso.txt`). La versión de n8n está fijada en el `docker-compose.yml` de orderflow.
+- **Content-Security-Policy** en la web Angular (`/etc/nginx/snippets/pedidai-csp.conf`): solo scripts propios y de Google (Analytics y Ads); no se aplica a n8n ni a Swagger. Por eso el build no incrusta CSS crítico en `index.html` (`inlineCritical: false`).
 - **Cabeceras de seguridad** en toda la web (HSTS, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`) desde un *snippet* de nginx, sin duplicarlas con las de Spring; nginx no muestra su versión.
 - **La API solo escucha en `127.0.0.1`** (`SERVER_ADDRESS`); desde fuera solo se llega a través de nginx.
 - **CORS:** en producción solo los dominios públicos (`CORS_ALLOWED_ORIGINS`), sin `localhost`.
@@ -362,12 +364,20 @@ nginx publica `/` (Angular, con `index.html` y `/i18n/` en `no-cache`), `/api` �
 
 ### Pasos de una actualización
 
-1. **Copia de seguridad** de la base de datos (`mysqldump`), del jar y de la web.
-2. **Migraciones nuevas** de `pedidai-db/migrations/`, si las hay.
-3. **API:** en el servidor no hay copia del repositorio: el jar se genera en local (`./mvnw -DskipTests package`, comprobando con `unzip -l` que no lleva `application-local.properties`), se sube y se copia a `target/` con el servicio parado (`systemctl stop`, copiar, `systemctl start`).
-4. **Web:** `npx ng build` y copiar `dist/pedidai-app/browser/` a `/var/www/pedidai.es` (sin borrar `.well-known/`).
-5. **Asistente y n8n:** en `/opt/apps/orderflow`, `git fetch && git merge --ff-only origin/main` (sin `sudo`: el repositorio es del usuario `ubuntu`); después `sudo docker compose up -d --build assistant` (asistente) o `sudo docker compose up -d n8n`.
-6. **Comprobar:** `https://pedidai.es/api/users/me` debe responder 401 sin token y `https://pedidai.es/ai/health` `{"status":"ok"}`.
+La API y la web se despliegan desde este PC con `scripts/desplegar.sh` (Git Bash). En el servidor no hay copia del repositorio: el jar y la web se generan en local.
+
+```bash
+scripts/desplegar.sh api             # tests + jar + copia de seguridad + cambio + comprobación
+scripts/desplegar.sh web             # tests + build de Angular + copia de seguridad + cambio + comprobación
+scripts/desplegar.sh api --simular   # solo tests y build, sin tocar el servidor
+```
+
+El script se para si falla un test, comprueba que el jar no lleva `application-local.properties`, guarda la base de datos y el jar o la web actuales en `/root/backups/despliegue-<fecha>/`, cambia el jar con el servicio parado y, si la API no responde en 90 s, vuelve sola al jar anterior. La web se copia sin `--delete` y sin tocar `.well-known/`.
+
+1. **Migraciones nuevas** de `pedidai-db/migrations/`, si las hay (antes de desplegar la API).
+2. **API y web:** `scripts/desplegar.sh api` y/o `scripts/desplegar.sh web`.
+3. **Asistente y n8n:** en `/opt/apps/orderflow`, `git fetch && git merge --ff-only origin/main` (sin `sudo`: el repositorio es del usuario `ubuntu`); después `sudo docker compose up -d --build assistant` (asistente) o `sudo docker compose up -d n8n`.
+4. **Comprobar:** `https://pedidai.es/api/users/me` debe responder 401 sin token y `https://pedidai.es/ai/health` `{"status":"ok"}`.
 
 Para sustituir el jar conviene parar antes el servicio (`systemctl stop`, copiar y `systemctl start`): si se cambia con la API en marcha, el proceso antiguo registra un `NoClassDefFoundError` al apagarse.
 
