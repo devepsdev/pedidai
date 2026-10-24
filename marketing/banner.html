@@ -22,6 +22,16 @@
   h1 { margin: 0; font-size: 76px; line-height: 1.05; font-weight: 900; letter-spacing: -2px; }
   h1 em { font-style: normal; color: #FACC15; }
   .linea { font-size: 34px; font-weight: 600; color: #cbd5e1; }
+  /* Portada de Facebook (1640×624): en el móvil se recortan los lados (~1100 px visibles en el centro)
+     y la foto de perfil tapa el centro de abajo, así que el texto va arriba, centrado y sin logo */
+  html.facebook, html.facebook body { width: 1640px; height: 624px; }
+  html.facebook .seguro { left: 270px; width: 1100px; top: 40px; height: auto; justify-content: center; text-align: center; }
+  html.facebook .logo { display: none; }
+  html.facebook .texto { align-items: center; gap: 16px; }
+  html.facebook h1 { font-size: 68px; }
+  html.facebook .linea { font-size: 30px; }
+  html.facebook .izq { left: -90px; top: 20px; }
+  html.facebook .der { right: -90px; top: 60px; }
 </style>
 </head>
 <body>
@@ -37,6 +47,7 @@
   </div>
   <script>
     const q = new URLSearchParams(location.search);
+    if (q.get('formato') === 'facebook') document.documentElement.classList.add('facebook');
     for (const id of ['izq', 'der']) document.getElementById(id).style.backgroundImage = `url("${q.get(id)}")`;
   </script>
 </body>
