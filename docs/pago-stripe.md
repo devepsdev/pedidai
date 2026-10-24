@@ -13,7 +13,7 @@ PedidAI cobra la suscripción (29 €/mes + IVA por local, precio de lanzamiento
 | Prueba ya terminada | No puede iniciar sesión. En el login, bajo el aviso «Tu prueba gratuita ha terminado», aparece **«Contratar ahora»**: con el mismo email y contraseña va a la página de pago. |
 | Después de pagar | Stripe avisa a `POST /api/billing/webhook` (aviso firmado). La empresa pasa a cliente de pago (`ACTIVE`, sin fecha de fin de prueba). La web lo muestra en unos segundos. |
 | Gestión | En «Datos de la empresa», «Gestionar suscripción» abre el portal de Stripe: cambiar la tarjeta, descargar facturas, darse de baja. |
-| Baja o impago | Con la suscripción `canceled`, `unpaid` o `incomplete_expired`, la empresa pasa a `INACTIVE` (no puede entrar, pero puede volver a contratar desde el login). Con `past_due` (Stripe reintenta el cobro) sigue activa. |
+| Baja o impago | Con la suscripción `canceled`, `unpaid` o `incomplete_expired`, la empresa pasa a `INACTIVE`: no puede entrar y el login le dice «Tu suscripción a PedidAI ha terminado» con el botón «Volver a contratar» (a quien viene de la prueba le habla de la prueba). Con `past_due` (Stripe reintenta el cobro) sigue activa. |
 
 Una empresa `SUSPENDED` por el superadministrador no se reactiva nunca con un pago. Cada aviso de Stripe se guarda en `stripe_events` y no se aplica dos veces.
 
@@ -74,7 +74,7 @@ En el sandbox de pruebas de la cuenta ya están creados el producto `PedidAI` (p
 ## 3. Pasar a cobros reales
 
 1. **Alta fiscal:** antes de la primera factura (autónomo o sociedad). Consulta con tu gestoría también los requisitos de las facturas (numeración, NIF) y del sistema de facturación (Verifactu).
-2. **Activa la cuenta de Stripe:** datos fiscales, DNI/NIF e IBAN donde recibirás las transferencias. En *Configuración* → *Facturación* → *Facturas*, añade tu NIF y dirección para que salgan en las facturas. Pon también el **nombre público del negocio** (`PedidAI`) en *Configuración* → *Datos públicos*: sin él, la página de pago dice «autorizas a a cobrarte» y el portal muestra «Nueva empresa».
+2. **Activa la cuenta de Stripe:** datos fiscales, DNI/NIF e IBAN donde recibirás las transferencias. En *Configuración* → *Facturación* → *Facturas*, añade tu NIF y dirección para que salgan en las facturas. Pon también **`PedidAI` como nombre de la cuenta** en *Configuración* → *Empresa* → *Datos de la cuenta*: sin él, la página de pago dice «autorizas a a cobrarte» y el portal muestra «Nueva empresa» (en el sandbox ya está puesto).
 3. **Repite en modo real** el producto, la tasa de IVA y el portal del cliente (son independientes de los de pruebas).
 4. **Webhook de producción:** *Desarrolladores* → *Webhooks* → *Añadir endpoint* → `https://pedidai.es/api/billing/webhook` con los eventos `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated` y `customer.subscription.deleted`. Copia su secreto (`whsec_…`).
 5. **Servidor:** aplica la migración `pedidai-db/migrations/006_pago_stripe.sql` **antes** de desplegar la API (la API lee las columnas nuevas), y añade a `/opt/apps/pedidai/.env` `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` y `STRIPE_TAX_RATE_ID`. Después, `scripts/desplegar.sh api` y `scripts/desplegar.sh web`.

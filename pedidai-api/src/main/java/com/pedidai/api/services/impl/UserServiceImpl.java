@@ -109,7 +109,7 @@ public class UserServiceImpl implements UserService {
         user.setTokenVersion(user.getTokenVersion() + 1);
     }
 
-    /** Llança excepció si l'empresa està suspesa o la prova ha acabat sense contractar. */
+    /** Llança excepció si l'empresa està suspesa, la prova ha acabat sense contractar o s'ha acabat la subscripció. */
     private void checkCompanyCanUseService(Company company) {
         if (company.getStatus() == Company.CompanyStatus.SUSPENDED) {
             throw new ForbiddenException("error.auth.companySuspended");
@@ -120,7 +120,9 @@ public class UserServiceImpl implements UserService {
             companyRepository.save(company);
         }
         if (company.getStatus() == Company.CompanyStatus.INACTIVE) {
-            throw new ForbiddenException("error.auth.trialEnded");
+            // Qui ja era client de pagament (subscripció a Stripe o sense data de fi de prova) no ve d'una prova
+            boolean wasPaying = company.getSubscriptionStatus() != null || company.getTrialEndsAt() == null;
+            throw new ForbiddenException(wasPaying ? "error.auth.subscriptionEnded" : "error.auth.trialEnded");
         }
     }
 

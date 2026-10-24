@@ -108,6 +108,19 @@ class UserServiceImplTest {
         }
 
         @Test
+        @DisplayName("amb la subscripció acabada (baixa o impagament), el missatge parla de la subscripció, no de la prova")
+        void subscriptionEnded() {
+            company.setTrialEndsAt(null);
+            company.setSubscriptionStatus("canceled");
+            company.setStatus(Company.CompanyStatus.INACTIVE);
+            when(userRepository.findByEmail("admin@bar.test")).thenReturn(Optional.of(admin));
+            when(passwordEncoder.matches("Bar12345", "hash")).thenReturn(true);
+
+            assertThatThrownBy(() -> service.login(login("admin@bar.test", "Bar12345"), "1.1.1.1"))
+                    .isInstanceOf(ForbiddenException.class).hasMessage("error.auth.subscriptionEnded");
+        }
+
+        @Test
         @DisplayName("login correcte retorna token i no cal tenir l'email verificat")
         void okWithoutVerifiedEmail() {
             admin.setEmailVerified(false);

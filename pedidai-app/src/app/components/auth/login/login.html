@@ -24,10 +24,10 @@
       @if (errorMsg()) {
         <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
           @if (trialEnded() && billingEnabled()) {
-            {{ 'BILLING.TRIAL_ENDED' | translate }}
+            {{ (subscriptionEnded() ? 'BILLING.SUBSCRIPTION_ENDED' : 'BILLING.TRIAL_ENDED') | translate }}
             <button type="button" (click)="checkoutAfterTrial()" [disabled]="checkoutLoading()"
               class="mt-3 w-full py-2 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold rounded-lg text-sm transition-colors">
-              {{ (checkoutLoading() ? 'BILLING.REDIRECTING' : 'BILLING.SUBSCRIBE_NOW') | translate }}
+              {{ (checkoutLoading() ? 'BILLING.REDIRECTING' : subscriptionEnded() ? 'BILLING.SUBSCRIBE_AGAIN' : 'BILLING.SUBSCRIBE_NOW') | translate }}
             </button>
           } @else {
             {{ errorMsg() }}

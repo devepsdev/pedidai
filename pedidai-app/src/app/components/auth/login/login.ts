@@ -25,8 +25,10 @@ export class Login implements OnInit {
 
   loading = signal(false);
   errorMsg = signal('');
-  /** La prueba (o la suscripción) ha terminado: se ofrece contratar sin iniciar sesión. */
+  /** La prueba o la suscripción ha terminado: se ofrece contratar sin iniciar sesión. */
   trialEnded = signal(false);
+  /** Ya fue cliente de pago (se dio de baja o dejó de pagar), no viene de la prueba gratuita. */
+  subscriptionEnded = signal(false);
   billingEnabled = signal(false);
   checkoutLoading = signal(false);
   /** Vuelta de la página de pago de Stripe. */
@@ -44,12 +46,15 @@ export class Login implements OnInit {
     this.loading.set(true);
     this.errorMsg.set('');
     this.trialEnded.set(false);
+    this.subscriptionEnded.set(false);
     const { email, password } = this.form.value;
     this.auth.login(email!, password!).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err) => {
         this.errorMsg.set(err.error?.message || this.translate.instant('ERRORS.LOGIN_FAILED'));
-        this.trialEnded.set(err.error?.code === 'error.auth.trialEnded');
+        const code = err.error?.code;
+        this.subscriptionEnded.set(code === 'error.auth.subscriptionEnded');
+        this.trialEnded.set(code === 'error.auth.trialEnded' || this.subscriptionEnded());
         this.loading.set(false);
       }
     });

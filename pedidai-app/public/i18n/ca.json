@@ -1032,6 +1032,7 @@
     "STATUS_TRIALING": "Pla contractat. El primer cobrament es farà quan acabi la teva prova gratuïta; pots canviar la targeta o donar-te de baixa abans.",
     "STATUS_PAST_DUE": "No hem pogut cobrar l’últim rebut. Actualitza la teva targeta per no perdre l’accés.",
     "SUBSCRIBE_NOW": "Contractar ara",
+    "SUBSCRIBE_AGAIN": "Tornar a contractar",
     "MANAGE": "Gestionar la subscripció",
     "REDIRECTING": "Obrint la passarel·la de pagament…",
     "PROCESSING": "Gràcies! Estem confirmant el teu pagament amb la passarel·la; en uns segons veuràs el teu pla actiu.",
@@ -1039,6 +1040,7 @@
     "CANCELLED": "No s’ha fet cap càrrec. Pots contractar quan vulguis des d’aquest tauler.",
     "PAID_LOGIN": "Gràcies! Hem rebut el teu pagament. En uns segons podràs entrar amb el teu email i contrasenya.",
     "TRIAL_ENDED": "La teva prova gratuïta s’ha acabat. Contracta el teu pla (29 €/mes + IVA per local amb el preu de llançament) i continua on ho vas deixar: les teves dades t’esperen.",
+    "SUBSCRIPTION_ENDED": "La teva subscripció a PedidAI s’ha acabat. Torna a contractar el teu pla (29 €/mes + IVA per local) i continua on ho vas deixar: les teves dades t’esperen.",
     "ERROR": "No hem pogut obrir la passarel·la de pagament. Torna-ho a provar d’aquí a uns minuts."
   }
 }
