@@ -6,7 +6,7 @@
     <div class="flex items-center justify-between h-16">
       <!-- Logo -->
       <a routerLink="/" class="flex items-center gap-2.5">
-        <img src="logo-navbar.png" class="h-8 w-auto" alt="PedidAI">
+        <img src="logo-navbar.png?v=2" class="h-8 w-auto" alt="PedidAI">
         <span class="brand-name text-xl transition-colors"
           [class]="navbarSolid() ? 'text-gray-900' : 'text-white'">Pedid<span class="brand-ai">AI</span></span>
       </a>
@@ -149,7 +149,7 @@
       <!-- Brand -->
       <div class="md:col-span-3 xl:col-span-3">
         <div class="flex items-center gap-2 mb-4">
-          <img src="logo-navbar.png" class="h-8 w-auto" alt="PedidAI">
+          <img src="logo-navbar.png?v=2" class="h-8 w-auto" alt="PedidAI">
           <span class="brand-name text-xl text-white">Pedid<span class="brand-ai">AI</span></span>
         </div>
         <p class="text-sm leading-relaxed">@for (line of ('FOOTER.TAGLINE' | translate | lines); track $index) {<span class="lg:block">{{ line }} </span>}</p>
