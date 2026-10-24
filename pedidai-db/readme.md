@@ -22,7 +22,8 @@ pedidai-db/
     ├── 002_empresa_suspendida.sql # Estado SUSPENDED en companies.status
     ├── 003_avisos_prueba.sql      # Fecha de envío de los avisos de la prueba al cliente
     ├── 004_tarifas.sql            # price_history.valid_until (validez de los precios de tarifa)
-    └── 005_sesion_larga.sql       # users.token_version (cerrar sesiones al cambiar la contraseña)
+    ├── 005_sesion_larga.sql       # users.token_version (cerrar sesiones al cambiar la contraseña)
+    └── 006_pago_stripe.sql        # Cliente y suscripción de Stripe en companies; avisos de Stripe procesados
 ```
 
 Las migraciones se aplican **en orden** sobre el esquema base. Cada una se aplica una sola vez.
@@ -51,6 +52,7 @@ mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/002_empresa_suspendi
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/003_avisos_prueba.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/004_tarifas.sql
 mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/005_sesion_larga.sql
+mysql -u pedidai_user -p pedidai_db < pedidai-db/migrations/006_pago_stripe.sql
 ```
 
 ### 3. Comprobación
@@ -210,6 +212,7 @@ Cada precio observado de un producto: la base de la comparativa entre proveedore
 | Pedidos por chat | `suppliers`, `products`, `price_history`, `orders`, `order_items` | El asistente consulta proveedores y precios con la sesión del usuario y crea pedidos `PENDING`; nunca los envía. |
 | Envío al proveedor | `orders` (`status`, `notes`), `order_items`, `suppliers.email`, `users.email_verified` | Solo con el email verificado; el pedido pasa a `SENT` y las notas se incluyen en el email al proveedor. Un pedido pendiente se puede cancelar (`CANCELLED`). |
 | Prueba gratuita y plan | `companies.trial_ends_at`, `companies.status` | Al registrarse, `trial_ends_at` = alta + 14 días. Al acabar la prueba, el siguiente acceso marca la empresa `INACTIVE`. El plan de pago deja `trial_ends_at` en `NULL`. |
+| Pago con Stripe | `companies.stripe_customer_id`, `stripe_subscription_id`, `subscription_status`, `stripe_events` | El webhook de Stripe guarda el cliente y la suscripción. Con la suscripción `active`, `trialing` o `past_due` la empresa es de pago (`ACTIVE`, `trial_ends_at` en `NULL`); con `canceled`, `unpaid` o `incomplete_expired` pasa a `INACTIVE`. Cada aviso se apunta en `stripe_events` y no se aplica dos veces. |
 | Avisos de prueba al cliente | `companies.trial_ends_at`, `trial_reminder_sent_at`, `trial_end_notified_at`, `users` (administrador), `price_history`, `suppliers`, `orders` | Cada día a las 9:00: email 3 días antes del fin y al terminar, con la actividad de la prueba. Las dos columnas evitan repetirlos; ampliar la prueba las vacía. |
 | Alertas al equipo (n8n) | `companies.created_at`, `companies.trial_ends_at`, `users`, `price_history.source`, `orders.created_at` | Aviso de cada registro y resumen diario: registros nuevos, pruebas que acaban en 3 días, pruebas vencidas, borrados en menos de 7 días, líneas de albarán leídas y pedidos creados. |
 | Borrado de conservación | Todas | Ver [Claves foráneas y borrado](#claves-foráneas-y-borrado). |
