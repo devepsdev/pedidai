@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>PedidAI · Banner de YouTube</title>
+<style>
+  html, body { margin: 0; width: 2048px; height: 1152px; overflow: hidden; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #fff; position: relative;
+    background: radial-gradient(ellipse at 50% 50%, #1e293b 0%, #0f172a 55%, #020617 100%); }
+  /* Fotogramas de la app a los lados: solo se ven en televisión y en ordenadores anchos */
+  .lado { position: absolute; top: 120px; width: 360px; height: 640px; border-radius: 32px; overflow: hidden;
+    background-size: cover; background-position: top center; opacity: .22; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+  .izq { left: 10px; top: 150px; transform: rotate(-6deg); }
+  .der { right: 10px; top: 360px; transform: rotate(6deg); }
+  /* Zona segura de YouTube (se ve en todos los dispositivos): 1235×338 en el centro */
+  .seguro { position: absolute; left: 406px; top: 407px; width: 1235px; height: 338px;
+    display: flex; align-items: center; gap: 56px; }
+  .logo { width: 220px; height: 220px; border-radius: 50%; flex: none; }
+  .texto { display: flex; flex-direction: column; gap: 22px; }
+  .marca { font-size: 44px; font-weight: 800; letter-spacing: -1px; color: #cbd5e1; }
+  .marca span { color: #22d3ee; }
+  h1 { margin: 0; font-size: 76px; line-height: 1.05; font-weight: 900; letter-spacing: -2px; }
+  h1 em { font-style: normal; color: #FACC15; }
+  .linea { font-size: 34px; font-weight: 600; color: #cbd5e1; }
+</style>
+</head>
+<body>
+  <div class="lado izq" id="izq"></div>
+  <div class="lado der" id="der"></div>
+  <div class="seguro">
+    <img class="logo" src="../pedidai-app/public/icon-512.png" alt="">
+    <div class="texto">
+      <div class="marca">Pedid<span>AI</span> · Para bares y restaurantes</div>
+      <h1>¿Cuánto pagas <em>de más</em><br>a tus proveedores?</h1>
+      <div class="linea">Foto al albarán · Compara precios · Pide al más barato</div>
+    </div>
+  </div>
+  <script>
+    const q = new URLSearchParams(location.search);
+    for (const id of ['izq', 'der']) document.getElementById(id).style.backgroundImage = `url("${q.get(id)}")`;
+  </script>
+</body>
+</html>
