@@ -37,4 +37,16 @@ class JwtUtilTest {
 
         assertThat(new JwtUtil(SECRET, 30).validateToken(token, "u@bar.test")).isFalse();
     }
+
+    @Test
+    @DisplayName("els tokens emesos amb jjwt 0.11.5 (HS512, caduquen el 2100) continuen sent vàlids")
+    void tokenFromPreviousLibraryVersion() {
+        String token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ1QGJhci50ZXN0Iiwicm9sZSI6IkFETUlOIiwidHYiOjMsImlhdCI6MTc2MTMwMDAwMCwiZXhwIjo0MTAyNDQ0ODAwfQ"
+                + ".eHNWjWp2kS6yShVA7RY1yMUJp-fIpGs8YISoZEoNc22Pp3YHy2dExpusg5CEEpUFdpkjYKj8bGaX7D8INEN9Pg";
+        JwtUtil jwt = new JwtUtil(SECRET, 30);
+
+        assertThat(jwt.validateToken(token, "u@bar.test")).isTrue();
+        assertThat(jwt.getRoleFromToken(token)).isEqualTo("ADMIN");
+        assertThat(jwt.getTokenVersion(token)).isEqualTo(3);
+    }
 }
