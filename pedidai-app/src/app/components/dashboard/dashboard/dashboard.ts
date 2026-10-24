@@ -6,6 +6,7 @@ import { OrderService } from '../../../services/order';
 import { SupplierService } from '../../../services/supplier';
 import { AiService } from '../../../services/ai';
 import { CompanyService } from '../../../services/company';
+import { BillingService } from '../../../services/billing';
 import { DashboardResponse } from '../../../models/dashboard.model';
 import { OrderResponse } from '../../../models/order.model';
 import { AiSuggestion } from '../../../models/ai.model';
@@ -28,6 +29,7 @@ export class Dashboard implements OnInit {
   private supplierService = inject(SupplierService);
   private ai = inject(AiService);
   private companyService = inject(CompanyService);
+  private billing = inject(BillingService);
   private priceService = inject(PriceService);
   private auth = inject(AuthService);
   private language = inject(LanguageService);
@@ -45,6 +47,12 @@ export class Dashboard implements OnInit {
   suggestions = signal<AiSuggestion[]>([]);
   supplierMap = signal<Record<string, string>>({});
   myPlan = signal<MyPlan | null>(null);
+  /** Vuelta de la página de pago de Stripe: 'ok' o 'cancelado'. */
+  paymentResult = signal(this.route.snapshot.queryParamMap.get('pago'));
+  checkoutLoading = signal(false);
+  checkoutError = signal('');
+  /** Solo el administrador de la empresa puede contratar. */
+  isAdmin = computed(() => this.me()?.role === 'ADMIN');
 
   loadingStats = signal(true);
   loadingOrders = signal(true);
@@ -130,10 +138,7 @@ export class Dashboard implements OnInit {
       }
     });
 
-    this.companyService.getMyPlan().subscribe({
-      next: data => this.myPlan.set(data),
-      error: () => {} // silencioso, el banner simplemente no se muestra
-    });
+    this.loadPlan(this.paymentResult() === 'ok' ? 5 : 0);
 
     this.ai.suggestOrders().subscribe({
       next: (data) => {
@@ -190,5 +195,34 @@ export class Dashboard implements OnInit {
       CANCELLED: 'bg-red-100 text-red-700',
     };
     return map[status] ?? 'bg-gray-100 text-gray-600';
+  }
+
+  /**
+   * Plan de la empresa. Al volver de pagar, Stripe avisa a la API en unos segundos: se vuelve a consultar
+   * hasta que el plan aparece como de pago (o se agotan los intentos).
+   */
+  private loadPlan(retries: number) {
+    this.companyService.getMyPlan().subscribe({
+      next: data => {
+        this.myPlan.set(data);
+        if (retries > 0 && data.trialEndsAt) {
+          setTimeout(() => this.loadPlan(retries - 1), 2000);
+        }
+      },
+      error: () => {} // silencioso, el banner simplemente no se muestra
+    });
+  }
+
+  /** Lleva a la página de pago de Stripe. */
+  startCheckout() {
+    this.checkoutLoading.set(true);
+    this.checkoutError.set('');
+    this.billing.checkout().subscribe({
+      next: url => window.location.href = url,
+      error: err => {
+        this.checkoutError.set(err.error?.message || this.translate.instant('BILLING.ERROR'));
+        this.checkoutLoading.set(false);
+      }
+    });
   }
 }

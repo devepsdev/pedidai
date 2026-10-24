@@ -13,10 +13,25 @@
         <p class="text-sm text-gray-500 mt-1">{{ 'AUTH.LOGIN.SUBTITLE' | translate }}</p>
       </div>
 
+      <!-- Vuelta de la página de pago de Stripe -->
+      @if (paid()) {
+        <div class="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-lg" role="status">
+          {{ 'BILLING.PAID_LOGIN' | translate }}
+        </div>
+      }
+
       <!-- Error -->
       @if (errorMsg()) {
         <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-          {{ errorMsg() }}
+          @if (trialEnded() && billingEnabled()) {
+            {{ 'BILLING.TRIAL_ENDED' | translate }}
+            <button type="button" (click)="checkoutAfterTrial()" [disabled]="checkoutLoading()"
+              class="mt-3 w-full py-2 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold rounded-lg text-sm transition-colors">
+              {{ (checkoutLoading() ? 'BILLING.REDIRECTING' : 'BILLING.SUBSCRIBE_NOW') | translate }}
+            </button>
+          } @else {
+            {{ errorMsg() }}
+          }
         </div>
       }
 

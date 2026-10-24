@@ -24,6 +24,17 @@
     </div>
   }
 
+  <!-- Vuelta de la página de pago de Stripe -->
+  @if (paymentResult() === 'ok') {
+    <div class="rounded-xl p-4 border bg-emerald-50 border-emerald-200 text-sm font-medium text-emerald-800" role="status">
+      {{ (myPlan() && !myPlan()!.trialEndsAt ? 'BILLING.PAID' : 'BILLING.PROCESSING') | translate }}
+    </div>
+  } @else if (paymentResult() === 'cancelado') {
+    <div class="rounded-xl p-4 border bg-gray-50 border-gray-200 text-sm text-gray-700" role="status">
+      {{ 'BILLING.CANCELLED' | translate }}
+    </div>
+  }
+
   <!-- Prueba gratuita — solo si hay fecha de fin (sin fecha = cliente de pago) -->
   @if (myPlan() && myPlan()!.trialEndsAt) {
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl p-4 border"
@@ -32,12 +43,23 @@
         {{ 'DASHBOARD.TRIAL_DAYS' | translate: { days: trialDaysLeft(), date: trialEndDate() } }}
         <span class="font-normal">{{ 'DASHBOARD.TRIAL_PRICE' | translate }}</span>
       </p>
-      <a href="mailto:hola@pedidai.es?subject=Activar%20PedidAI"
-        class="shrink-0 text-xs font-semibold px-3 py-2 rounded-lg text-white text-center"
-        [class]="(trialDaysLeft() ?? 99) <= 3 ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-600 hover:bg-amber-700'">
-        {{ 'DASHBOARD.TRIAL_CONTACT' | translate }}
-      </a>
+      @if (myPlan()!.billingEnabled && isAdmin()) {
+        <button type="button" (click)="startCheckout()" [disabled]="checkoutLoading()"
+          class="shrink-0 text-xs font-semibold px-3 py-2 rounded-lg text-white text-center disabled:opacity-50"
+          [class]="(trialDaysLeft() ?? 99) <= 3 ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-600 hover:bg-amber-700'">
+          {{ (checkoutLoading() ? 'BILLING.REDIRECTING' : 'DASHBOARD.TRIAL_CONTACT') | translate }}
+        </button>
+      } @else {
+        <a href="mailto:hola@pedidai.es?subject=Activar%20PedidAI"
+          class="shrink-0 text-xs font-semibold px-3 py-2 rounded-lg text-white text-center"
+          [class]="(trialDaysLeft() ?? 99) <= 3 ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-600 hover:bg-amber-700'">
+          {{ 'DASHBOARD.TRIAL_CONTACT' | translate }}
+        </a>
+      }
     </div>
+    @if (checkoutError()) {
+      <p class="text-sm text-red-700" role="alert">{{ checkoutError() }}</p>
+    }
   }
 
   <!-- Primeros pasos: hasta completarlos (o hasta que el usuario los oculte) -->

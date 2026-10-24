@@ -18,6 +18,35 @@
       }
     </div>
 
+    <!-- Plan y suscripción (pago en línea con Stripe) -->
+    @if (plan(); as p) {
+      @if (p.billingEnabled) {
+        <div class="bg-white rounded-2xl shadow-md p-5 mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div class="flex-1">
+            <h2 class="text-sm font-semibold text-gray-800">{{ 'BILLING.PLAN_TITLE' | translate }}</h2>
+            <p class="text-sm text-gray-500 mt-0.5">
+              @if (p.subscriptionStatus === 'past_due') { {{ 'BILLING.STATUS_PAST_DUE' | translate }} }
+              @else if (p.subscriptionStatus === 'trialing') { {{ 'BILLING.STATUS_TRIALING' | translate }} }
+              @else if (!p.trialEndsAt) { {{ 'BILLING.STATUS_PAID' | translate }} }
+              @else { {{ 'BILLING.STATUS_TRIAL' | translate }} }
+            </p>
+          </div>
+          <!-- Cliente activado a mano (sin suscripción en Stripe): no hay nada que contratar ni gestionar aquí -->
+          @if (p.subscriptionStatus || p.trialEndsAt) {
+            <button type="button" (click)="openBilling()" [disabled]="billingLoading()"
+              class="shrink-0 px-4 py-2 text-sm font-semibold rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 transition-colors">
+              @if (billingLoading()) { {{ 'BILLING.REDIRECTING' | translate }} }
+              @else if (p.subscriptionStatus) { {{ 'BILLING.MANAGE' | translate }} }
+              @else { {{ 'BILLING.SUBSCRIBE_NOW' | translate }} }
+            </button>
+          }
+        </div>
+        @if (billingError()) {
+          <p class="-mt-4 mb-6 text-sm text-red-700" role="alert">{{ billingError() }}</p>
+        }
+      }
+    }
+
     <!-- Loading skeleton -->
     @if (loading()) {
       <div class="bg-white rounded-2xl shadow-md p-8 space-y-6 animate-pulse">

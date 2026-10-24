@@ -17,7 +17,12 @@ export interface CompanyResponse {
 
 export interface MyPlan {
   status: string;
-  trialEndsAt: string | null;
+  /** Sin valor (la API omite los nulos) = cliente de pago. */
+  trialEndsAt?: string | null;
+  /** Pago en línea con Stripe configurado; si no, se ofrece el contacto por email. */
+  billingEnabled: boolean;
+  /** Estado de la suscripción en Stripe ('active', 'trialing', 'past_due', 'canceled'…); null si no hay. */
+  subscriptionStatus?: string | null;
 }
 
 export interface CompanyRequest {

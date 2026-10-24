@@ -2,7 +2,8 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CompanyService } from '../../../services/company';
-import { CompanyRequest } from '../../../models/company.model';
+import { BillingService } from '../../../services/billing';
+import { CompanyRequest, MyPlan } from '../../../models/company.model';
 import { apiError } from '../../../shared/api-error';
 
 @Component({
@@ -14,6 +15,12 @@ export class CompanyConfig implements OnInit {
   private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private companyService = inject(CompanyService);
+  private billing = inject(BillingService);
+
+  /** Plan y suscripción (la página solo la ven administradores). */
+  plan = signal<MyPlan | null>(null);
+  billingLoading = signal(false);
+  billingError = signal('');
 
   loading = signal(false);
   saving = signal(false);
@@ -32,6 +39,7 @@ export class CompanyConfig implements OnInit {
   });
 
   ngOnInit() {
+    this.companyService.getMyPlan().subscribe({ next: plan => this.plan.set(plan), error: () => {} });
     this.loading.set(true);
     this.companyService.get().subscribe({
       next: (company) => {
@@ -90,6 +98,22 @@ export class CompanyConfig implements OnInit {
         this.error.set(apiError(err, this.translate.instant('ERRORS.SAVE_CHANGES')));
         this.saving.set(false);
       },
+    });
+  }
+
+  /** Con suscripción: portal de Stripe (tarjeta, facturas, baja). Sin ella: página de pago. */
+  openBilling() {
+    const plan = this.plan();
+    if (!plan) return;
+    this.billingLoading.set(true);
+    this.billingError.set('');
+    const request = plan.subscriptionStatus ? this.billing.portal() : this.billing.checkout();
+    request.subscribe({
+      next: url => window.location.href = url,
+      error: err => {
+        this.billingError.set(apiError(err, this.translate.instant('BILLING.ERROR')));
+        this.billingLoading.set(false);
+      }
     });
   }
 }

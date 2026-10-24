@@ -1024,5 +1024,21 @@
     "SAVING": "Guardando…",
     "SUCCESS": "Contraseña cambiada.",
     "ERROR": "No se ha podido cambiar la contraseña."
+  },
+  "BILLING": {
+    "PLAN_TITLE": "Tu plan",
+    "STATUS_TRIAL": "Estás en la prueba gratuita. Después: 29 €/mes + IVA por local con el precio de lanzamiento, sin permanencia.",
+    "STATUS_PAID": "Plan de pago activo. Puedes cambiar la tarjeta, descargar tus facturas o darte de baja.",
+    "STATUS_TRIALING": "Plan contratado. El primer cobro se hará cuando termine tu prueba gratuita; puedes cambiar la tarjeta o darte de baja antes.",
+    "STATUS_PAST_DUE": "No hemos podido cobrar el último recibo. Actualiza tu tarjeta para no perder el acceso.",
+    "SUBSCRIBE_NOW": "Contratar ahora",
+    "MANAGE": "Gestionar suscripción",
+    "REDIRECTING": "Abriendo la pasarela de pago…",
+    "PROCESSING": "¡Gracias! Estamos confirmando tu pago con la pasarela; en unos segundos verás tu plan activo.",
+    "PAID": "¡Gracias! Tu plan ya está activo.",
+    "CANCELLED": "No se ha hecho ningún cargo. Puedes contratar cuando quieras desde este panel.",
+    "PAID_LOGIN": "¡Gracias! Hemos recibido tu pago. En unos segundos podrás entrar con tu email y contraseña.",
+    "TRIAL_ENDED": "Tu prueba gratuita ha terminado. Contrata tu plan (29 €/mes + IVA por local con el precio de lanzamiento) y sigue donde lo dejaste: tus datos te esperan.",
+    "ERROR": "No hemos podido abrir la pasarela de pago. Inténtalo de nuevo en unos minutos."
   }
 }
