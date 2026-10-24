@@ -15,6 +15,7 @@ const PORTADAS = {
   chat: { titulo: 'Haz tus pedidos|*por chat*', escena: 'respuesta', seg: 3.5 },
   tarifa: { titulo: '¿Te sale *más|barata* otra tarifa?', escena: 'comparar', seg: 3.8 },
   pedido: { titulo: '¿Te han traído|*todo* lo que pediste?', escena: 'diferencias', seg: 1.5 },
+  home: { titulo: 'Controla lo que|*pagas* a tus|proveedores', escena: 'precios', seg: 2.5 },
 };
 
 async function main() {
