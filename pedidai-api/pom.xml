@@ -71,6 +71,12 @@
             <version>0.12.6</version>
             <scope>runtime</scope>
         </dependency>
+        <!-- Pagament de la subscripció (Stripe Checkout, portal del client i webhook) -->
+        <dependency>
+            <groupId>com.stripe</groupId>
+            <artifactId>stripe-java</artifactId>
+            <version>29.2.0</version>
+        </dependency>
         <dependency>
             <groupId>com.github.librepdf</groupId>
             <artifactId>openpdf</artifactId>

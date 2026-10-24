@@ -6,6 +6,7 @@ import com.pedidai.api.dto.CompanyResponseDTO;
 import com.pedidai.api.dto.LoginResponseDTO;
 import com.pedidai.api.dto.UserResponseDTO;
 import com.pedidai.api.entities.Company;
+import com.pedidai.api.services.BillingService;
 import com.pedidai.api.services.CompanyService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -34,6 +35,9 @@ class CompanyControllerTest {
     @Mock
     private CompanyService companyService;
 
+    @Mock
+    private BillingService billingService;
+
     private ObjectMapper objectMapper;
 
     @BeforeEach
@@ -41,7 +45,7 @@ class CompanyControllerTest {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
 
-        CompanyController companyController = new CompanyController(companyService);
+        CompanyController companyController = new CompanyController(companyService, billingService);
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(companyController)

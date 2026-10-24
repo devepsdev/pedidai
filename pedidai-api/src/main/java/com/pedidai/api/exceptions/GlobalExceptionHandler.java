@@ -125,7 +125,9 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ApiResponseDTO<Void>> localized(HttpStatus status, LocalizedException ex) {
-        return error(status, messages.get(ex.getMessage(), ex.getArgs()));
+        ApiResponseDTO<Void> body = ApiResponseDTO.error(messages.get(ex.getMessage(), ex.getArgs()));
+        body.setCode(ex.getMessage());
+        return ResponseEntity.status(status).body(body);
     }
 
     private ResponseEntity<ApiResponseDTO<Void>> error(HttpStatus status, String message) {

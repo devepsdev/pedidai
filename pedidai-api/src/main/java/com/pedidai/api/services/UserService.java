@@ -8,6 +8,12 @@ public interface UserService {
 
     LoginResponseDTO login(LoginRequestDTO loginDTO, String clientIp);
 
+    /**
+     * Comprova email i contrasenya amb els mateixos límits d'intents que el login, sense mirar l'estat
+     * de l'empresa ni obrir sessió. El fa servir el pagament d'una empresa amb la prova acabada.
+     */
+    com.pedidai.api.entities.User verifyCredentials(LoginRequestDTO loginDTO, String clientIp);
+
     void requestPasswordReset(String email, String clientIp);
 
     void resetPassword(PasswordResetDTO passwordResetDTO);

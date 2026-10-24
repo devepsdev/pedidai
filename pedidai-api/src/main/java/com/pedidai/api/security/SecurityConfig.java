@@ -107,6 +107,11 @@ public class SecurityConfig {
                         // Companies - públics per al registre
                         .requestMatchers(HttpMethod.POST, "/api/companies/register").permitAll()
 
+                        // Pagament: avisos de Stripe (signats) i pagament amb la prova acabada (email i contrasenya)
+                        .requestMatchers(HttpMethod.GET, "/api/billing/enabled").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/billing/webhook").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/billing/checkout-after-trial").permitAll()
+
                         // Imatges de producte (noms aleatoris, sense dades sensibles)
                         .requestMatchers(HttpMethod.GET, "/api/img/productes/**").permitAll()
 

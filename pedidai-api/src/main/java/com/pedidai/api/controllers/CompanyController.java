@@ -2,6 +2,7 @@ package com.pedidai.api.controllers;
 
 import com.pedidai.api.dto.*;
 import com.pedidai.api.security.ClientIp;
+import com.pedidai.api.services.BillingService;
 import com.pedidai.api.services.CompanyService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class CompanyController {
 
     private final CompanyService companyService;
+    private final BillingService billingService;
 
     /** Alta pública: crea l'empresa, inicia la prova i retorna la sessió ja iniciada. */
     @PostMapping("/register")
@@ -41,6 +43,8 @@ public class CompanyController {
 
     @GetMapping("/my-plan")
     public ResponseEntity<ApiResponseDTO<MyPlanDTO>> getMyPlan() {
-        return ResponseEntity.ok(ApiResponseDTO.success(companyService.getMyPlan(), "success.ok"));
+        MyPlanDTO plan = companyService.getMyPlan();
+        plan.setBillingEnabled(billingService.isEnabled());
+        return ResponseEntity.ok(ApiResponseDTO.success(plan, "success.ok"));
     }
 }

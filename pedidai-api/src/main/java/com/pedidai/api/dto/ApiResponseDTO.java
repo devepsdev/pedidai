@@ -18,6 +18,9 @@ public class ApiResponseDTO<T> {
 
     private T data;
 
+    /** En els errors traduïbles, la clau del missatge (p. ex. «error.auth.trialEnded») perquè la web pugui reaccionar. */
+    private String code;
+
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
 

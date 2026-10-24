@@ -129,6 +129,7 @@ public class CompanyServiceImpl implements CompanyService {
         return MyPlanDTO.builder()
                 .status(company.getStatus().name())
                 .trialEndsAt(company.getTrialEndsAt())
+                .subscriptionStatus(company.getSubscriptionStatus())
                 .build();
     }
 

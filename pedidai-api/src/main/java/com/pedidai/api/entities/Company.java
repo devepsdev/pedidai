@@ -66,6 +66,18 @@ public class Company {
     @Column(name = "trial_end_notified_at")
     private LocalDateTime trialEndNotifiedAt;
 
+    /** Client de Stripe (cus_…), creat en el primer pagament. */
+    @Column(name = "stripe_customer_id", length = 64, unique = true)
+    private String stripeCustomerId;
+
+    /** Subscripció de Stripe (sub_…). */
+    @Column(name = "stripe_subscription_id", length = 64, unique = true)
+    private String stripeSubscriptionId;
+
+    /** Estat de la subscripció a Stripe («active», «trialing», «past_due», «canceled»…), al dia pel webhook. */
+    @Column(name = "subscription_status", length = 32)
+    private String subscriptionStatus;
+
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<User> users;
 

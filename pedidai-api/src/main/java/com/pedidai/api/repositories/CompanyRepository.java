@@ -20,6 +20,10 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
 
     Optional<Company> findByUuid(String uuid);
 
+    Optional<Company> findByStripeSubscriptionId(String stripeSubscriptionId);
+
+    Optional<Company> findByStripeCustomerId(String stripeCustomerId);
+
     boolean existsByUuid(String uuid);
 
     long countByStatus(Company.CompanyStatus status);

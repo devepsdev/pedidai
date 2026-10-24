@@ -51,6 +51,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginResponseDTO login(LoginRequestDTO loginDTO, String clientIp) {
+        User user = verifyCredentials(loginDTO, clientIp);
+
+        if (user.getRole() != User.UserRole.SUPER_ADMIN) {
+            checkCompanyCanUseService(user.getCompany());
+        }
+
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
+        return issueSession(user);
+    }
+
+    @Override
+    public User verifyCredentials(LoginRequestDTO loginDTO, String clientIp) {
         String email = loginDTO.getEmail().trim().toLowerCase(Locale.ROOT);
         String accountKey = "login-fail:" + email;
         String ipKey = "login-fail-ip:" + clientIp;
@@ -73,14 +86,7 @@ public class UserServiceImpl implements UserService {
         if (!Boolean.TRUE.equals(user.getIsActive())) {
             throw new ForbiddenException("error.auth.userInactive");
         }
-
-        if (user.getRole() != User.UserRole.SUPER_ADMIN) {
-            checkCompanyCanUseService(user.getCompany());
-        }
-
-        user.setLastLogin(LocalDateTime.now());
-        userRepository.save(user);
-        return issueSession(user);
+        return user;
     }
 
     @Override
