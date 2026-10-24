@@ -355,7 +355,7 @@ Todo corre en un VPS Ubuntu:
 | --- | --- |
 | Web (Angular) | `/var/www/pedidai.es`, servida por nginx |
 | API (Spring Boot) | `/opt/apps/pedidai/pedidai-api/target/*.jar`, servicio `pedidai-api.service` (puerto 8085, solo local) |
-| Configuración y secretos de la API | `/opt/apps/pedidai/.env` (permisos `600`, cargado con `EnvironmentFile=`): credenciales, `JWT_SECRET`, `AI_API_KEY`, `SERVER_ADDRESS=127.0.0.1`, `CORS_ALLOWED_ORIGINS` y `N8N_NEW_COMPANY_WEBHOOK` |
+| Configuración y secretos de la API | `/opt/apps/pedidai/.env` (permisos `600`, cargado con `EnvironmentFile=`): credenciales, `JWT_SECRET`, `AI_API_KEY`, `SERVER_ADDRESS=127.0.0.1`, `CORS_ALLOWED_ORIGINS` y `N8N_NEW_COMPANY_WEBHOOK`; con el pago en línea, también `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` y `STRIPE_TAX_RATE_ID` (ver [docs/pago-stripe.md](docs/pago-stripe.md)) |
 | Imágenes de productos | `/opt/apps/pedidai/pedidai-api/img/productes/` |
 | Asistente y n8n | `/opt/apps/orderflow`, con `docker compose`, red `host` y escuchando solo en local (asistente en `127.0.0.1:3201`, n8n en `127.0.0.1:5678`) |
 | Base de datos | MySQL local, `pedidai_db` |
