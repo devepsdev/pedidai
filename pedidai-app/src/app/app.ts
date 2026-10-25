@@ -5,6 +5,7 @@ import { CookieBanner } from './shared/cookie-banner/cookie-banner';
 import { AnalyticsService } from './services/analytics.service';
 import { LanguageService } from './services/language.service';
 import { AuthService } from './services/auth';
+import { SeoService } from './services/seo.service';
 
 @Component({
   selector: 'app-root',
@@ -19,10 +20,14 @@ export class App {
   private analytics = inject(AnalyticsService);
   private router = inject(Router);
   private auth = inject(AuthService);
+  private seo = inject(SeoService);
 
   constructor() {
     // Idioma: el elegido antes o, en la primera visita, el del navegador
     this.language.init();
+
+    // Título, descripción y canónica de cada página para los buscadores
+    this.seo.init();
 
     // Load GA4 if user already gave consent in a previous session
     this.analytics.init();

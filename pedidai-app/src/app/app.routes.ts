@@ -9,24 +9,25 @@ import { Login } from './components/auth/login/login';
 
 // La landing, el registro y el login se cargan de inicio (es lo que ve quien llega desde un anuncio);
 // el resto de pantallas se descargan solo cuando se visitan.
+// `data.seo`: título y descripción para buscadores (SeoService). Sin `seo`, la ruta queda en noindex.
 export const routes: Routes = [
   {
     path: '',
     component: PublicLayoutComponent,
     children: [
-      { path: '', component: Landing, pathMatch: 'full' },
-      { path: 'login', component: Login },
-      { path: 'register', component: Register },
+      { path: '', component: Landing, pathMatch: 'full', data: { seo: { title: 'PedidAI · Descubre cuánto pagas de más a tus proveedores', description: 'Para bares y restaurantes: haz una foto a tus albaranes y PedidAI compara lo que te cobra cada proveedor y te avisa de las subidas. Prueba 14 días gratis.' } } },
+      { path: 'login', component: Login, data: { seo: { title: 'Acceder · PedidAI', description: 'Entra en tu cuenta de PedidAI.', index: false } } },
+      { path: 'register', component: Register, data: { seo: { title: 'Prueba PedidAI gratis 14 días · Para bares y restaurantes', description: 'Crea tu cuenta en un minuto y sin tarjeta. Sube tus albaranes y descubre qué proveedor te cobra de más y dónde comprar más barato.' } } },
       { path: 'verify-email', loadComponent: () => import('./components/auth/verify-email/verify-email').then(m => m.VerifyEmail) },
       { path: 'recover-password', loadComponent: () => import('./components/auth/recover-password/recover-password').then(m => m.RecoverPassword) },
       { path: 'reset-password', loadComponent: () => import('./components/auth/reset-password/reset-password').then(m => m.ResetPassword) },
-      { path: 'privacidad', loadComponent: () => import('./pages/legal/privacy-policy/privacy-policy').then(m => m.PrivacyPolicy) },
-      { path: 'aviso-legal', loadComponent: () => import('./pages/legal/legal-notice/legal-notice').then(m => m.LegalNotice) },
-      { path: 'cookies', loadComponent: () => import('./pages/legal/cookie-policy/cookie-policy').then(m => m.CookiePolicy) },
-      { path: 'terminos', loadComponent: () => import('./pages/legal/terms-conditions/terms-conditions').then(m => m.TermsConditions) },
-      { path: 'contacto', loadComponent: () => import('./pages/contact/contact.component').then(m => m.ContactComponent) },
+      { path: 'privacidad', loadComponent: () => import('./pages/legal/privacy-policy/privacy-policy').then(m => m.PrivacyPolicy), data: { seo: { title: 'Política de privacidad · PedidAI', description: 'Cómo trata PedidAI tus datos y los de tu negocio: qué guardamos, para qué, durante cuánto tiempo y cómo ejercer tus derechos.' } } },
+      { path: 'aviso-legal', loadComponent: () => import('./pages/legal/legal-notice/legal-notice').then(m => m.LegalNotice), data: { seo: { title: 'Aviso legal · PedidAI', description: 'Datos del titular de PedidAI y condiciones de uso del sitio web.' } } },
+      { path: 'cookies', loadComponent: () => import('./pages/legal/cookie-policy/cookie-policy').then(m => m.CookiePolicy), data: { seo: { title: 'Política de cookies · PedidAI', description: 'Qué cookies usa PedidAI: las técnicas, siempre activas, y las de analítica y publicidad, solo con tu consentimiento.' } } },
+      { path: 'terminos', loadComponent: () => import('./pages/legal/terms-conditions/terms-conditions').then(m => m.TermsConditions), data: { seo: { title: 'Términos y condiciones · PedidAI', description: 'Condiciones de uso de PedidAI: prueba gratuita, precio, pago y baja del servicio.' } } },
+      { path: 'contacto', loadComponent: () => import('./pages/contact/contact.component').then(m => m.ContactComponent), data: { seo: { title: 'Contacto · PedidAI', description: 'Escribe a Enrique, fundador de PedidAI, por email o WhatsApp. Respuesta en menos de 24 horas laborables.' } } },
       { path: 'contacte', redirectTo: 'contacto', pathMatch: 'full' },
-      { path: 'sobre-nosotros', loadComponent: () => import('./pages/about/about.component').then(m => m.AboutComponent) },
+      { path: 'sobre-nosotros', loadComponent: () => import('./pages/about/about.component').then(m => m.AboutComponent), data: { seo: { title: 'Sobre nosotros · PedidAI', description: '24 años llevando fruta y verdura a restaurantes. Ahora ayudamos a bares y restaurantes a no pagar de más a sus proveedores.' } } },
       { path: 'sobre-nosaltres', redirectTo: 'sobre-nosotros', pathMatch: 'full' },
     ]
   },
