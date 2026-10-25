@@ -5,6 +5,7 @@ import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { App } from './app';
+import { routes } from './app.routes';
 import { LanguageService } from './services/language.service';
 import { jwtInterceptor } from './interceptors/jwt-interceptor';
 import { PASSWORD_PATTERN } from './components/auth/register/register';
@@ -77,6 +78,21 @@ describe('Interceptor de sesión e idioma', () => {
     expect(ai.request.headers.get('Authorization')).toBe('Bearer tok');
     const external = ctrl.expectOne('https://terceros.example/recurso');
     expect(external.request.headers.has('Authorization')).toBe(false);
+  });
+});
+
+describe('Rutas que nginx no trata como 404', () => {
+  // Debe coincidir con la lista de scripts/nginx-404.sh: una ruta que falte allí da 404 al recargarla
+  const NGINX = ['login', 'register', 'verify-email', 'recover-password', 'reset-password', 'privacidad', 'aviso-legal',
+    'cookies', 'terminos', 'contacto', 'contacte', 'sobre-nosotros', 'sobre-nosaltres', '404', 'dashboard', 'account',
+    'prices', 'suppliers', 'products', 'orders', 'users', 'reports', 'company', 'invoices', 'chat', 'suggestions',
+    'superadmin'];
+
+  it('todas las rutas de la app están en la lista de nginx', () => {
+    const primeros = routes.flatMap(r => r.path === '' ? (r.children ?? []) : [r])
+      .map(r => r.path!.split('/')[0])
+      .filter(p => p !== '' && p !== '**');
+    expect([...new Set(primeros)].sort()).toEqual([...NGINX].sort());
   });
 });
 

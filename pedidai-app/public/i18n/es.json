@@ -1042,5 +1042,10 @@
     "TRIAL_ENDED": "Tu prueba gratuita ha terminado. Contrata tu plan (29 €/mes + IVA por local con el precio de lanzamiento) y sigue donde lo dejaste: tus datos te esperan.",
     "SUBSCRIPTION_ENDED": "Tu suscripción a PedidAI ha terminado. Vuelve a contratar tu plan (29 €/mes + IVA por local) y sigue donde lo dejaste: tus datos te esperan.",
     "ERROR": "No hemos podido abrir la pasarela de pago. Inténtalo de nuevo en unos minutos."
+  },
+  "NOT_FOUND": {
+    "TITLE": "Esta página no existe",
+    "BODY": "Puede que el enlace esté mal escrito o que la página ya no esté. Desde la portada encontrarás todo lo que hace PedidAI por tu bar o restaurante.",
+    "HOME": "Ir a la portada"
   }
 }
