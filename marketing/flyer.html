@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>PedidAI · Flyer A6</title>
+<!--
+  Flyer A6 (105 × 148 mm) a dos caras, con 3 mm de sangrado: cada página mide 111 × 154 mm.
+  Todo lo importante queda a más de 5 mm del corte (zona segura).
+  Primero python qr_flyer.py (genera el QR) y después node flyer.mjs (exporta PDF y PNG).
+-->
+<style>
+  @page { size: 111mm 154mm; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  .cara { position: relative; width: 111mm; height: 154mm; overflow: hidden; page-break-after: always; }
+  .cara:last-child { page-break-after: auto; }
+  /* Zona segura: 3 mm de sangrado + 5 mm de margen */
+  .segura { position: absolute; inset: 8mm; display: flex; flex-direction: column; justify-content: space-between; }
+
+  .marca { display: flex; align-items: center; gap: 2.4mm; font-size: 15pt; font-weight: 800; letter-spacing: -0.3pt; }
+  .marca img { width: 9mm; height: 9mm; border-radius: 2.4mm; background: #fff; padding: 0.9mm; }
+  .marca span { color: #22d3ee; }
+
+  /* ── Delante ── */
+  .delante { background: radial-gradient(120% 80% at 85% 0%, #1e3a8a 0%, rgba(30,58,138,0) 60%), #0f172a; color: #fff; }
+  .delante h1 { margin: 0; font-size: 25pt; line-height: 1.02; font-weight: 900; letter-spacing: -0.8pt; text-wrap: balance; }
+  .delante h1 em { font-style: normal; color: #FACC15; }
+  .delante .para { margin: 3mm 0 0; font-size: 10pt; color: #cbd5e1; font-weight: 600; }
+
+  .tarjeta { margin-top: 7mm; background: #fff; color: #0f172a; border-radius: 3.5mm; padding: 3.6mm 4mm;
+    box-shadow: 0 1.5mm 5mm rgba(0,0,0,.35); }
+  .tarjeta .etiqueta { font-size: 6.5pt; font-weight: 800; letter-spacing: .6pt; color: #b45309; text-transform: uppercase; }
+  .tarjeta .cifra { margin-top: 1mm; font-size: 11.5pt; font-weight: 800; line-height: 1.2; }
+  .tarjeta .cifra b { color: #dc2626; font-variant-numeric: tabular-nums; }
+  .tarjeta .detalle { margin-top: 1.2mm; font-size: 7pt; color: #475569; text-wrap: pretty; }
+
+  .pie { display: flex; align-items: center; gap: 4mm; }
+  .qr { flex: 0 0 27mm; width: 27mm; height: 27mm; background: #fff; border-radius: 2.5mm; padding: 2mm;
+    display: flex; align-items: center; justify-content: center; }
+  .qr img { width: 100%; height: 100%; display: block; }
+  .qr .falta { font-size: 7pt; color: #94a3b8; text-align: center; border: 0.3mm dashed #94a3b8; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center; }
+  .cta .boton { display: inline-block; background: #10b981; color: #052e16; font-weight: 800; font-size: 10.5pt;
+    padding: 2.2mm 3.6mm; border-radius: 2mm; }
+  .cta p { margin: 2.2mm 0 0; font-size: 7.5pt; color: #cbd5e1; line-height: 1.35; }
+  .cta .web { margin-top: 1.6mm; font-size: 12pt; font-weight: 800; color: #fff; }
+
+  /* ── Detrás ── */
+  .detras { background: #f8fafc; color: #0f172a; }
+  .detras .marca { color: #0f172a; }
+  .detras .marca span { color: #0891b2; }
+  .detras .marca img { border: 0.3mm solid #e2e8f0; }
+  .detras h2 { margin: 0; font-size: 17pt; font-weight: 900; letter-spacing: -0.4pt; }
+  .pasos { list-style: none; margin: 4.5mm 0 0; padding: 0; display: flex; flex-direction: column; gap: 4mm; }
+  .pasos li { display: flex; gap: 3mm; align-items: flex-start; }
+  .pasos .num { flex: 0 0 7mm; height: 7mm; border-radius: 50%; background: #0f172a; color: #FACC15;
+    font-weight: 900; font-size: 10pt; display: flex; align-items: center; justify-content: center; }
+  .pasos b { display: block; font-size: 10pt; line-height: 1.25; }
+  .pasos span { display: block; margin-top: 0.6mm; font-size: 7.8pt; color: #475569; line-height: 1.35; text-wrap: pretty; }
+
+  .precio { margin-top: 6mm; border: 0.4mm solid #0f172a; border-radius: 3mm; padding: 3.2mm 3.8mm; }
+  .precio .grande { font-size: 11.5pt; font-weight: 900; }
+  .precio .grande em { font-style: normal; color: #059669; }
+  .precio p { margin: 1.2mm 0 0; font-size: 7.8pt; color: #334155; line-height: 1.35; }
+
+  .contacto { display: flex; justify-content: space-between; align-items: flex-end; font-size: 7.8pt; color: #334155; line-height: 1.5; }
+  .contacto .web { font-size: 12pt; font-weight: 900; color: #0f172a; }
+  .contacto .derecha { display: flex; align-items: center; gap: 3mm; }
+  .contacto .qr { flex-basis: 19mm; width: 19mm; height: 19mm; padding: 1.4mm; border: 0.3mm solid #e2e8f0; }
+</style>
+</head>
+<body>
+
+  <!-- ═══ Delante ═══ -->
+  <section class="cara delante">
+    <div class="segura">
+      <div class="marca"><img src="../pedidai-app/public/logo-hero.png" alt=""><b>Pedid<span>AI</span></b></div>
+
+      <div>
+      <h1>¿Cuánto pagas <em>de más</em> a tus proveedores?</h1>
+      <p class="para">Para bares y restaurantes que hacen sus propias compras</p>
+
+      <div class="tarjeta">
+        <div class="etiqueta">Lo que verás en tu panel</div>
+        <div class="cifra">Has pagado unos <b>37,60 €</b> de más en los últimos 90 días</div>
+        <div class="detalle">Ejemplo con albaranes de prueba · 5 productos · 5 subidas de precio</div>
+      </div>
+      </div>
+
+      <div class="pie">
+        <div class="qr"><div class="falta">QR</div></div>
+        <div class="cta">
+          <span class="boton">Pruébalo gratis 14 días</span>
+          <p>Escanea el código o entra en</p>
+          <div class="web">pedidai.es</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Detrás ═══ -->
+  <section class="cara detras">
+    <div class="segura">
+      <div class="marca"><img src="../pedidai-app/public/logo-hero.png" alt=""><b>Pedid<span>AI</span></b></div>
+
+      <div>
+      <h2>Así de fácil</h2>
+      <ol class="pasos">
+        <li><div class="num">1</div><div><b>Haz una foto al albarán</b><span>O sube la tarifa que te envía el proveedor (PDF, Excel o foto).</span></div></li>
+        <li><div class="num">2</div><div><b>Compara lo que te cobra cada uno</b><span>PedidAI lee productos y precios y te avisa cuando te suben un precio.</span></div></li>
+        <li><div class="num">3</div><div><b>Pide al más barato por chat</b><span>«10 kg de tomates y 5 garrafas de agua»: te prepara el pedido y lo envías con un clic.</span></div></li>
+      </ol>
+
+      <div class="precio">
+        <div class="grande"><em>14 días gratis</em>, sin tarjeta</div>
+        <p>Después, 29 €/mes + IVA por local (precio de lanzamiento). Sin permanencia: te das de baja cuando quieras.</p>
+      </div>
+      </div>
+
+      <div class="contacto">
+        <div>hola@pedidai.es<br>607 75 05 03</div>
+        <div class="derecha"><div class="web">pedidai.es</div><div class="qr"><div class="falta">QR</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Si existe el QR generado (salida/flyer/qr.svg), se usa; si no, queda el hueco marcado
+    const prueba = new Image();
+    prueba.onload = () => document.querySelectorAll('.qr').forEach(qr => {
+      const img = new Image(); img.alt = 'QR a pedidai.es'; img.src = prueba.src;
+      qr.innerHTML = ''; qr.appendChild(img);
+    });
+    prueba.src = 'salida/flyer/qr.svg';
+  </script>
+</body>
+</html>
