@@ -7,6 +7,9 @@ import { Landing } from './pages/landing/landing';
 import { Register } from './components/auth/register/register';
 import { Login } from './components/auth/login/login';
 
+const NOT_FOUND_SEO = { title: 'Página no encontrada · PedidAI', description: 'Esta dirección no existe en PedidAI.', index: false };
+const notFound = () => import('./pages/not-found/not-found').then(m => m.NotFound);
+
 // La landing, el registro y el login se cargan de inicio (es lo que ve quien llega desde un anuncio);
 // el resto de pantallas se descargan solo cuando se visitan.
 // `data.seo`: título y descripción para buscadores (SeoService). Sin `seo`, la ruta queda en noindex.
@@ -29,6 +32,8 @@ export const routes: Routes = [
       { path: 'contacte', redirectTo: 'contacto', pathMatch: 'full' },
       { path: 'sobre-nosotros', loadComponent: () => import('./pages/about/about.component').then(m => m.AboutComponent), data: { seo: { title: 'Sobre nosotros · PedidAI', description: '24 años llevando fruta y verdura a restaurantes. Ahora ayudamos a bares y restaurantes a no pagar de más a sus proveedores.' } } },
       { path: 'sobre-nosaltres', redirectTo: 'sobre-nosotros', pathMatch: 'full' },
+      // Se prerenderiza: es el HTML que nginx devuelve con código 404 (scripts/nginx-404.sh)
+      { path: '404', loadComponent: notFound, data: { seo: NOT_FOUND_SEO } },
     ]
   },
   {
@@ -63,6 +68,7 @@ export const routes: Routes = [
       { path: 'superadmin/users', canActivate: [superAdminGuard], loadComponent: () => import('./pages/superadmin/superadmin-users/superadmin-users').then(m => m.SuperadminUsers) },
     ]
   },
-  // Una dirección desconocida lleva a la portada (antes llevaba al login)
-  { path: '**', redirectTo: '' }
+  // Dirección desconocida: la misma página 404, dentro de la web pública (así hidrata sobre el HTML de /404).
+  // Si añades una ruta, añádela también a la lista de nginx (scripts/nginx-404.sh) o recargarla dará 404.
+  { path: '**', component: PublicLayoutComponent, children: [{ path: '', loadComponent: notFound, data: { seo: NOT_FOUND_SEO } }] }
 ];

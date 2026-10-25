@@ -1042,5 +1042,10 @@
     "TRIAL_ENDED": "La teva prova gratuïta s’ha acabat. Contracta el teu pla (29 €/mes + IVA per local amb el preu de llançament) i continua on ho vas deixar: les teves dades t’esperen.",
     "SUBSCRIPTION_ENDED": "La teva subscripció a PedidAI s’ha acabat. Torna a contractar el teu pla (29 €/mes + IVA per local) i continua on ho vas deixar: les teves dades t’esperen.",
     "ERROR": "No hem pogut obrir la passarel·la de pagament. Torna-ho a provar d’aquí a uns minuts."
+  },
+  "NOT_FOUND": {
+    "TITLE": "Aquesta pàgina no existeix",
+    "BODY": "Potser l’enllaç està mal escrit o la pàgina ja no hi és. Des de la portada trobaràs tot el que fa PedidAI pel teu bar o restaurant.",
+    "HOME": "Anar a la portada"
   }
 }
