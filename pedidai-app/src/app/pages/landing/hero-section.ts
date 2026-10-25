@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, ViewChild, afterNextRender, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { LinesPipe } from '../../shared/lines.pipe';
@@ -8,7 +8,7 @@ import { LinesPipe } from '../../shared/lines.pipe';
   imports: [RouterLink, TranslateModule, LinesPipe],
   templateUrl: './hero-section.html',
 })
-export class HeroSection implements AfterViewInit, OnDestroy {
+export class HeroSection implements OnDestroy {
   @ViewChild('demo') private demo?: ElementRef<HTMLVideoElement>;
 
   /** Desplazamiento del logo de fondo: baja más despacio que el scroll (parallax). */
@@ -27,7 +27,11 @@ export class HeroSection implements AfterViewInit, OnDestroy {
    * El vídeo solo se descarga y reproduce cuando está a la vista (en el móvil queda debajo del botón)
    * y se pausa al salir. Con «reducir movimiento» no arranca solo: se queda el póster y los controles.
    */
-  ngAfterViewInit() {
+  constructor() {
+    afterNextRender(() => this.setupVideo());
+  }
+
+  private setupVideo() {
     const video = this.demo?.nativeElement;
     if (!video) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

@@ -5,6 +5,7 @@ import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { App } from './app';
+import { LanguageService } from './services/language.service';
 import { jwtInterceptor } from './interceptors/jwt-interceptor';
 import { PASSWORD_PATTERN } from './components/auth/register/register';
 import { formatMoney } from './shared/format';
@@ -30,8 +31,9 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('usa castellano o catalán como idioma de la página', () => {
-    TestBed.createComponent(App);
+  it('usa castellano o catalán como idioma de la página', async () => {
+    // El idioma se decide en el arranque (provideAppInitializer), antes de pintar o hidratar
+    await TestBed.inject(LanguageService).init();
     expect(['es', 'ca']).toContain(document.documentElement.lang);
   });
 });

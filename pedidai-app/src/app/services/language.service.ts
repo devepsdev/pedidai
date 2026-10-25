@@ -1,6 +1,8 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { DOCUMENT, Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export type AppLang = 'es' | 'ca';
@@ -15,28 +17,32 @@ export type AppLang = 'es' | 'ca';
 export class LanguageService {
   private translate = inject(TranslateService);
   private http = inject(HttpClient);
+  private document = inject(DOCUMENT);
+  private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly current = signal<AppLang>('es');
 
-  init(): void {
+  /**
+   * Idioma inicial; la promesa se resuelve cuando sus textos están cargados (se llama antes de
+   * pintar o hidratar la app). Al prerenderizar, siempre castellano: es la versión que se indexa.
+   */
+  init(): Promise<void> {
     this.translate.addLangs(['es', 'ca']);
     this.translate.setFallbackLang('es');
+    if (!this.isBrowser) return this.apply('es');
     const fromUrl = this.fromUrl();
-    if (fromUrl) {
-      this.use(fromUrl);
-    } else {
-      this.apply(this.stored() ?? this.fromBrowser());
-    }
+    return fromUrl ? this.use(fromUrl) : this.apply(this.stored() ?? this.fromBrowser());
   }
 
   /** Cambia el idioma; si hay sesión, lo guarda también en la cuenta. */
-  use(lang: AppLang): void {
-    this.apply(lang);
+  use(lang: AppLang): Promise<void> {
+    const ready = this.apply(lang);
     try { localStorage.setItem('lang', lang); } catch { /* almacenamiento no disponible */ }
     if (this.hasSession()) {
       this.http.patch(`${environment.apiUrl}/users/me/language`, null, { params: { language: lang } })
         .subscribe({ error: () => { /* no bloquea el cambio de idioma en pantalla */ } });
     }
+    return ready;
   }
 
   /** Adopta el idioma guardado en la cuenta del usuario al iniciar sesión. */
@@ -47,10 +53,12 @@ export class LanguageService {
     }
   }
 
-  private apply(lang: AppLang): void {
+  private apply(lang: AppLang): Promise<void> {
     this.current.set(lang);
-    this.translate.use(lang);
-    document.documentElement.lang = lang;
+    this.document.documentElement.lang = lang;
+    // lang-gate.js oculta la página mientras llegan los textos en catalán (el HTML prerenderizado está en castellano)
+    const reveal = () => this.document.documentElement.classList.remove('lang-pending');
+    return firstValueFrom(this.translate.use(lang)).then(reveal, reveal);
   }
 
   private stored(): AppLang | null {

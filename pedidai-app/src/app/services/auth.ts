@@ -21,7 +21,7 @@ export class AuthService {
   readonly authenticated$ = this._authenticated$.asObservable();
 
   private hasToken(): boolean {
-    return !!localStorage.getItem('token');
+    return !!this.getToken();
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
@@ -100,13 +100,18 @@ export class AuthService {
     return this.hasToken();
   }
 
+  /** null también al prerenderizar (al compilar no hay localStorage ni sesión). */
   getToken(): string | null {
-    return localStorage.getItem('token');
+    try { return localStorage.getItem('token'); } catch { return null; }
   }
 
   getCurrentUser(): UserResponse | null {
-    const u = localStorage.getItem('user');
-    return u ? JSON.parse(u) : null;
+    try {
+      const u = localStorage.getItem('user');
+      return u ? JSON.parse(u) : null;
+    } catch {
+      return null;
+    }
   }
 
   verifyEmail(token: string): Observable<ApiResponse<unknown>> {

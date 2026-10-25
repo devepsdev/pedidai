@@ -1,4 +1,5 @@
-import { Component, computed, HostListener, inject, signal } from '@angular/core';
+import { Component, computed, HostListener, PLATFORM_ID, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { LanguageService } from '../../services/language.service';
@@ -13,6 +14,7 @@ import { LinesPipe } from '../../shared/lines.pipe';
 })
 export class PublicLayoutComponent {
   private router = inject(Router);
+  private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   isScrolled = signal(false);
   menuOpen = signal(false);
@@ -30,7 +32,7 @@ export class PublicLayoutComponent {
       .subscribe(e => {
         this.isLanding.set(e.urlAfterRedirects === '/');
         this.menuOpen.set(false);
-        setTimeout(() => this.isScrolled.set(window.scrollY > 20), 0);
+        if (this.isBrowser) setTimeout(() => this.isScrolled.set(window.scrollY > 20), 0);
       });
   }
 

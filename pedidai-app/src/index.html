@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PedidAI · Descubre cuánto pagas de más a tus proveedores</title>
   <base href="/">
+  <!-- Visitas en catalán: la página (prerenderizada en castellano) espera a los textos catalanes; ver lang-gate.js -->
+  <script src="lang-gate.js"></script>
+  <style>
+    html.lang-pending body { visibility: hidden; animation: lang-reveal 0s linear 2.5s forwards; }
+    @keyframes lang-reveal { to { visibility: visible; } }
+  </style>
 
   <!-- SEO básico -->
   <meta name="description" content="Para bares y restaurantes: haz una foto a tus albaranes y PedidAI compara lo que te cobra cada proveedor y te avisa de las subidas. Prueba 14 días gratis.">
