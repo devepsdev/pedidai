@@ -29,7 +29,7 @@ En TikTok, «enlace en el perfil» se sustituye por «en pedidai.es» en todos l
 
 ## Vídeos
 
-Al publicar: subir el vídeo directamente en cada app, marcar **contenido generado por IA** (la voz es un clon de la del autor), **sin ubicación** (para no asociar la marca a una ciudad) y, en Instagram, invitar a `deveps.dev` como colaborador. Portada: `<vídeo>-portada.jpg` (sale de `node portadas.mjs`, mismo diseño para los cuatro). En TikTok Studio, además, «Disclose post content → Your brand».
+Al publicar: subir el vídeo directamente en cada app, marcar **contenido generado por IA** (la voz es un clon de la del autor), **sin ubicación** (para no asociar la marca a una ciudad) y, en Instagram, invitar a `devepsdev` (la cuenta personal del autor) como colaborador. Portada: `<vídeo>-portada.jpg` (sale de `node portadas.mjs`, mismo diseño para los cuatro). En TikTok Studio, además, «Disclose post content → Your brand».
 
 ### 1. foto-albaran.mp4
 
