@@ -1,4 +1,5 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, PLATFORM_ID, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -24,6 +25,8 @@ export class CookieBanner {
   adsOn = signal(false);
 
   constructor() {
+    // Al prerenderizar no se pinta: el HTML de las páginas no debe llevar el aviso ya decidido
+    if (!isPlatformBrowser(inject(PLATFORM_ID))) return;
     const consent = this.analytics.getConsent();
     this.visible.set(!consent);
     this.analyticsOn.set(consent?.analytics ?? false);
