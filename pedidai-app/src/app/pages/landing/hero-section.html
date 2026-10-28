@@ -1,7 +1,7 @@
 <section id="home" class="relative bg-gradient-to-br from-slate-900 to-blue-950 overflow-hidden">
   <!-- Logo de fondo con parallax -->
   <div class="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
-    <img src="logo-hero.png?v=2" alt="" class="w-[520px] h-auto opacity-[0.13] select-none"
+    <img src="logo-hero.webp?v=3" alt="" class="w-[520px] h-auto opacity-[0.13] select-none"
       [style.transform]="'translateY(' + logoOffset() + 'px)'" style="will-change: transform;">
   </div>
 
@@ -43,7 +43,9 @@
             poster="video/pedidai-demo-poster.jpg" preload="none" playsinline loop [muted]="muted()"
             [attr.aria-label]="'LANDING.HERO.VIDEO_LABEL' | translate">
             <source src="video/pedidai-demo-1080.mp4" type="video/mp4" media="(min-width: 1024px)">
-            <source src="video/pedidai-demo-720.mp4" type="video/mp4">
+            <source src="video/pedidai-demo-720.mp4" type="video/mp4" media="(min-width: 768px)">
+            <!-- Móvil: 540p (1,8 MB en vez de 4,8), se ve igual en el marco de 280 px -->
+            <source src="video/pedidai-demo-540.mp4" type="video/mp4">
           </video>
         </div>
         <figcaption class="mt-3 flex items-center justify-between gap-3 px-1">
