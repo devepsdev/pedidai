@@ -416,8 +416,43 @@ class InvoiceServiceImplTest {
 
         assertThat(lubina.getUnit()).isEqualTo("kg");
         assertThat(gambon.getUnit()).isEqualTo("kg");
-        assertThat(salmon.getUnit()).isEqualTo("ud");
+        assertThat(salmon.getUnit()).isEqualTo("kg");
         assertThat(cerveza.getUnit()).isEqualTo("caja");
+    }
+
+    @Test
+    @DisplayName("el peix i el marisc sempre van en kg, encara que la quantitat sigui entera; les llaunes no")
+    void fishAlwaysByKilo() {
+        var gallo = read("GALLO SAN PEDRO", "10", "34.90", "349.00", null);
+        gallo.setUnit("ud");
+        gallo.setGenericName("gallo");
+        var rape = read("RAORS FRESCOS", "1", "16.90", "16.90", null);
+        rape.setGenericName("rape");
+        var mejillones = read("MEJILLONES SELECCION", "6", "3.15", "18.90", null);
+        mejillones.setUnit("unidades");
+        var atun = read("Atún claro lata 900 g", "4", "8.20", "32.80", null);
+        atun.setUnit("lata");
+        atun.setGenericName("atún en conserva");
+        var tomate = read("Tomate pera", "15", "1.95", "29.25", null);
+        tomate.setUnit("ud");
+        tomate.setGenericName("tomate pera");
+        var anchoas = read("Anchoas del Cantábrico lata 50 g", "12", "3.40", "40.80", null);
+        anchoas.setUnit("ud");
+        anchoas.setGenericName("anchoa en conserva");
+        var calamarCongelado = read("Calamar congelado bolsa 1 kg", "5", "7.90", "39.50", null);
+        calamarCongelado.setUnit("ud");
+
+        for (var p : List.of(gallo, rape, mejillones, atun, tomate, anchoas, calamarCongelado)) {
+            InvoiceServiceImpl.cleanLine(p);
+        }
+
+        assertThat(gallo.getUnit()).isEqualTo("kg");
+        assertThat(rape.getUnit()).isEqualTo("kg");
+        assertThat(mejillones.getUnit()).isEqualTo("kg");
+        assertThat(atun.getUnit()).isEqualTo("lata");
+        assertThat(tomate.getUnit()).isEqualTo("ud");
+        assertThat(anchoas.getUnit()).isEqualTo("ud");
+        assertThat(calamarCongelado.getUnit()).isEqualTo("ud");
     }
 
     @Test

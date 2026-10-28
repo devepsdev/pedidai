@@ -320,19 +320,46 @@ public class InvoiceServiceImpl implements InvoiceService {
             "(?:\\b(?:lote?|l)\\.?\\s*)?[/-]?\\b\\d{4,}[-/]\\d{4,}\\b|[/-]?\\d{6,}\\b|(?<=\\d,\\d{2})/\\d+\\b",
             Pattern.CASE_INSENSITIVE);
 
+    /** Peix i marisc: a la llotja i a la peixateria es venen sempre per quilo. */
+    private static final Pattern FISH = Pattern.compile("\\b(pescado|pescadilla|marisco|lubina|dorada|gallo|rape|raors"
+            + "|merluza|salmon|atun|bonito|bacalao|boqueron|anchoa|sardina|lenguado|rodaballo|mero|corvina|besugo|caballa"
+            + "|jurel|emperador|pez espada|cabracho|rascacio|sargo|pargo|denton|raya|trucha|calamar|chipiron|sepia|choco"
+            + "|pulpo|gamba|gambon|langostino|cigala|bogavante|langosta|centollo|necora|buey de mar|mejillon|almeja"
+            + "|berberecho|navaja|ostra|vieira|percebe)(e?s)?\\b");
+    /** Peix envasat (conserva, congelat en bossa…): es compta per envàs, no per quilo. */
+    private static final Pattern PACKAGED = Pattern.compile(
+            "\\b(lata|latas|conserva|bote|tarro|frasco|bolsa|pack|paquete|bandeja|caja|congelad[oa]s?)\\b");
+
     /**
      * Neteja una línia llegida abans de comparar-la: treu del nom els lots i dates de traçabilitat (el peix en porta
-     * a cada albarà i, si no, cada entrega seria un producte nou) i passa a kg les quantitats amb decimals en «ud»
-     * («LUBINA 04/06 | 1,100 | 10,30»): un decimal de pes no són unitats, i amb «ud» no es pot comparar amb qui ho
-     * ven per quilo.
+     * a cada albarà i, si no, cada entrega seria un producte nou) i passa a kg el que es ven a pes i ha arribat en
+     * «ud»: el peix i el marisc sempre, i qualsevol quantitat amb decimals («LUBINA 04/06 | 1,100 | 10,30»). Amb «ud»
+     * no es pot comparar amb qui ho ven per quilo. Els envasos (llauna, caixa, safata…) no es toquen.
      */
     static void cleanLine(AiInvoiceDataDTO.ProductData pd) {
         pd.setName(withoutLotCodes(pd.getName()));
+        String unit = ProductNames.unit(pd.getUnit());
+        if (!unit.isEmpty() && !"ud".equals(unit)) {
+            return;
+        }
         BigDecimal q = pd.getQuantity();
-        if (q != null && "ud".equals(ProductNames.unit(pd.getUnit())) && q.stripTrailingZeros().scale() > 0) {
-            log.info("Línia «{}»: {} ud amb decimals, passa a kg", pd.getName(), q);
+        boolean decimals = q != null && q.stripTrailingZeros().scale() > 0;
+        boolean freshFish = (isFish(pd.getGenericName()) || isFish(pd.getName()))
+                && !isPackaged(pd.getGenericName()) && !isPackaged(pd.getName());
+        if (decimals || freshFish) {
+            log.info("Línia «{}»: {} «{}» passa a kg", pd.getName(), q, pd.getUnit());
             pd.setUnit("kg");
         }
+    }
+
+    static boolean isFish(String name) {
+        String c = ProductNames.canonical(name);
+        return c != null && FISH.matcher(c).find();
+    }
+
+    private static boolean isPackaged(String name) {
+        String c = ProductNames.canonical(name);
+        return c != null && PACKAGED.matcher(c).find();
     }
 
     /** «BOQUERON PEQUEÑO 13/10/26» → «BOQUERON PEQUEÑO»; el calibre («04/06», «0,50-1,00») i el format es queden. */
