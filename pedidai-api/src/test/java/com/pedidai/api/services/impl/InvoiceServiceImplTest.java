@@ -456,6 +456,30 @@ class InvoiceServiceImplTest {
     }
 
     @Test
+    @DisplayName("si l'albarà escriu la unitat, es respecta: «ud» són unitats, també en el peix")
+    void unitWrittenInDocumentIsKept() {
+        var dorada = read("DORADA RACION", "12", "4.10", "49.20", null);
+        dorada.setUnit("ud");
+        dorada.setGenericName("dorada");
+        dorada.setUnitInDocument(true);
+        var lubina = read("LUBINA 04/06", "1.100", "10.30", "11.33", null);
+        lubina.setUnit("ud");
+        lubina.setUnitInDocument(true);
+        var gallo = read("GALLO SAN PEDRO", "10", "34.90", "349.00", null);
+        gallo.setUnit("ud");
+        gallo.setGenericName("gallo");
+        gallo.setUnitInDocument(false);
+
+        for (var p : List.of(dorada, lubina, gallo)) {
+            InvoiceServiceImpl.cleanLine(p);
+        }
+
+        assertThat(dorada.getUnit()).isEqualTo("ud");
+        assertThat(lubina.getUnit()).isEqualTo("ud");
+        assertThat(gallo.getUnit()).isEqualTo("kg");
+    }
+
+    @Test
     @DisplayName("només s'accepten JPG, PNG, WebP o PDF reals")
     void rejectsOtherFiles() {
         var html = new MockMultipartFile("image", "albara.png", "image/png", "<html></html>".getBytes());

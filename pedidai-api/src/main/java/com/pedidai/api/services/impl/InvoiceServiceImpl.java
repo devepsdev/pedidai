@@ -332,14 +332,15 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     /**
      * Neteja una línia llegida abans de comparar-la: treu del nom els lots i dates de traçabilitat (el peix en porta
-     * a cada albarà i, si no, cada entrega seria un producte nou) i passa a kg el que es ven a pes i ha arribat en
-     * «ud»: el peix i el marisc sempre, i qualsevol quantitat amb decimals («LUBINA 04/06 | 1,100 | 10,30»). Amb «ud»
-     * no es pot comparar amb qui ho ven per quilo. Els envasos (llauna, caixa, safata…) no es toquen.
+     * a cada albarà i, si no, cada entrega seria un producte nou) i, quan l'albarà no escriu la unitat i la IA ha
+     * posat «ud», passa a kg el que es ven a pes: el peix i el marisc frescos, i qualsevol quantitat amb decimals
+     * («LUBINA 04/06 | 1,100 | 10,30»). Amb «ud» no es pot comparar amb qui ho ven per quilo. Si l'albarà diu «ud»,
+     * són unitats; els envasos (llauna, caixa, safata…) no es toquen.
      */
     static void cleanLine(AiInvoiceDataDTO.ProductData pd) {
         pd.setName(withoutLotCodes(pd.getName()));
         String unit = ProductNames.unit(pd.getUnit());
-        if (!unit.isEmpty() && !"ud".equals(unit)) {
+        if (Boolean.TRUE.equals(pd.getUnitInDocument()) || !unit.isEmpty() && !"ud".equals(unit)) {
             return;
         }
         BigDecimal q = pd.getQuantity();

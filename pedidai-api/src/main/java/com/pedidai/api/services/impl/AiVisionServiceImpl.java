@@ -87,6 +87,7 @@ public class AiVisionServiceImpl implements AiVisionService {
                   "genericName": "nombre genérico del producto",
                   "quantity": 10.0,
                   "unit": "kg",
+                  "unitInDocument": true,
                   "unitPrice": 2.50,
                   "ivaPercent": 10.0,
                   "subtotal": 25.00
@@ -109,9 +110,11 @@ public class AiVisionServiceImpl implements AiVisionService {
             - unit: una de kg, g, l, ml, ud, caja, docena, garrafa, botella, paquete, bandeja, saco, lata, barril. \
               Es la unidad en la que se cuenta la cantidad y a la que corresponde unitPrice: si se venden envases \
               (ej.: "AOVE 5 L", 2 unidades a 32,50) la unidad es el envase (garrafa, botella, caja…), no "l" ni "kg". \
-              El pescado y el marisco frescos van SIEMPRE en kg: se venden por kilos, aunque el documento no ponga \
-              la unidad o la cantidad sea entera. La carne, la fruta y la verdura sueltas, también: una cantidad con \
-              decimales de peso ("1,100", "4,400") son kilos, nunca "ud".
+              Si el documento escribe la unidad, usa esa ("ud" son unidades). Si no la escribe: el pescado y el \
+              marisco frescos van en kg, porque se venden por kilos, aunque la cantidad sea entera; la carne, la \
+              fruta y la verdura sueltas, también, y una cantidad con decimales de peso ("1,100", "4,400") son kilos.
+            - unitInDocument: true si la unidad aparece escrita en la línea o en la cabecera de la columna; false si \
+              no aparece y la has deducido.
             - quantity es el número de la columna de cantidad, NO el formato que aparece en el nombre: en \
               "Cerveza lata 33 cl pack 24 | 3 | 18,50 | 55,50" la cantidad es 3 y la unidad "caja" (18,50 es el precio del pack de 24), no 24 ud; "pack 6", "saco 10 kg" \
               o "caja 12 ud" describen el envase. Comprueba que quantity × unitPrice ≈ subtotal.
@@ -145,8 +148,9 @@ public class AiVisionServiceImpl implements AiVisionService {
             - genericName: SIEMPRE en castellano, minúsculas y singular, sin marca, calibre, formato ni envase. \
               Ejemplos: "TOMÀQUET PERA CAT.1 5KG" → "tomate pera"; "Agua Font Vella 5L garrafa" → "agua mineral".
             - unit: una de kg, g, l, ml, ud, caja, docena, garrafa, botella, paquete, bandeja, saco, lata, barril; \
-              la unidad a la que corresponde unitPrice ("€/kg" → kg; "caja 6 ud" a 12,00 → caja). El pescado y \
-              el marisco frescos van SIEMPRE en kg (se venden por kilos); la carne, la fruta y la verdura sueltas, también.
+              la unidad a la que corresponde unitPrice ("€/kg" → kg; "caja 6 ud" a 12,00 → caja). Si la tarifa no \
+              escribe la unidad, el pescado y el marisco frescos van en kg (se venden por kilos), y la carne, la \
+              fruta y la verdura sueltas, también.
             - unitPrice es el precio por unidad SIN IVA. Si la tarifa indica que los precios llevan el IVA incluido, \
               quítalo. Si hay precios por tramos de cantidad, usa el de la compra más pequeña.
             - Los precios en España usan coma decimal ("1,55" = 1.55).
@@ -172,7 +176,7 @@ public class AiVisionServiceImpl implements AiVisionService {
               "invoice": { "number": "...", "date": "YYYY-MM-DD", "validUntil": "YYYY-MM-DD" },
               "products": [
                 { "name": "nombre tal y como aparece", "genericName": "nombre genérico", "quantity": 10.0, "unit": "kg", \
-            "unitPrice": 2.50, "ivaPercent": 10.0, "subtotal": 25.00 }
+            "unitInDocument": true, "unitPrice": 2.50, "ivaPercent": 10.0, "subtotal": 25.00 }
               ],
               "totals": { "base": 100.00, "iva": 10.00, "total": 110.00 }
             }
@@ -189,10 +193,12 @@ public class AiVisionServiceImpl implements AiVisionService {
               queda ("LUBINA 04/06").
             - unit: una de kg, g, l, ml, ud, caja, docena, garrafa, botella, paquete, bandeja, saco, lata, barril; \
               la unidad a la que corresponde unitPrice: si se venden envases (ej.: "AOVE 5 L", 2 unidades a 32,50) \
-              la unidad es el envase (garrafa, botella, caja…), no "l" ni "kg". El pescado y el marisco frescos van \
-              SIEMPRE en kg: se venden por kilos, aunque el documento no ponga la unidad o la cantidad sea entera. \
-              La carne, la fruta y la verdura sueltas, también: una cantidad con decimales de peso ("1,100", \
-              "4,400") son kilos, nunca "ud".
+              la unidad es el envase (garrafa, botella, caja…), no "l" ni "kg". Si el documento escribe la unidad, \
+              usa esa ("ud" son unidades). Si no la escribe: el pescado y el marisco frescos van en kg, porque se \
+              venden por kilos, aunque la cantidad sea entera; la carne, la fruta y la verdura sueltas, también, y \
+              una cantidad con decimales de peso ("1,100", "4,400") son kilos.
+            - unitInDocument: true si la unidad aparece escrita en la línea o en la cabecera de la columna; false si \
+              no aparece y la has deducido.
             - unitPrice es el precio por unidad SIN IVA y con el descuento aplicado. Los precios en España usan coma \
               decimal ("1,55" = 1.55).
             - No inventes datos: si un campo no aparece, pon null. No incluyas portes, envases retornables, \

@@ -58,6 +58,8 @@ public class AiInvoiceDataDTO {
         private String genericName;
         private BigDecimal quantity;
         private String unit;
+        /** Si la unitat surt escrita a la línia o a la columna; si no, la IA l'ha deduït. */
+        private Boolean unitInDocument;
         private BigDecimal unitPrice;
         private BigDecimal ivaPercent;
         private BigDecimal subtotal;
