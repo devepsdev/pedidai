@@ -382,6 +382,45 @@ class InvoiceServiceImplTest {
     }
 
     @Test
+    @DisplayName("del nom es treuen els lots, dates i codis de traçabilitat, però no el calibre ni el format")
+    void lotCodesRemovedFromName() {
+        assertThat(InvoiceServiceImpl.withoutLotCodes("RAORS FRESCOS 04326-141026")).isEqualTo("RAORS FRESCOS");
+        assertThat(InvoiceServiceImpl.withoutLotCodes("BOQUERON PEQUEÑO 13/10/26")).isEqualTo("BOQUERON PEQUEÑO");
+        assertThat(InvoiceServiceImpl.withoutLotCodes("GALLO SAN PEDRO 0,50-1,00/1214102026")).isEqualTo("GALLO SAN PEDRO 0,50-1,00");
+        assertThat(InvoiceServiceImpl.withoutLotCodes("GALLO SAN PEDRO 0,50-1,00/12")).isEqualTo("GALLO SAN PEDRO 0,50-1,00");
+        assertThat(InvoiceServiceImpl.withoutLotCodes("LUBINA 04/06 L.0441-201026")).isEqualTo("LUBINA 04/06");
+        assertThat(InvoiceServiceImpl.withoutLotCodes("LUBINA 04/06")).isEqualTo("LUBINA 04/06");
+        assertThat(InvoiceServiceImpl.withoutLotCodes("SALMON 4/5")).isEqualTo("SALMON 4/5");
+        assertThat(InvoiceServiceImpl.withoutLotCodes("Cola de gambón pelada 10/20 6X1")).isEqualTo("Cola de gambón pelada 10/20 6X1");
+        assertThat(InvoiceServiceImpl.withoutLotCodes("LUBINA 1,00 / 1,50 Kg.")).isEqualTo("LUBINA 1,00 / 1,50 Kg.");
+        assertThat(InvoiceServiceImpl.withoutLotCodes("Cerveza lata 33 cl pack 24")).isEqualTo("Cerveza lata 33 cl pack 24");
+        assertThat(InvoiceServiceImpl.withoutLotCodes("12345678")).isEqualTo("12345678");
+        assertThat(InvoiceServiceImpl.withoutLotCodes(null)).isNull();
+    }
+
+    @Test
+    @DisplayName("una quantitat amb decimals en «ud» és pes: es passa a kg")
+    void decimalUnitsAreKilos() {
+        var lubina = read("LUBINA 04/06", "1.100", "10.30", "11.33", null);
+        lubina.setUnit("ud");
+        var gambon = read("Cola de gambón pelada 10/20 6X1", "1.750", "22.759", "39.83", null);
+        gambon.setUnit("Ud.");
+        var salmon = read("SALMON 4/5", "10.000", "41.80", "418.00", null);
+        salmon.setUnit("ud");
+        var cerveza = read("Cerveza lata 33 cl pack 24", "1.5", "18.50", "27.75", null);
+        cerveza.setUnit("caja");
+
+        for (var p : List.of(lubina, gambon, salmon, cerveza)) {
+            InvoiceServiceImpl.cleanLine(p);
+        }
+
+        assertThat(lubina.getUnit()).isEqualTo("kg");
+        assertThat(gambon.getUnit()).isEqualTo("kg");
+        assertThat(salmon.getUnit()).isEqualTo("ud");
+        assertThat(cerveza.getUnit()).isEqualTo("caja");
+    }
+
+    @Test
     @DisplayName("només s'accepten JPG, PNG, WebP o PDF reals")
     void rejectsOtherFiles() {
         var html = new MockMultipartFile("image", "albara.png", "image/png", "<html></html>".getBytes());

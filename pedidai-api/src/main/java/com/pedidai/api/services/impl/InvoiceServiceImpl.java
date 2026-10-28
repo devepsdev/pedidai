@@ -31,6 +31,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Albarans, factures i tarifes: lectura amb IA ({@link #scanInvoice}) i confirmació, que desa cada línia
@@ -100,6 +101,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 if (pd.getName() == null || pd.getName().isBlank()) {
                     continue;
                 }
+                cleanLine(pd);
                 if (documentKind == DocumentKind.INVOICE) {
                     reconcileLine(pd);
                 }
@@ -311,6 +313,36 @@ public class InvoiceServiceImpl implements InvoiceService {
             log.info("Línia «{}»: preu {} corregit a {} (import {} / quantitat {})", pd.getName(), p, price, total, q);
             pd.setUnitPrice(price);
         }
+    }
+
+    private static final Pattern LOT_DATE = Pattern.compile("\\b\\d{1,2}[/.-]\\d{1,2}[/.-]\\d{2,4}\\b");
+    private static final Pattern LOT_CODE = Pattern.compile(
+            "(?:\\b(?:lote?|l)\\.?\\s*)?[/-]?\\b\\d{4,}[-/]\\d{4,}\\b|[/-]?\\d{6,}\\b|(?<=\\d,\\d{2})/\\d+\\b",
+            Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Neteja una línia llegida abans de comparar-la: treu del nom els lots i dates de traçabilitat (el peix en porta
+     * a cada albarà i, si no, cada entrega seria un producte nou) i passa a kg les quantitats amb decimals en «ud»
+     * («LUBINA 04/06 | 1,100 | 10,30»): un decimal de pes no són unitats, i amb «ud» no es pot comparar amb qui ho
+     * ven per quilo.
+     */
+    static void cleanLine(AiInvoiceDataDTO.ProductData pd) {
+        pd.setName(withoutLotCodes(pd.getName()));
+        BigDecimal q = pd.getQuantity();
+        if (q != null && "ud".equals(ProductNames.unit(pd.getUnit())) && q.stripTrailingZeros().scale() > 0) {
+            log.info("Línia «{}»: {} ud amb decimals, passa a kg", pd.getName(), q);
+            pd.setUnit("kg");
+        }
+    }
+
+    /** «BOQUERON PEQUEÑO 13/10/26» → «BOQUERON PEQUEÑO»; el calibre («04/06», «0,50-1,00») i el format es queden. */
+    static String withoutLotCodes(String name) {
+        if (name == null) {
+            return null;
+        }
+        String cleaned = LOT_CODE.matcher(LOT_DATE.matcher(name).replaceAll(" ")).replaceAll(" ")
+                .replaceAll("\\s+", " ").replaceAll("[\\s/-]+$", "").trim();
+        return cleaned.isEmpty() ? name.trim() : cleaned;
     }
 
     /**
