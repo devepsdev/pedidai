@@ -1,4 +1,4 @@
-// Grabación de PedidAI en vertical (1080×1920) con el Chrome instalado, para Instagram y TikTok.
+// Grabación de PedidAI en vertical (1080×1920, Instagram y TikTok) o en horizontal (1920×1080, YouTube) con el Chrome instalado.
 // Captura los fotogramas con CDP (Page.startScreencast) a resolución real, quita las esperas marcadas
 // (lecturas de la IA) y monta con ffmpeg el vídeo, la voz de cada escena y los subtítulos.
 import { chromium } from 'playwright-core';
@@ -10,22 +10,24 @@ export const API = 'http://localhost:8085/api';
 export const WEB = 'http://localhost:4200';
 // 360 px de ancho (el de la mayoría de Android) a 3×: la interfaz sale más grande y legible en el móvil
 const ANCHO = 360, ALTO = 640, ESCALA = 1080 / ANCHO;
+// En horizontal, la versión de escritorio de la app a 1280×720 (1,5×: sale a 1920×1080)
+const H_ANCHO = 1280, H_ALTO = 720, H_ESCALA = 1920 / H_ANCHO;
 const FFMPEG_DIR = path.join(process.env.LOCALAPPDATA, 'Microsoft', 'WinGet', 'Packages',
   'Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe', 'ffmpeg-9.0.2-full_build', 'bin');
 const FFMPEG = path.join(FFMPEG_DIR, 'ffmpeg.exe');
 export const espera = ms => new Promise(r => setTimeout(r, ms));
 
-/** Abre Chrome en vertical con la sesión ya iniciada (sin grabar el login) y las cookies decididas. */
-export async function abrir(email, password) {
+/** Abre Chrome (en vertical o en horizontal) con la sesión ya iniciada (sin grabar el login) y las cookies decididas. */
+export async function abrir(email, password, { horizontal = false } = {}) {
   const r = await fetch(`${API}/auth/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }),
   });
   if (!r.ok) throw new Error(`Login de la demo: ${r.status}`);
   const { token, user } = (await r.json()).data;
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
-  const ctx = await browser.newContext({
-    viewport: { width: ANCHO, height: ALTO }, deviceScaleFactor: ESCALA, isMobile: true, hasTouch: true, locale: 'es-ES',
-  });
+  const ctx = await browser.newContext(horizontal
+    ? { viewport: { width: H_ANCHO, height: H_ALTO }, deviceScaleFactor: H_ESCALA, locale: 'es-ES' }
+    : { viewport: { width: ANCHO, height: ALTO }, deviceScaleFactor: ESCALA, isMobile: true, hasTouch: true, locale: 'es-ES' });
   await ctx.addInitScript(({ token, user }) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
@@ -122,8 +124,10 @@ export async function apagar(page, ms = 300) {
 }
 
 export class Grabacion {
-  constructor(page, carpeta, { calidad = 100 } = {}) {
+  constructor(page, carpeta, { calidad = 100, horizontal = false } = {}) {
     this.page = page;
+    this.horizontal = horizontal;
+    [this.ancho, this.alto] = horizontal ? [1920, 1080] : [1080, 1920];
     this.carpeta = carpeta;
     this.calidad = calidad;
     this.dirFotos = path.join(carpeta, 'fotogramas');
@@ -145,7 +149,7 @@ export class Grabacion {
       this.pendientes.push(fs.promises.writeFile(archivo, Buffer.from(data, 'base64')));
       this.cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {});
     });
-    await this.cdp.send('Page.startScreencast', { format: 'jpeg', quality: this.calidad, maxWidth: 1080, maxHeight: 1920 });
+    await this.cdp.send('Page.startScreencast', { format: 'jpeg', quality: this.calidad, maxWidth: this.ancho, maxHeight: this.alto });
     // Fuerza un primer fotograma aunque la página no cambie
     await this.page.evaluate(() => { document.body.style.outline = '0 solid transparent'; });
     await espera(300);
@@ -215,7 +219,7 @@ export class Grabacion {
       inicio: this.final(m.t) + 0.05,
       fin: Math.min(this.final(m.t) + m.duracion + 0.25, i + 1 < this.marcas.length ? this.final(this.marcas[i + 1].t) : 1e9),
       texto: textos[m.id], gancho: i === 0,
-    })), web, subArriba), 'utf8');
+    })), web, subArriba, this.horizontal), 'utf8');
 
     const salida = path.join(this.carpeta, `${nombre}.mp4`);
     const args = ['-y', '-v', 'error', '-framerate', String(FPS), '-i', path.join(dirSec, 's%06d.jpg')];
@@ -227,7 +231,7 @@ export class Grabacion {
     const etiquetas = this.marcas.map((_, i) => `[a${i}]`).join('');
     const assFiltro = ass.replace(/\\/g, '/').replace(/^([A-Za-z]):/, '$1\\:');
     const filtro = [
-      `[0:v]scale=1080:1920:flags=lanczos,subtitles='${assFiltro}'[v]`,
+      `[0:v]scale=${this.ancho}:${this.alto}:flags=lanczos,subtitles='${assFiltro}'[v]`,
       ...mezcla,
       `${etiquetas}amix=inputs=${this.marcas.length}:normalize=0,loudnorm=I=-14:TP=-1.5:LRA=11,apad[a]`,
     ].join(';');
@@ -258,10 +262,13 @@ export function exportarRedes(mp4, { maxMB = 9.5 } = {}) {
  * Letra gruesa con contorno oscuro ancho (estilo de los subtítulos de TikTok). Lo que va entre *asteriscos* sale en amarillo y cada frase entra con un pequeño «pop».
  * Con web=true (vídeo de la home, sin interfaz encima) van más pegados a los bordes; con subArriba=true
  * el resto de frases también va arriba (cuando lo importante pasa abajo, como el cuadro del chat).
+ * En horizontal (YouTube) son más pequeños y todos, también el gancho, van abajo (arriba taparía el título de la pantalla).
  */
-function subtitulos(lineas, web = false, subArriba = false) {
-  const [margenSub, margenGancho] = web ? [150, 170] : [subArriba ? 330 : 360, 230];
-  const alineaSub = subArriba ? 8 : 2;
+function subtitulos(lineas, web = false, subArriba = false, horizontal = false) {
+  const [margenSub, margenGancho] = horizontal ? [46, 70] : web ? [150, 170] : [subArriba ? 330 : 360, 230];
+  const [resX, resY, letraSub, letraGancho, bordeSub, bordeGancho, maxSub, maxGancho] = horizontal
+    ? [1920, 1080, 54, 76, 5, 7, 46, 34] : [1080, 1920, 76, 94, 8, 10, 24, 19];
+  const alineaSub = subArriba ? 8 : 2, alineaGancho = horizontal ? 2 : 8;
   const AMARILLO = '&H0000E5FF&', BLANCO = '&H00FFFFFF&';
   const ts = s => {
     const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, x = (s % 60).toFixed(2).padStart(5, '0');
@@ -282,17 +289,17 @@ function subtitulos(lineas, web = false, subArriba = false) {
   const pop = '{\\fad(120,60)\\fscx88\\fscy88\\t(0,160,\\fscx100\\fscy100)}';
   return `[Script Info]
 ScriptType: v4.00+
-PlayResX: 1080
-PlayResY: 1920
+PlayResX: ${resX}
+PlayResY: ${resY}
 WrapStyle: 2
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Sub,Segoe UI Black,76,&H00FFFFFF,&H00FFFFFF,&H002A170F,&H80000000,900,0,0,0,100,100,0,0,1,8,3,${alineaSub},60,60,${margenSub},1
-Style: Gancho,Segoe UI Black,94,&H00FFFFFF,&H00FFFFFF,&H002A170F,&H80000000,900,0,0,0,100,100,0,0,1,10,4,8,60,60,${margenGancho},1
+Style: Sub,Segoe UI Black,${letraSub},&H00FFFFFF,&H00FFFFFF,&H002A170F,&H80000000,900,0,0,0,100,100,0,0,1,${bordeSub},3,${alineaSub},60,60,${margenSub},1
+Style: Gancho,Segoe UI Black,${letraGancho},&H00FFFFFF,&H00FFFFFF,&H002A170F,&H80000000,900,0,0,0,100,100,0,0,1,${bordeGancho},4,${alineaGancho},60,60,${margenGancho},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-${lineas.filter(l => l.texto).map(l => `Dialogue: 0,${ts(l.inicio)},${ts(l.fin)},${l.gancho ? 'Gancho' : 'Sub'},,0,0,0,,${pop}${partir(l.texto, l.gancho ? 19 : 24)}`).join('\n')}
+${lineas.filter(l => l.texto).map(l => `Dialogue: 0,${ts(l.inicio)},${ts(l.fin)},${l.gancho ? 'Gancho' : 'Sub'},,0,0,0,,${pop}${partir(l.texto, l.gancho ? maxGancho : maxSub)}`).join('\n')}
 `;
 }

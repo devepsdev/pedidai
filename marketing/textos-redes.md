@@ -121,3 +121,31 @@ Prueba PedidAI gratis 14 días, sin tarjeta: https://pedidai.es/?utm_source=yout
 Orden: home y foto-albaran el primer día; después uno al día.
 
 Los cinco vídeos son verticales y duran menos de 60 s, así que YouTube los publica como Shorts: en el feed de Shorts los enlaces de la descripción no se pueden pulsar; el enlace del canal («Prueba gratis 14 días») sí.
+
+### Tutorial horizontal (tutorial.mp4, 1:54)
+
+Vídeo normal (no Short), grabado en la versión de escritorio: `node videos.mjs tutorial`, miniatura con
+`node portadas.mjs tutorial` (`salida/tutorial/tutorial-portada.jpg`, 1280×720).
+
+Título: **Cómo controlar los precios de tus proveedores en un bar o restaurante (tutorial PedidAI)**
+
+```
+Si tienes un bar o un restaurante, seguramente pagas a tus proveedores más de lo que crees: los precios suben poco a poco y nadie tiene tiempo de revisar cada albarán. En este tutorial ves cómo controlarlo con PedidAI en unos minutos al día.
+
+Prueba PedidAI gratis 14 días, sin tarjeta: https://pedidai.es/?utm_source=youtube&utm_medium=social&utm_campaign=tutorial
+
+0:00 Pagar de más sin darte cuenta
+0:14 La pantalla de inicio
+0:26 Subir un albarán (foto o PDF)
+0:46 Revisarlo y compararlo con tu pedido
+1:01 Mis precios: quién te lo vende más barato
+1:14 Tarifas nuevas en Excel o PDF
+1:28 Pedir por chat al más barato
+1:44 Resumen
+
+(Bar y datos de ejemplo)
+
+#hosteleria #restaurantes #proveedores
+```
+
+Los capítulos salen de `salida/tutorial/linea-de-tiempo.json` (YouTube pide que el primero sea 0:00 y que cada uno dure 10 s o más).

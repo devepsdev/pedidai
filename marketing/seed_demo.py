@@ -4,7 +4,7 @@ Borra la demo anterior y la vuelve a crear, así cada toma empieza igual:
     python seed_demo.py [--pedido]   > demo/seed.sql
     docker exec -i pedidai-mysql-local sh -c 'mysql --default-character-set=utf8mb4 -uroot -p"$MYSQL_ROOT_PASSWORD" pedidai_db' < demo/seed.sql
 
---pedido añade un pedido enviado a Distribuciones López hace 2 días (para el vídeo «¿Te han servido lo que pediste?»).
+--pedido añade un pedido enviado a Distribuciones López 2 días antes del albarán de la demo (para el vídeo «¿Te han servido lo que pediste?»).
 --huerta da de alta Huerta del Valle (sin precios) con su email, para que la tarifa se asocie a ella y el chat
 pueda enviarle el pedido (vídeo de la home).
 El hash de la contraseña se lee de demo/hash.txt (fuera del repositorio).
@@ -12,6 +12,10 @@ El hash de la contraseña se lee de demo/hash.txt (fuera del repositorio).
 import sys
 import uuid
 from pathlib import Path
+
+# Fecha del pedido de --pedido: 2 días antes del albarán de demo/albaran-lopez.jpg (18/10/2026). La app solo
+# compara un albarán con los pedidos de las 3 semanas anteriores a su fecha.
+FECHA_PEDIDO = '2026-10-16 10:00:00'
 
 EMAIL = 'demo@pedidai.test'
 HASH = (Path(__file__).parent / 'demo' / 'hash.txt').read_text().strip()
@@ -84,7 +88,7 @@ def main():
     if pedido:
         total =sum(c * p for _, c, p in PEDIDO)
         out.append(f"INSERT INTO orders (uuid, company_id, supplier_id, user_id, name, status, total_amount, created_at) VALUES "
-                   f"({q(uuid.uuid4())}, @c, @s0, @u, 'Pedido semanal', 'SENT', {total:.2f}, NOW() - INTERVAL 2 DAY);")
+                   f"({q(uuid.uuid4())}, @c, @s0, @u, 'Pedido semanal', 'SENT', {total:.2f}, {q(FECHA_PEDIDO)});")
         out.append('SET @o := LAST_INSERT_ID();')
         for clave, cantidad, precio in PEDIDO:
             out.append(f"INSERT INTO order_items (uuid, order_id, product_id, quantity, unit_price, subtotal) VALUES "

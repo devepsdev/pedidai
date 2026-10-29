@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>PedidAI · Miniatura</title>
+<style>
+  /* Miniatura de YouTube (1280×720): frase a la izquierda y la app a la derecha */
+  html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #fff; position: relative;
+    background: radial-gradient(120% 120% at 0% 0%, #1e3a8a 0%, #0f172a 55%, #020617 100%); }
+  .app { position: absolute; left: 600px; top: 90px; width: 820px; height: 461px; border-radius: 22px;
+    background-size: cover; background-position: left top; transform: perspective(1400px) rotateY(-14deg);
+    box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 3px rgba(255,255,255,.12); }
+  .texto { position: absolute; left: 64px; top: 0; bottom: 0; width: 600px;
+    display: flex; flex-direction: column; justify-content: center; }
+  .marca { display: flex; align-items: center; gap: 14px; font-size: 38px; font-weight: 800; letter-spacing: -1px; }
+  .marca img { width: 62px; height: 62px; border-radius: 16px; background: #fff; padding: 6px; box-sizing: border-box; }
+  .marca span { color: #22d3ee; }
+  h1 { margin: 30px 0 0; font-size: 88px; line-height: 1.02; font-weight: 900; letter-spacing: -2.5px;
+    text-shadow: 0 6px 24px rgba(0,0,0,.5); }
+  h1 em { font-style: normal; color: #FACC15; }
+  .linea { margin-top: 30px; display: inline-block; align-self: flex-start; background: #10b981; color: #052e16;
+    font-size: 30px; font-weight: 800; padding: 10px 20px; border-radius: 14px; }
+</style>
+</head>
+<body>
+  <div class="app" id="fondo"></div>
+  <div class="texto">
+    <div class="marca"><img src="logo-perfil.png" alt=""><b>Pedid<span>AI</span></b></div>
+    <h1 id="titulo"></h1>
+    <p class="linea" id="linea"></p>
+  </div>
+  <script>
+    const q = new URLSearchParams(location.search);
+    document.getElementById('fondo').style.backgroundImage = `url("${q.get('fondo')}")`;
+    document.getElementById('linea').textContent = q.get('linea') || '';
+    // *texto* = resaltado en amarillo; | = salto de línea
+    document.getElementById('titulo').innerHTML = (q.get('titulo') || '')
+      .replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+      .replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/\|/g, '<br>');
+  </script>
+</body>
+</html>

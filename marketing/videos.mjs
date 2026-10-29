@@ -1,5 +1,5 @@
 // Graba los vídeos promocionales sobre la copia local de PedidAI con la cuenta demo «Bar La Plaza».
-//   node videos.mjs foto-albaran      (o tarifa, pedido, chat, home)
+//   node videos.mjs foto-albaran      (o tarifa, pedido, chat, home; tutorial es el horizontal para YouTube)
 // Antes: voz generada con locutar.py y datos de la demo cargados con seed_demo.py (--pedido para «pedido»).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -270,6 +270,121 @@ const VIDEOS = {
       await g.escena('cta', d.cta, async () => { await page.goto(OUTRO); });
     },
   },
+  // Tutorial horizontal para YouTube (versión de escritorio): inicio, albarán, pedido, precios, tarifa y chat
+  tutorial: {
+    pedido: true,
+    huerta: true,
+    horizontal: true,
+    async grabar(page, g, d) {
+      const tarjeta = t => t.locator('xpath=ancestor::*[contains(@class,"rounded")][1]');
+      await g.escena('intro', d.intro, async () => {
+        await espera(9000);
+        await resaltar(page, tarjeta(page.getByText(/Has pagado unos/).first()));
+        await espera(2500);
+        await apagar(page);
+      });
+      await g.escena('inicio', d.inicio, async () => {
+        await espera(1500);
+        await resaltar(page, tarjeta(page.getByText(/Has pagado unos/).first()));
+        await espera(2600);
+        await resaltar(page, tarjeta(page.getByText('Pedidos del mes')));
+        await espera(1600);
+        await resaltar(page, tarjeta(page.getByText('Gasto total')));
+        await espera(1800);
+        await apagar(page);
+      });
+      await g.escena('subir', d.subir, async () => {
+        await espera(1500);
+        await tocar(page, page.getByRole('link', { name: 'Subir albarán o tarifa' }).first());
+        await page.getByRole('button', { name: /Arrastra aquí/ }).waitFor();
+        await espera(2500);
+        await elegirArchivo(page, 'albaran-lopez.jpg');
+      });
+      await g.escena('lectura', d.lectura, async () => {
+        await tocar(page, page.getByRole('button', { name: 'Leer documento' }));
+        await g.sinGrabar(() => page.getByText('Revisa y corrige').waitFor({ timeout: 180000 }), 1.4);
+        await espera(1500);
+        const subida = page.getByText(/antes \d/).first();
+        await subida.scrollIntoViewIfNeeded();
+        await desplazar(page, 200, 800);
+        await resaltar(page, tarjeta(subida));
+        await espera(2200);
+      });
+      await g.escena('revisar', d.revisar, async () => {
+        await apagar(page);
+        await desplazar(page, 360, 1500);
+      });
+      await g.escena('pedido', d.pedido, async () => {
+        const aviso = page.getByText(/Comparado con tu pedido/);
+        await aviso.scrollIntoViewIfNeeded();
+        await desplazar(page, 120, 600);
+        await espera(300);
+        await resaltar(page, page.locator('[role=status]', { hasText: 'Comparado con tu pedido' }));
+        await espera(3500);
+      });
+      await g.escena('precios', d.precios, async () => {
+        await apagar(page);
+        await guardarYVerPrecios(page, g);
+        await espera(1200);
+        const producto = page.getByText(/El más caro cuesta un/).first();
+        await producto.scrollIntoViewIfNeeded();
+        await desplazar(page, 120, 700);
+        await resaltar(page, tarjeta(producto));
+        await espera(3000);
+        await apagar(page);
+        await desplazar(page, -2000, 900);
+        await resaltar(page, tarjeta(page.getByText(/Pagado de más/i).first()));
+        await espera(2500);
+        await apagar(page);
+      });
+      await g.escena('tarifa', d.tarifa, async () => {
+        await tocar(page, page.getByRole('link', { name: /Subir albarán o tarifa/ }).first());
+        await page.getByRole('button', { name: /Arrastra aquí/ }).waitFor();
+        await espera(1200);
+        await subirYLeer(page, g, 'tarifa-huerta-del-valle.xlsx');
+        await desplazar(page, 420, 1300);
+        await guardarYVerPrecios(page, g);
+        await espera(500);
+        const oferta = page.getByText(/te lo ofrece a/).first();
+        await oferta.scrollIntoViewIfNeeded();
+        await desplazar(page, 120, 600);
+        await resaltar(page, oferta);
+        await espera(2500);
+      });
+      await g.escena('chat', d.chat, async () => {
+        await apagar(page);
+        await tocar(page, page.locator('app-sidebar a[href="/chat"]'));
+        const caja = page.getByRole('textbox');
+        await caja.waitFor();
+        await espera(800);
+        await tocar(page, caja);
+        await caja.pressSequentially('15 kg de tomates, 10 kg de patatas y 2 garrafas de aceite', { delay: 45 });
+        await espera(300);
+      });
+      await g.escena('respuesta', d.respuesta, async () => {
+        await tocar(page, page.getByRole('button', { name: 'Enviar', exact: true }));
+        await espera(1200);
+        await g.sinGrabar(() => page.getByText('Pedido pendiente para').first().waitFor({ timeout: 180000 }), 0.8);
+        await espera(500);
+        const pendiente = page.getByText('Pedido pendiente para').first();
+        await pendiente.scrollIntoViewIfNeeded();
+        await desplazar(page, 160, 700);
+        await resaltar(page, pendiente.locator('xpath=ancestor::div[contains(@class,"rounded-xl")][1]'));
+        await espera(1800);
+        await apagar(page);
+        const boton = page.getByRole('button', { name: 'Enviar al proveedor' }).first();
+        await boton.scrollIntoViewIfNeeded();
+        await espera(300);
+        const b = await boton.boundingBox();
+        await page.evaluate(([x, y]) => window.__tap(x, y), [b.x + b.width / 2, b.y + b.height / 2]);
+      });
+      await g.escena('cierre', d.cierre, async () => {
+        await espera(600);
+        await tocar(page, page.locator('app-sidebar a[href="/dashboard"]'));
+      });
+      await g.escena('cta', d.cta, async () => { await page.goto(OUTRO); });
+    },
+  },
 };
 
 async function main() {
@@ -281,11 +396,11 @@ async function main() {
   const guion = JSON.parse(fs.readFileSync(path.join(RAIZ, 'guiones.json'), 'utf8'))[nombre];
 
   reiniciarDemo(video);
-  const { browser, page } = await abrir(EMAIL, PASSWORD);
+  const { browser, page } = await abrir(EMAIL, PASSWORD, { horizontal: video.horizontal });
   try {
     await page.goto(`${WEB}/dashboard`, { waitUntil: 'networkidle' });
     await espera(1500);
-    const g = new Grabacion(page, carpeta);
+    const g = new Grabacion(page, carpeta, { horizontal: video.horizontal });
     await g.empezar();
     await video.grabar(page, g, durs);
     await g.terminar();
@@ -293,7 +408,7 @@ async function main() {
     const textos = Object.fromEntries(guion.map(e => [e.id, e.texto]));
     const mp4 = g.montar({ nombre, voces, textos, web: video.web, subArriba: video.subArriba });
     console.log('Vídeo:', mp4);
-    if (!video.web) console.log('Para redes:', exportarRedes(mp4));
+    if (!video.web && !video.horizontal) console.log('Para redes:', exportarRedes(mp4));
   } finally {
     await browser.close();
   }

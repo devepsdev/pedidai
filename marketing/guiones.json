@@ -149,5 +149,67 @@
       "voz": "Pruébalo gratis catorce días. Sin tarjeta y sin permanencia.",
       "texto": ""
     }
+  ],
+  "tutorial": [
+    {
+      "id": "intro",
+      "voz": "Si tienes un bar o un restaurante, seguramente pagas a tus proveedores más de lo que crees.\n\nLos precios suben poco a poco, y nadie tiene tiempo de revisar cada albarán.\n\nEn este vídeo te enseño cómo controlarlo en unos minutos al día con PedidAI.",
+      "texto": "Cómo controlar lo que pagas a tus proveedores"
+    },
+    {
+      "id": "inicio",
+      "voz": "Esta es la pantalla de inicio.\n\nArriba ves lo que has pagado de más en los últimos noventa días, los pedidos del mes y el gasto total.\n\nTodo sale de tus albaranes. No tienes que apuntar nada a mano.",
+      "texto": "El inicio: lo que pagas de más, pedidos y gasto"
+    },
+    {
+      "id": "subir",
+      "voz": "Empecemos por lo básico: subir un albarán.\n\nPulsas «Subir albarán o tarifa», y le haces una foto con el móvil, o subes el PDF que te ha mandado el proveedor.",
+      "texto": "1. Sube el albarán: una foto o el PDF"
+    },
+    {
+      "id": "lectura",
+      "voz": "PedidAI lee el documento: el proveedor, la fecha, y cada producto con su cantidad y su precio.\n\nSi un precio ha subido desde el último albarán, te lo marca.",
+      "texto": "Lee cada producto, cantidad y precio, y marca las subidas"
+    },
+    {
+      "id": "revisar",
+      "voz": "Antes de guardar, lo revisas.\n\nSi algo no está bien leído, lo corriges aquí mismo. Es un momento.",
+      "texto": "Lo revisas y corriges antes de guardar"
+    },
+    {
+      "id": "pedido",
+      "voz": "Y si ese albarán corresponde a un pedido que hiciste, lo compara con lo que pediste: lo que falta, lo que te han cobrado más caro, y lo que no habías pedido.\n\nAsí sabes qué reclamar antes de pagar.",
+      "texto": "2. Lo compara con tu pedido: qué reclamar"
+    },
+    {
+      "id": "precios",
+      "voz": "Al guardar, los precios pasan a «Mis precios».\n\nAquí ves, para cada producto, qué te cobra cada proveedor, y quién te lo vende más barato.\n\nY arriba, una estimación de lo que has pagado de más por no comprar al más barato.",
+      "texto": "3. Mis precios: quién te lo vende más barato"
+    },
+    {
+      "id": "tarifa",
+      "voz": "Cuando un proveedor te manda una tarifa nueva, no hace falta revisarla línea a línea.\n\nSúbela tal cual, en Excel o en PDF.\n\nPedidAI lee todos los precios, y te dice qué productos te saldrían más baratos que lo que pagas ahora.",
+      "texto": "4. Tarifas nuevas: súbelas en Excel o PDF"
+    },
+    {
+      "id": "chat",
+      "voz": "Y para pedir, tienes el chat.\n\nEscribes lo que necesitas, como en un WhatsApp: quince kilos de tomates, diez de patatas y dos garrafas de aceite.",
+      "texto": "5. Pide por chat, como en un WhatsApp"
+    },
+    {
+      "id": "respuesta",
+      "voz": "PedidAI busca quién te vende cada cosa más barato, y te prepara un pedido para cada proveedor.\n\nLo revisas, y lo envías por email con un clic.",
+      "texto": "Un pedido por proveedor, al más barato"
+    },
+    {
+      "id": "cierre",
+      "voz": "Resumiendo: foto al albarán, compara precios, y pide al más barato.\n\nDesde el móvil o desde el ordenador.",
+      "texto": "Foto al albarán · Compara precios · Pide al más barato"
+    },
+    {
+      "id": "cta",
+      "voz": "Pruébalo gratis catorce días. Sin tarjeta y sin permanencia.",
+      "texto": ""
+    }
   ]
 }
