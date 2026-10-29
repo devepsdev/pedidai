@@ -389,6 +389,7 @@ class InvoiceServiceImplTest {
         assertThat(InvoiceServiceImpl.withoutLotCodes("GALLO SAN PEDRO 0,50-1,00/1214102026")).isEqualTo("GALLO SAN PEDRO 0,50-1,00");
         assertThat(InvoiceServiceImpl.withoutLotCodes("GALLO SAN PEDRO 0,50-1,00/12")).isEqualTo("GALLO SAN PEDRO 0,50-1,00");
         assertThat(InvoiceServiceImpl.withoutLotCodes("LUBINA 04/06 L.0441-201026")).isEqualTo("LUBINA 04/06");
+        assertThat(InvoiceServiceImpl.withoutLotCodes("NAVAJA 3|Kk6")).isEqualTo("NAVAJA");
         assertThat(InvoiceServiceImpl.withoutLotCodes("LUBINA 04/06")).isEqualTo("LUBINA 04/06");
         assertThat(InvoiceServiceImpl.withoutLotCodes("SALMON 4/5")).isEqualTo("SALMON 4/5");
         assertThat(InvoiceServiceImpl.withoutLotCodes("Cola de gambón pelada 10/20 6X1")).isEqualTo("Cola de gambón pelada 10/20 6X1");
@@ -441,8 +442,13 @@ class InvoiceServiceImplTest {
         anchoas.setGenericName("anchoa en conserva");
         var calamarCongelado = read("Calamar congelado bolsa 1 kg", "5", "7.90", "39.50", null);
         calamarCongelado.setUnit("ud");
+        var anchoasSinLata = read("ANCHOAS CANTÁBRICO 50 G", "24", "3.10", "74.40", null);
+        anchoasSinLata.setUnit("ud");
+        anchoasSinLata.setGenericName("anchoa");
+        var mejillonEscabeche = read("Mejillones en escabeche 115 g", "12", "2.40", "28.80", null);
+        mejillonEscabeche.setUnit("ud");
 
-        for (var p : List.of(gallo, rape, mejillones, atun, tomate, anchoas, calamarCongelado)) {
+        for (var p : List.of(gallo, rape, mejillones, atun, tomate, anchoas, calamarCongelado, anchoasSinLata, mejillonEscabeche)) {
             InvoiceServiceImpl.cleanLine(p);
         }
 
@@ -453,6 +459,89 @@ class InvoiceServiceImplTest {
         assertThat(tomate.getUnit()).isEqualTo("ud");
         assertThat(anchoas.getUnit()).isEqualTo("ud");
         assertThat(calamarCongelado.getUnit()).isEqualTo("ud");
+        assertThat(anchoasSinLata.getUnit()).isEqualTo("ud");
+        assertThat(mejillonEscabeche.getUnit()).isEqualTo("ud");
+    }
+
+    @Test
+    @DisplayName("un pes de bàscula (quantitat amb decimals) no s'arrodoneix a un nombre enter per quadrar l'import")
+    void weighedQuantityIsNotRounded() {
+        var gallo = read("GALLO", "1.850", "18.0909", "36.47", null);
+
+        InvoiceServiceImpl.reconcileLine(gallo);
+
+        assertThat(gallo.getQuantity()).isEqualByComparingTo("1.850");
+    }
+
+    @Test
+    @DisplayName("si l'OCR perd les comes, l'import de la línia supera la base i es divideix fins que quadra")
+    void missingDecimalCommas() {
+        var tomate = read("TOMATE PERA CATA 15", "15", "195", "2925", null);
+        var lechuga = read("LECHUGA ICEBERG", "12", "0.85", "10.20", null);
+        var patata = read("PATATA AGRIA SACO 25 KG", "2", "14.00", "28.00", null);
+        var limon = read("LIMÓN", "5.5", "160", "8.80", null);
+        AiInvoiceDataDTO data = new AiInvoiceDataDTO();
+        data.setProducts(List.of(tomate, lechuga, patata, limon));
+        AiInvoiceDataDTO.TotalsData totals = new AiInvoiceDataDTO.TotalsData();
+        totals.setBase(new BigDecimal("76.25"));
+        data.setTotals(totals);
+
+        InvoiceServiceImpl.fixMissingDecimalCommas(data);
+        data.getProducts().forEach(p -> { InvoiceServiceImpl.cleanLine(p); InvoiceServiceImpl.reconcileLine(p); });
+
+        assertThat(tomate.getSubtotal()).isEqualByComparingTo("29.25");
+        assertThat(tomate.getUnitPrice()).isEqualByComparingTo("1.95");
+        assertThat(tomate.getName()).isEqualTo("TOMATE PERA CATA");
+        assertThat(limon.getUnitPrice()).isEqualByComparingTo("1.60");
+        assertThat(lechuga.getSubtotal()).isEqualByComparingTo("10.20");
+    }
+
+    @Test
+    @DisplayName("un envàs amb pes al nom («SACO 25 KG») es compta per envàs encara que la IA hi posi kg")
+    void packageWithWeightCountsByPackage() {
+        var patata = read("PATATA AGRIA SACO 25 KG", "2", "14.00", "28.00", null);
+        patata.setUnit("kg");
+        var cebolla = read("Cebolla blanca saco 10 kg", "10", "0.96", "9.60", null);
+        cebolla.setUnit("kg");
+        var gambon = read("GAMBÓN ARGENTINO 10/20 CAJA 2 KG", "6", "12.45", "74.70", null);
+        gambon.setUnit("kg");
+        gambon.setGenericName("gambón");
+        var merluza = read("MERLUZA CAJA 10 KG", "10", "12.40", "124.00", null);
+        merluza.setUnit("kg");
+        merluza.setGenericName("merluza");
+        var cafe = read("Café en grano 1 kg", "2", "16.50", "33.00", null);
+        cafe.setUnit("kg");
+        var patataSinPeso = read("PATATAAGRIA SACO", "2", "14.00", "28.00", null);
+        patataSinPeso.setUnit("kg");
+
+        for (var p : List.of(patata, cebolla, gambon, merluza, cafe, patataSinPeso)) {
+            InvoiceServiceImpl.cleanLine(p);
+        }
+
+        assertThat(patata.getUnit()).isEqualTo("saco");
+        assertThat(patata.getQuantity()).isEqualByComparingTo("2");
+        assertThat(cebolla.getUnit()).isEqualTo("saco");
+        assertThat(cebolla.getQuantity()).isEqualByComparingTo("1");
+        assertThat(cebolla.getUnitPrice()).isEqualByComparingTo("9.60");
+        // El peix i el marisc es queden en kg: és com es comparen entre proveïdors
+        assertThat(gambon.getUnit()).isEqualTo("kg");
+        assertThat(merluza.getUnit()).isEqualTo("kg");
+        assertThat(cafe.getUnit()).isEqualTo("kg");
+        assertThat(patataSinPeso.getUnit()).isEqualTo("saco");
+        assertThat(patataSinPeso.getQuantity()).isEqualByComparingTo("2");
+    }
+
+    @Test
+    @DisplayName("la xifra del format no es treu del nom encara que coincideixi amb la quantitat")
+    void packSizeStaysInName() {
+        var cerveza = read("CERVEZA LATA 33 CL PACK 24", "24", "13.20", "316.80", null);
+        var tomate = read("TOMATE RAMA 5", "5", "2.10", "10.50", null);
+
+        InvoiceServiceImpl.cleanLine(cerveza);
+        InvoiceServiceImpl.cleanLine(tomate);
+
+        assertThat(cerveza.getName()).isEqualTo("CERVEZA LATA 33 CL PACK 24");
+        assertThat(tomate.getName()).isEqualTo("TOMATE RAMA");
     }
 
     @Test

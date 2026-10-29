@@ -1,0 +1,664 @@
+{
+ "01-lonja-cajas-kilos.jpg": {
+  "nota": "Columnas Cajas y Kg: la cantidad son los kilos",
+  "lineas": [
+   {
+    "generico": "merluza",
+    "cantidad": 18.5,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 12.4
+   },
+   {
+    "generico": "rape",
+    "cantidad": 7.25,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 15.9
+   },
+   {
+    "generico": "sardina",
+    "cantidad": 21,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 3.2
+   },
+   {
+    "generico": "boquer",
+    "cantidad": 6.8,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 5.1
+   }
+  ]
+ },
+ "02-sin-unidad.jpg": {
+  "nota": "Sin columna de unidad, cantidades enteras y con decimales",
+  "lineas": [
+   {
+    "generico": "calamar",
+    "cantidad": 10,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 14.5
+   },
+   {
+    "generico": "rodaballo",
+    "cantidad": 3.45,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 16.8
+   },
+   {
+    "generico": "gamba",
+    "cantidad": 2,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 38.0
+   },
+   {
+    "generico": "pulpo",
+    "cantidad": 4,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 13.9
+   },
+   {
+    "generico": "perejil",
+    "cantidad": 5,
+    "unidades": [
+     "ud",
+     "paquete"
+    ],
+    "precio": 0.6
+   }
+  ]
+ },
+ "03-unidad-escrita.jpg": {
+  "nota": "Columna de unidad con kg, ud, docena y caja",
+  "lineas": [
+   {
+    "generico": "ostra",
+    "cantidad": 2,
+    "unidades": [
+     "docena"
+    ],
+    "precio": 14.4
+   },
+   {
+    "generico": "lubina",
+    "cantidad": 5.2,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 11.2
+   },
+   {
+    "generico": "navaja",
+    "cantidad": 3,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 19.5
+   },
+   {
+    "generico": "erizo",
+    "cantidad": 30,
+    "unidades": [
+     "ud"
+    ],
+    "precio": 0.9
+   },
+   {
+    "generico": "gamba",
+    "cantidad": 4,
+    "unidades": [
+     "caja"
+    ],
+    "precio": 21.0
+   }
+  ]
+ },
+ "04-raciones.jpg": {
+  "nota": "Pescado de ración por piezas, con la unidad dentro de la cantidad",
+  "lineas": [
+   {
+    "generico": "dorada",
+    "cantidad": 20,
+    "unidades": [
+     "ud"
+    ],
+    "precio": 4.2
+   },
+   {
+    "generico": "lubina",
+    "cantidad": 15,
+    "unidades": [
+     "ud"
+    ],
+    "precio": 4.6
+   },
+   {
+    "generico": "salm",
+    "cantidad": 2,
+    "unidades": [
+     "ud"
+    ],
+    "precio": 52.0
+   },
+   {
+    "generico": "lim",
+    "cantidad": 2,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 1.8
+   }
+  ]
+ },
+ "05-trazabilidad.jpg": {
+  "nota": "Debajo de cada línea, nombre científico, zona FAO y lote: no son productos",
+  "lineas": [
+   {
+    "generico": "merluza",
+    "cantidad": 6.35,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 13.8
+   },
+   {
+    "generico": "besugo",
+    "cantidad": 2.1,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 24.5
+   },
+   {
+    "generico": "caballa",
+    "cantidad": 8,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 2.9
+   },
+   {
+    "generico": "mejill",
+    "cantidad": 10,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 1.95
+   }
+  ]
+ },
+ "06-catalan.jpg": {
+  "nota": "Albarán en catalán",
+  "lineas": [
+   {
+    "generico": "lubina",
+    "cantidad": 3.4,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 11.9
+   },
+   {
+    "generico": "dorada",
+    "cantidad": 2.75,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 9.4
+   },
+   {
+    "generico": "sepia",
+    "cantidad": 4,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 12.6
+   },
+   {
+    "generico": "mejill",
+    "cantidad": 8,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 2.4
+   }
+  ]
+ },
+ "07-piezas-y-peso.jpg": {
+  "nota": "Piezas y peso en columnas distintas: se cobra por kilo",
+  "lineas": [
+   {
+    "generico": "pulpo",
+    "cantidad": 4.25,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 18.9
+   },
+   {
+    "generico": "bogavante",
+    "cantidad": 1.18,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 42.0
+   },
+   {
+    "generico": "centollo",
+    "cantidad": 3.6,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 16.5
+   },
+   {
+    "generico": "langosta",
+    "cantidad": 0.85,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 58.0
+   }
+  ]
+ },
+ "08-congelado-conservas.jpg": {
+  "nota": "Congelado y conservas: se cuentan por envase, con código de artículo",
+  "lineas": [
+   {
+    "generico": "gamb",
+    "cantidad": 3,
+    "unidades": [
+     "caja",
+     "paquete",
+     "ud"
+    ],
+    "precio": 24.9
+   },
+   {
+    "generico": "at",
+    "cantidad": 6,
+    "unidades": [
+     "lata",
+     "ud",
+     "kg"
+    ],
+    "precio": 9.8
+   },
+   {
+    "generico": "anchoa",
+    "cantidad": 24,
+    "unidades": [
+     "lata",
+     "ud"
+    ],
+    "precio": 3.1
+   },
+   {
+    "generico": "langostino",
+    "cantidad": 5,
+    "unidades": [
+     "paquete",
+     "ud",
+     "kg",
+     "bolsa"
+    ],
+    "precio": 11.4
+   },
+   {
+    "generico": "calamar",
+    "cantidad": 8,
+    "unidades": [
+     "paquete",
+     "ud",
+     "kg",
+     "bolsa"
+    ],
+    "precio": 6.9
+   }
+  ]
+ },
+ "09-tique-foto.jpg": {
+  "nota": "Tique estrecho de báscula, girado y algo borroso",
+  "lineas": [
+   {
+    "generico": "sepia",
+    "cantidad": 2.3,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 9.55
+   },
+   {
+    "generico": "gallo",
+    "cantidad": 1.85,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 18.09
+   },
+   {
+    "generico": "almeja",
+    "cantidad": 1,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 25.45
+   },
+   {
+    "generico": "pescadilla",
+    "cantidad": 3.4,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 5.82
+   }
+  ]
+ },
+ "10-factura-descuento.pdf": {
+  "nota": "Factura en PDF con descuento por línea e IVA",
+  "lineas": [
+   {
+    "generico": "mero",
+    "cantidad": 1.95,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 24.7
+   },
+   {
+    "generico": "corvina",
+    "cantidad": 4.3,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 14.2
+   },
+   {
+    "generico": "cigala",
+    "cantidad": 1.5,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 43.2
+   },
+   {
+    "generico": "at",
+    "cantidad": 2.6,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 32.5
+   }
+  ]
+ },
+ "11-carniceria.jpg": {
+  "nota": "Carne con piezas y kilos; hamburguesas por unidad",
+  "lineas": [
+   {
+    "generico": "solomillo",
+    "cantidad": 3.15,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 32.0
+   },
+   {
+    "generico": "chulet",
+    "cantidad": 4.8,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 38.5
+   },
+   {
+    "generico": "pollo",
+    "cantidad": 11.4,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 3.4
+   },
+   {
+    "generico": "hamburguesa",
+    "cantidad": 40,
+    "unidades": [
+     "ud"
+    ],
+    "precio": 0.95
+   }
+  ]
+ },
+ "12-fruteria.jpg": {
+  "nota": "Frutería sin columna de unidad y comas perdidas por el OCR (en verdura sin unidad, kg o ud valen)",
+  "lineas": [
+   {
+    "generico": "tomate",
+    "cantidad": 15,
+    "unidades": [
+     "kg",
+     "ud"
+    ],
+    "precio": 1.95
+   },
+   {
+    "generico": "lechuga",
+    "cantidad": 12,
+    "unidades": [
+     "ud",
+     "kg"
+    ],
+    "precio": 0.85
+   },
+   {
+    "generico": "patata",
+    "cantidad": 2,
+    "unidades": [
+     "saco"
+    ],
+    "precio": 14.0
+   },
+   {
+    "generico": "lim",
+    "cantidad": 5.5,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 1.6
+   }
+  ]
+ },
+ "13-mayorista-mixto.jpg": {
+  "nota": "Mayorista con bebida, aceite, ahumado, congelado y huevos, con columna de unidad",
+  "lineas": [
+   {
+    "generico": "cerveza",
+    "cantidad": 5,
+    "unidades": [
+     "caja"
+    ],
+    "precio": 18.9
+   },
+   {
+    "generico": "aceite",
+    "cantidad": 3,
+    "unidades": [
+     "garrafa",
+     "botella",
+     "ud"
+    ],
+    "precio": 31.5
+   },
+   {
+    "generico": "salm",
+    "cantidad": 10,
+    "unidades": [
+     "ud",
+     "paquete"
+    ],
+    "precio": 4.9
+   },
+   {
+    "generico": "merluza",
+    "cantidad": 4,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 7.2
+   },
+   {
+    "generico": "huevo",
+    "cantidad": 6,
+    "unidades": [
+     "docena"
+    ],
+    "precio": 2.8
+   }
+  ]
+ },
+ "14-como-iscapalma.jpg": {
+  "nota": "Columna de unidad casi vacía (solo el mejillón dice Kg), como el albarán real de La mejillonera",
+  "lineas": [
+   {
+    "generico": "mejill",
+    "cantidad": 6,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 3.15
+   },
+   {
+    "generico": "salm",
+    "cantidad": 21.3,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 9.8
+   },
+   {
+    "generico": "gallo",
+    "cantidad": 10,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 21.9
+   },
+   {
+    "generico": "dorada",
+    "cantidad": 1,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 9.25
+   },
+   {
+    "generico": "lubina",
+    "cantidad": 1.1,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 10.3
+   }
+  ]
+ },
+ "../../../marketing/demo/factura-bebidas-costa.pdf": {
+  "nota": "Demo: factura de bebidas (cajas, garrafa y kg)",
+  "lineas": [
+   {
+    "generico": "agua",
+    "cantidad": 6,
+    "unidades": [
+     "caja",
+     "paquete"
+    ],
+    "precio": 2.75
+   },
+   {
+    "generico": "refresco",
+    "cantidad": 2,
+    "unidades": [
+     "caja",
+     "paquete"
+    ],
+    "precio": 13.2
+   },
+   {
+    "generico": "caf",
+    "cantidad": 2,
+    "unidades": [
+     "kg",
+     "paquete"
+    ],
+    "precio": 16.5
+   },
+   {
+    "generico": "aceite",
+    "cantidad": 1,
+    "unidades": [
+     "garrafa",
+     "botella"
+    ],
+    "precio": 29.9
+   }
+  ]
+ },
+ "../../../marketing/demo/albaran-lopez.jpg": {
+  "nota": "Demo: albarán de verdura con la cantidad junto a la descripción",
+  "lineas": [
+   {
+    "generico": "tomate",
+    "cantidad": 15,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 1.95
+   },
+   {
+    "generico": "lim",
+    "cantidad": 5,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 1.9
+   },
+   {
+    "generico": "cebolla",
+    "cantidad": 1,
+    "unidades": [
+     "saco"
+    ],
+    "precio": 9.6
+   },
+   {
+    "generico": "patata",
+    "cantidad": 20,
+    "unidades": [
+     "kg"
+    ],
+    "precio": 0.79
+   },
+   {
+    "generico": "aceite",
+    "cantidad": 2,
+    "unidades": [
+     "garrafa",
+     "botella"
+    ],
+    "precio": 33.9
+   }
+  ]
+ }
+}

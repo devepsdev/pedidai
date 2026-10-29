@@ -31,7 +31,9 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Albarans, factures i tarifes: lectura amb IA ({@link #scanInvoice}) i confirmació, que desa cada línia
@@ -96,6 +98,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         List<InvoiceProductDTO> lines = new ArrayList<>();
         int increases = 0;
+        if (documentKind == DocumentKind.INVOICE) {
+            fixMissingDecimalCommas(aiData);
+        }
         if (aiData.getProducts() != null) {
             for (AiInvoiceDataDTO.ProductData pd : aiData.getProducts()) {
                 if (pd.getName() == null || pd.getName().isBlank()) {
@@ -306,6 +311,10 @@ public class InvoiceServiceImpl implements InvoiceService {
         BigDecimal impliedQty = total.divide(p, 3, RoundingMode.HALF_UP);
         BigDecimal roundQty = impliedQty.setScale(0, RoundingMode.HALF_UP);
         if (roundQty.signum() > 0 && impliedQty.subtract(roundQty).abs().compareTo(LINE_TOLERANCE) <= 0) {
+            if (q.stripTrailingZeros().scale() > 0) {
+                // Un pes de bàscula («1,850 kg») no és un format de paquet: no s'arrodoneix per quadrar un import
+                return;
+            }
             log.info("Línia «{}»: quantitat {} corregida a {} (import {} / preu {})", pd.getName(), q, roundQty, total, p);
             pd.setQuantity(roundQty);
         } else {
@@ -319,16 +328,19 @@ public class InvoiceServiceImpl implements InvoiceService {
     private static final Pattern LOT_CODE = Pattern.compile(
             "(?:\\b(?:lote?|l)\\.?\\s*)?[/-]?\\b\\d{4,}[-/]\\d{4,}\\b|[/-]?\\d{6,}\\b|(?<=\\d,\\d{2})/\\d+\\b",
             Pattern.CASE_INSENSITIVE);
+    /** Un «|» al nom és un tros de la taula que l'OCR hi ha enganxat: «NAVAJA 3|Kk6». */
+    private static final Pattern TABLE_REMAINS = Pattern.compile("\\s*\\d*[.,]?\\d*\\s*\\|.*$");
 
-    /** Peix i marisc: a la llotja i a la peixateria es venen sempre per quilo. */
+    /** Peix i marisc frescos: a la llotja i a la peixateria es venen per quilo (l'anxova és de conserva). */
     private static final Pattern FISH = Pattern.compile("\\b(pescado|pescadilla|marisco|lubina|dorada|gallo|rape|raors"
-            + "|merluza|salmon|atun|bonito|bacalao|boqueron|anchoa|sardina|lenguado|rodaballo|mero|corvina|besugo|caballa"
+            + "|merluza|salmon|atun|bonito|bacalao|boqueron|sardina|lenguado|rodaballo|mero|corvina|besugo|caballa"
             + "|jurel|emperador|pez espada|cabracho|rascacio|sargo|pargo|denton|raya|trucha|calamar|chipiron|sepia|choco"
             + "|pulpo|gamba|gambon|langostino|cigala|bogavante|langosta|centollo|necora|buey de mar|mejillon|almeja"
             + "|berberecho|navaja|ostra|vieira|percebe)(e?s)?\\b");
-    /** Peix envasat (conserva, congelat en bossa…): es compta per envàs, no per quilo. */
+    /** Peix envasat (conserva, congelat en bossa, «115 g»…): es compta per envàs, no per quilo. */
     private static final Pattern PACKAGED = Pattern.compile(
-            "\\b(lata|latas|conserva|bote|tarro|frasco|bolsa|pack|paquete|bandeja|caja|congelad[oa]s?)\\b");
+            "\\b(lata|latas|conserva|bote|tarro|frasco|bolsa|pack|paquete|bandeja|caja|congelad[oa]s?|escabeche)\\b"
+            + "|\\b\\d+ ?(g|gr|grs|ml|cl)\\b");
 
     /**
      * Neteja una línia llegida abans de comparar-la: treu del nom els lots i dates de traçabilitat (el peix en porta
@@ -338,7 +350,8 @@ public class InvoiceServiceImpl implements InvoiceService {
      * són unitats; els envasos (llauna, caixa, safata…) no es toquen.
      */
     static void cleanLine(AiInvoiceDataDTO.ProductData pd) {
-        pd.setName(withoutLotCodes(pd.getName()));
+        pd.setName(withoutTrailingQuantity(withoutLotCodes(pd.getName()), pd.getQuantity()));
+        countByPackage(pd);
         String unit = ProductNames.unit(pd.getUnit());
         if (Boolean.TRUE.equals(pd.getUnitInDocument()) || !unit.isEmpty() && !"ud".equals(unit)) {
             return;
@@ -353,6 +366,49 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
     }
 
+    private static final Pattern PACKAGE_WITH_WEIGHT = Pattern.compile(
+            "\\b(saco|caja|garrafa|bolsa|bandeja|lata|botella|malla)\\s+(\\d+(?:[.,]\\d+)?)\\s*(kg|kgs|l|lt|litros?)\\b",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern PACKAGE_AT_END = Pattern.compile(
+            "\\b(saco|caja|garrafa|bolsa|bandeja|lata|botella|malla)$", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * «PATATA AGRIA SACO 25 KG» (o «PATATA AGRIA SACO», si la IA n'ha tret el pes) es compra per sacs encara que la
+     * IA hi posi kg. Si ha pres els quilos de l'envàs com a
+     * quantitat («saco 10 kg» → 10 kg a 0,96), es torna a 1 sac a 9,60. El peix i el marisc es queden en kg, que és
+     * com es comparen entre proveïdors.
+     */
+    private static void countByPackage(AiInvoiceDataDTO.ProductData pd) {
+        String unit = ProductNames.unit(pd.getUnit());
+        if (pd.getName() == null || !("kg".equals(unit) || "l".equals(unit))
+                || isFish(pd.getGenericName()) || isFish(pd.getName())) {
+            return;
+        }
+        Matcher m = PACKAGE_WITH_WEIGHT.matcher(pd.getName());
+        if (!m.find()) {
+            Matcher atEnd = PACKAGE_AT_END.matcher(pd.getName().trim());
+            if (atEnd.find()) {
+                log.info("Línia «{}»: es compta per {}", pd.getName(), atEnd.group(1));
+                pd.setUnit(ProductNames.unit(atEnd.group(1)));
+            }
+            return;
+        }
+        String pack = ProductNames.unit(m.group(1));
+        BigDecimal size = new BigDecimal(m.group(2).replace(',', '.'));
+        BigDecimal q = pd.getQuantity();
+        if (q != null && size.signum() > 0) {
+            BigDecimal packs = q.divide(size, 3, RoundingMode.HALF_UP);
+            if (packs.compareTo(BigDecimal.ONE) >= 0 && packs.stripTrailingZeros().scale() <= 0) {
+                pd.setQuantity(packs.stripTrailingZeros());
+                if (pd.getUnitPrice() != null) {
+                    pd.setUnitPrice(pd.getUnitPrice().multiply(size));
+                }
+            }
+        }
+        log.info("Línia «{}»: es compta per {} ({} {})", pd.getName(), pack, pd.getQuantity(), pack);
+        pd.setUnit(pack);
+    }
+
     static boolean isFish(String name) {
         String c = ProductNames.canonical(name);
         return c != null && FISH.matcher(c).find();
@@ -363,12 +419,63 @@ public class InvoiceServiceImpl implements InvoiceService {
         return c != null && PACKAGED.matcher(c).find();
     }
 
+    private static final Set<String> FORMAT_WORDS = Set.of("pack", "caja", "cajas", "cj", "x", "de", "saco", "bolsa",
+            "ud", "uds", "lata", "latas", "botella", "botellas", "garrafa", "bandeja");
+
+    /** La IA de vegades enganxa la quantitat al nom («TOMATE PERA 15» amb 15 kg); la del format («PACK 24») es queda. */
+    static String withoutTrailingQuantity(String name, BigDecimal quantity) {
+        if (name == null || quantity == null || quantity.stripTrailingZeros().scale() > 0) {
+            return name;
+        }
+        String[] tokens = name.trim().split("\\s+");
+        if (tokens.length < 3 || !tokens[tokens.length - 1].equals(quantity.stripTrailingZeros().toPlainString())
+                || FORMAT_WORDS.contains(ProductNames.canonical(tokens[tokens.length - 2]))) {
+            return name;
+        }
+        return String.join(" ", Arrays.copyOf(tokens, tokens.length - 1));
+    }
+
+    /**
+     * Quan l'OCR perd les comes decimals («1,95 | 29,25» → «195 | 2925»), l'import de la línia supera la base de tot
+     * l'albarà, cosa impossible. Es divideix l'import (i el preu, si quadraven) per 10, 100 o 1000, el que faci que
+     * la suma de les línies quadri millor amb la base. El preu que quedi malament el corregeix {@link #reconcileLine}.
+     */
+    static void fixMissingDecimalCommas(AiInvoiceDataDTO data) {
+        if (data.getProducts() == null || data.getTotals() == null) {
+            return;
+        }
+        BigDecimal base = data.getTotals().getBase() != null ? data.getTotals().getBase() : data.getTotals().getTotal();
+        if (base == null || base.signum() <= 0) {
+            return;
+        }
+        BigDecimal sum = data.getProducts().stream().map(AiInvoiceDataDTO.ProductData::getSubtotal)
+                .filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        for (AiInvoiceDataDTO.ProductData pd : data.getProducts()) {
+            BigDecimal sub = pd.getSubtotal();
+            if (sub == null || sub.compareTo(base.multiply(new BigDecimal("1.001"))) <= 0) {
+                continue;
+            }
+            BigDecimal others = sum.subtract(sub);
+            BigDecimal divisor = Stream.of(10, 100, 1000).map(BigDecimal::valueOf)
+                    .min(Comparator.comparing(d -> others.add(sub.divide(d, 4, RoundingMode.HALF_UP)).subtract(base).abs()))
+                    .orElseThrow();
+            BigDecimal fixed = sub.divide(divisor, 2, RoundingMode.HALF_UP);
+            BigDecimal q = pd.getQuantity(), p = pd.getUnitPrice();
+            if (q != null && p != null && q.multiply(p).subtract(sub).abs().compareTo(sub.multiply(LINE_TOLERANCE)) <= 0) {
+                pd.setUnitPrice(p.divide(divisor, 4, RoundingMode.HALF_UP));
+            }
+            log.info("Línia «{}»: import {} sense comes, passa a {}", pd.getName(), sub, fixed);
+            pd.setSubtotal(fixed);
+            sum = others.add(fixed);
+        }
+    }
+
     /** «BOQUERON PEQUEÑO 13/10/26» → «BOQUERON PEQUEÑO»; el calibre («04/06», «0,50-1,00») i el format es queden. */
     static String withoutLotCodes(String name) {
         if (name == null) {
             return null;
         }
-        String cleaned = LOT_CODE.matcher(LOT_DATE.matcher(name).replaceAll(" ")).replaceAll(" ")
+        String cleaned = LOT_CODE.matcher(LOT_DATE.matcher(TABLE_REMAINS.matcher(name).replaceAll("")).replaceAll(" ")).replaceAll(" ")
                 .replaceAll("\\s+", " ").replaceAll("[\\s/-]+$", "").trim();
         return cleaned.isEmpty() ? name.trim() : cleaned;
     }

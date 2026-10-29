@@ -103,13 +103,16 @@ public class AiVisionServiceImpl implements AiVisionService {
               "Núm.", "Número", "Factura" o "Albarà núm.". Pon solo el identificador, sin la palabra que lo precede.
             - genericName: SIEMPRE en castellano, minúsculas y singular, sin marca, calibre, formato ni envase. \
               Ejemplos: "TOMÀQUET PERA CAT.1 5KG" → "tomate pera"; "Agua Font Vella 5L garrafa" → "agua mineral"; \
-              "AOVE Carbonell 5L" → "aceite de oliva virgen extra"; "Patata agria saco 25kg" → "patata".
+              "AOVE Carbonell 5L" → "aceite de oliva virgen extra"; "Patata agria saco 25kg" → "patata". \
+              Nunca cambies la especie por otra parecida: cigala, langostino, gamba y gambón son productos distintos \
+              ("CIGALA Nº2" → "cigala"). Si el nombre está en catalán, tradúcelo ("LLOBARRO" → "lubina").
             - name: el nombre del producto tal como aparece, sin la cantidad ni el precio de la línea y sin lotes, \
               fechas ni códigos de trazabilidad ("BOQUERON PEQUEÑO 13/10/26" → "BOQUERON PEQUEÑO"); el calibre se \
               queda ("LUBINA 04/06").
             - unit: una de kg, g, l, ml, ud, caja, docena, garrafa, botella, paquete, bandeja, saco, lata, barril. \
               Es la unidad en la que se cuenta la cantidad y a la que corresponde unitPrice: si se venden envases \
               (ej.: "AOVE 5 L", 2 unidades a 32,50) la unidad es el envase (garrafa, botella, caja…), no "l" ni "kg". \
+              "docena" solo si el documento dice "docena" o "doc"; un pack de 12 o de 24 es "caja". \
               Si el documento escribe la unidad, usa esa ("ud" son unidades). Si no la escribe: el pescado y el \
               marisco frescos van en kg, porque se venden por kilos, aunque la cantidad sea entera; la carne, la \
               fruta y la verdura sueltas, también, y una cantidad con decimales de peso ("1,100", "4,400") son kilos.
@@ -117,7 +120,9 @@ public class AiVisionServiceImpl implements AiVisionService {
               no aparece y la has deducido.
             - quantity es el número de la columna de cantidad, NO el formato que aparece en el nombre: en \
               "Cerveza lata 33 cl pack 24 | 3 | 18,50 | 55,50" la cantidad es 3 y la unidad "caja" (18,50 es el precio del pack de 24), no 24 ud; "pack 6", "saco 10 kg" \
-              o "caja 12 ud" describen el envase. Comprueba que quantity × unitPrice ≈ subtotal.
+              o "caja 12 ud" describen el envase. Comprueba que quantity × unitPrice ≈ subtotal. Si hay una columna \
+              de bultos, cajas o piezas y otra de kilos o peso ("Cajas | Kg | €/Kg"), quantity son los kilos y unit \
+              "kg": "MERLUZA | 2 | 18,500 | 12,40 | 229,40" → quantity 18.5, unitPrice 12.40.
             - unitPrice es el precio por unidad SIN IVA y con el descuento aplicado. Si solo aparece el importe de la \
               línea, calcula unitPrice = importe / cantidad. Si el documento no tiene precios (albarán sin valorar), \
               pon unitPrice a null.
@@ -146,7 +151,8 @@ public class AiVisionServiceImpl implements AiVisionService {
               "validesa"); si solo dice un plazo ("válido 30 días"), súmalo a la fecha. Si no aparece, null.
             - Un producto por cada artículo con precio. No incluyas categorías, encabezados, portes ni condiciones.
             - genericName: SIEMPRE en castellano, minúsculas y singular, sin marca, calibre, formato ni envase. \
-              Ejemplos: "TOMÀQUET PERA CAT.1 5KG" → "tomate pera"; "Agua Font Vella 5L garrafa" → "agua mineral".
+              Ejemplos: "TOMÀQUET PERA CAT.1 5KG" → "tomate pera"; "Agua Font Vella 5L garrafa" → "agua mineral". \
+              Nunca cambies la especie por otra parecida: cigala, langostino, gamba y gambón son productos distintos.
             - unit: una de kg, g, l, ml, ud, caja, docena, garrafa, botella, paquete, bandeja, saco, lata, barril; \
               la unidad a la que corresponde unitPrice ("€/kg" → kg; "caja 6 ud" a 12,00 → caja). Si la tarifa no \
               escribe la unidad, el pescado y el marisco frescos van en kg (se venden por kilos), y la carne, la \
@@ -187,13 +193,16 @@ public class AiVisionServiceImpl implements AiVisionService {
             - invoice.number: identificador del documento, sin la palabra que lo precede ("Albarán nº A-1234" → "A-1234").
             - genericName: SIEMPRE en castellano, minúsculas y singular, sin marca, calibre, formato ni envase. \
               Ejemplos: "TOMÀQUET PERA CAT.1 5KG" → "tomate pera"; "Agua Font Vella 5L garrafa" → "agua mineral"; \
-              "AOVE Carbonell 5L" → "aceite de oliva virgen extra"; "Patata agria saco 25kg" → "patata".
+              "AOVE Carbonell 5L" → "aceite de oliva virgen extra"; "Patata agria saco 25kg" → "patata". \
+              Nunca cambies la especie por otra parecida: cigala, langostino, gamba y gambón son productos distintos \
+              ("CIGALA Nº2" → "cigala"). Si el nombre está en catalán, tradúcelo ("LLOBARRO" → "lubina").
             - name: el nombre del producto tal como aparece, sin la cantidad ni el precio de la línea y sin lotes, \
               fechas ni códigos de trazabilidad ("BOQUERON PEQUEÑO 13/10/26" → "BOQUERON PEQUEÑO"); el calibre se \
               queda ("LUBINA 04/06").
             - unit: una de kg, g, l, ml, ud, caja, docena, garrafa, botella, paquete, bandeja, saco, lata, barril; \
               la unidad a la que corresponde unitPrice: si se venden envases (ej.: "AOVE 5 L", 2 unidades a 32,50) \
-              la unidad es el envase (garrafa, botella, caja…), no "l" ni "kg". Si el documento escribe la unidad, \
+              la unidad es el envase (garrafa, botella, caja…), no "l" ni "kg". "docena" solo si el documento dice \
+              "docena" o "doc"; un pack de 12 o de 24 es "caja". Si el documento escribe la unidad, \
               usa esa ("ud" son unidades). Si no la escribe: el pescado y el marisco frescos van en kg, porque se \
               venden por kilos, aunque la cantidad sea entera; la carne, la fruta y la verdura sueltas, también, y \
               una cantidad con decimales de peso ("1,100", "4,400") son kilos.
@@ -207,7 +216,9 @@ public class AiVisionServiceImpl implements AiVisionService {
             Si es INVOICE:
             - quantity es la cantidad servida: el número de la columna de cantidad, NO el formato que aparece en el \
               nombre ("Cerveza lata 33 cl pack 24 | 3 | 18,50 | 55,50" → quantity 3 y unit "caja", porque 18,50 es el precio del pack de 24; "pack 6" o "saco 10 kg" \
-              describen el envase). Comprueba que quantity × unitPrice ≈ subtotal (el importe de la línea).
+              describen el envase). Comprueba que quantity × unitPrice ≈ subtotal (el importe de la línea). Si hay \
+              una columna de bultos, cajas o piezas y otra de kilos o peso ("Cajas | Kg | €/Kg"), quantity son los \
+              kilos y unit "kg": "MERLUZA | 2 | 18,500 | 12,40 | 229,40" → quantity 18.5, unitPrice 12.40.
             - Si solo aparece el importe de la línea, calcula unitPrice = importe / cantidad. Si no tiene precios \
               (albarán sin valorar), unitPrice null. invoice.validUntil null.
             Si es PRICE_LIST:
@@ -255,6 +266,7 @@ public class AiVisionServiceImpl implements AiVisionService {
             text = text.substring(0, maxChars);
         }
         log.debug("Text del document: {} caràcters", text.length());
+        log.trace("Text del document:\n{}", text);
 
         String prompt = switch (requested) {
             case PRICE_LIST -> PRICE_LIST_PROMPT;
@@ -274,11 +286,112 @@ public class AiVisionServiceImpl implements AiVisionService {
             data.getInvoice().setValidUntil(null);
         }
         fillMissingUnitPrices(data);
+        markUnitsWritten(data, text);
         cleanSupplierName(data);
         if (detected == DocumentKind.INVOICE) {
             fillMissingDocumentNumber(data, text);
         }
         return data;
+    }
+
+    private static final Pattern UNIT_WORD = Pattern.compile("\\b(kg|kgs|kilo|kilos|gr|grs|ud|uds|u|un|und|unid"
+            + "|unidad|unidades|unitat|unitats|pz|pza|pzas|pieza|piezas|cj|caja|cajas|caixa|caixes|doc|docena|docenas"
+            + "|lata|latas|bolsa|bolsas|bandeja|bandejas|paquete|paquetes|garrafa|garrafas|botella|botellas|saco|sacos)\\b");
+    private static final Pattern TRAILING_QUANTITY = Pattern.compile("\\s+(\\d+(?:[.,]\\d+)?)\\s*([\\p{L}]+)\\.?$");
+    /** «saco 10 kg», «caja 2 kg», «pack 24 ud»: la xifra és la mida de l'envàs, no la quantitat comprada. */
+    private static final Pattern PACKAGE_BEFORE = Pattern.compile(
+            "(?i)\\b(saco|caja|garrafa|bolsa|bandeja|lata|botella|malla|pack|paquete)$");
+
+    /**
+     * Decideix si la unitat de cada línia surt escrita al document, sense refiar-se del que diu la IA (diu que sí
+     * encara que no hi sigui): ho és si a la línia del producte, tret del nom, es llegeix una unitat («20 uds»,
+     * «5,200 | KG», o «2,300 kg x 10,50» a la línia següent d'un tiquet). Una columna «Ud.» a la capçalera no n'hi ha
+     * prou: si a la línia no es llegeix (l'OCR ha fet «3|Kk6» de «3 | KG»), la unitat no hi és.
+     * Si no es troba la línia, es deixa el que ha dit la IA.
+     */
+    static void markUnitsWritten(AiInvoiceDataDTO data, String text) {
+        if (data.getProducts() == null || text == null) {
+            return;
+        }
+        List<String> raw = text.lines().toList();
+        List<String> lines = raw.stream().map(ProductNames::canonical).map(l -> l == null ? "" : l).toList();
+        for (AiInvoiceDataDTO.ProductData p : data.getProducts()) {
+            // L'OCR enganxa la cel·la de quantitat a la descripció i la IA la deixa al nom: «Tomate pera 15 kg»
+            Matcher glued = p.getName() != null ? TRAILING_QUANTITY.matcher(p.getName()) : null;
+            if (glued != null && glued.find() && p.getQuantity() != null
+                    && new BigDecimal(glued.group(1).replace(',', '.')).compareTo(p.getQuantity()) == 0
+                    && UNIT_WORD.matcher(ProductNames.canonical(glued.group(2))).matches()
+                    && !PACKAGE_BEFORE.matcher(p.getName().substring(0, glued.start())).find()) {
+                p.setName(p.getName().substring(0, glued.start()).trim());
+                p.setUnitInDocument(true);
+                continue;
+            }
+            String name = ProductNames.canonical(p.getName());
+            if (name == null) {
+                continue;
+            }
+            for (int i = 0; i < lines.size(); i++) {
+                int at = lines.get(i).indexOf(name);
+                if (at < 0) {
+                    continue;
+                }
+                String rest = (lines.get(i).substring(0, at) + " " + lines.get(i).substring(at + name.length())).trim();
+                String rawLine = raw.get(i);
+                if (!rest.matches(".*\\d.*") && i + 1 < lines.size()) {
+                    rest = lines.get(i + 1);
+                    rawLine = raw.get(i + 1);
+                }
+                p.setUnitInDocument(UNIT_WORD.matcher(rest).find());
+                quantityFromLine(p, rawLine);
+                break;
+            }
+        }
+    }
+
+    private static final Pattern NUMBER = Pattern.compile("(?<![\\d.,])\\d+(?:[.,]\\d+)*");
+
+    /**
+     * Comprova la quantitat de la IA amb la mateixa línia del document: hi busca, començant per la dreta, tres
+     * nombres seguits que quadrin (quantitat × preu = import). Si la IA ha posat una altra quantitat (sovint la
+     * mida de l'envàs del nom: «SACO 25 KG | 2 | 14,00 | 28,00» llegit com 25 kg), mana la línia. Si ja coincideix,
+     * no es toca res: el preu sense IVA que calcula la IA en un tiquet amb IVA inclòs es queda.
+     */
+    static void quantityFromLine(AiInvoiceDataDTO.ProductData p, String rawLine) {
+        if (p.getQuantity() == null || rawLine == null) {
+            return;
+        }
+        List<BigDecimal> n = NUMBER.matcher(rawLine).results().map(r -> spanishNumber(r.group()))
+                .filter(java.util.Objects::nonNull).toList();
+        for (int i = n.size() - 3; i >= 0; i--) {
+            BigDecimal a = n.get(i), b = n.get(i + 1), c = n.get(i + 2);
+            if (a.signum() <= 0 || b.signum() <= 0 || c.signum() <= 0) {
+                continue;
+            }
+            BigDecimal tolerance = c.multiply(new BigDecimal("0.01")).max(new BigDecimal("0.02"));
+            if (a.multiply(b).subtract(c).abs().compareTo(tolerance) > 0) {
+                continue;
+            }
+            if (a.compareTo(p.getQuantity()) != 0) {
+                log.info("Línia «{}»: quantitat {} de la IA canviada per {} × {} = {} de la línia",
+                        p.getName(), p.getQuantity(), a, b, c);
+                p.setQuantity(a);
+                p.setUnitPrice(b);
+                p.setSubtotal(c);
+            }
+            return;
+        }
+    }
+
+    /** «1.234,50» → 1234.50; «18,500» → 18.5; «33.76» → 33.76 (l'OCR de vegades canvia la coma per un punt). */
+    private static BigDecimal spanishNumber(String s) {
+        try {
+            if (s.contains(",")) {
+                return new BigDecimal(s.replace(".", "").replace(',', '.'));
+            }
+            return s.chars().filter(ch -> ch == '.').count() > 1 ? new BigDecimal(s.replace(".", "")) : new BigDecimal(s);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
@@ -477,6 +590,7 @@ public class AiVisionServiceImpl implements AiVisionService {
             if (content.startsWith("```")) {
                 content = content.replaceAll("(?s)^```[a-zA-Z]*\\s*", "").replaceAll("\\s*```$", "").trim();
             }
+            log.debug("Resposta estructurada de la IA: {}", content);
             return objectMapper.readValue(content, AiInvoiceDataDTO.class);
 
         } catch (Exception e) {
