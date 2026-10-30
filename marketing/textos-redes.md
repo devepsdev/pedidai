@@ -149,3 +149,45 @@ Prueba PedidAI gratis 14 días, sin tarjeta: https://pedidai.es/?utm_source=yout
 ```
 
 Los capítulos salen de `salida/tutorial/linea-de-tiempo.json` (YouTube pide que el primero sea 0:00 y que cada uno dure 10 s o más).
+
+## LinkedIn (página de empresa)
+
+`linkedin.com/company/pedidai` (id 113206982). Actualizada el 2026-10-30. Sin ubicación ni territorio en los textos.
+El botón personalizado es de Premium: no se usa.
+
+- **Lema:** Foto al albarán, compara precios de proveedores y pide al más barato. Compras sin sorpresas para bares y restaurantes.
+- **Web:** `https://pedidai.es/?utm_source=linkedin&utm_medium=social&utm_campaign=pagina`
+- **Logo:** `logo-perfil.png` · **Portada:** `salida/banner-linkedin.jpg` (`node banner.mjs`)
+- **Especialidades:** Hostelería, Restauración, Compras, Proveedores, Albaranes, Control de costes, Precios de
+  proveedores, Pedidos a proveedores, Inteligencia artificial, Gestión de bares
+
+**Resumen:**
+
+```
+PedidAI ayuda a bares y restaurantes a controlar lo que pagan a sus proveedores.
+
+Haces una foto al albarán (o subes el PDF) y PedidAI lo lee solo. Lo compara con lo que pediste y te avisa si falta algo o si te han cobrado un precio distinto.
+
+Con cada albarán y cada tarifa que recibes, PedidAI sabe qué proveedor te vende cada producto más barato. Cuando necesitas pedir, lo escribes en el chat y PedidAI prepara el pedido al proveedor que mejor te sale.
+
+Sin hojas de cálculo y sin tener que aprender un programa nuevo: todo funciona desde el móvil.
+
+Pruébalo 14 días gratis, sin tarjeta: https://pedidai.es
+```
+
+### Publicación del tutorial (2026-10-30, `tutorial-redes.mp4` con miniatura `tutorial-portada.jpg`)
+
+```
+¿Sabes cuánto pagas de más a tus proveedores?
+
+En un bar o restaurante, los precios cambian cada semana y casi nadie tiene tiempo de revisar albarán por albarán. Por eso hemos hecho un tutorial de 2 minutos con todo el proceso en PedidAI:
+
+📸 Foto al albarán y lo lee solo
+✅ Lo compara con lo que pediste
+💶 Te dice qué proveedor te vende cada producto más barato
+💬 Pides por chat al más barato
+
+Pruébalo 14 días gratis, sin tarjeta 👉 https://pedidai.es/?utm_source=linkedin&utm_medium=social&utm_campaign=tutorial
+
+#hostelería #restauración #bares #restaurantes #proveedores
+```
