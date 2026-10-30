@@ -921,7 +921,10 @@
       "STEP2_TITLE": "Mira quién te cobra de más",
       "STEP2_TEXT": "Comparamos el mismo producto entre tus proveedores, también con los que aún no te sirven.\nTe avisamos de cada subida de precio y de si te sirven algo distinto de lo que pediste.",
       "STEP3_TITLE": "Pide por chat al más barato",
-      "STEP3_TEXT": "Escribe «10 kg de tomates y 5 garrafas de agua».\nTe preparamos el pedido al proveedor más barato y lo envías con un clic."
+      "STEP3_TEXT": "Escribe «10 kg de tomates y 5 garrafas de agua».\nTe preparamos el pedido al proveedor más barato y lo envías con un clic.",
+      "VIDEO_TITLE": "Tutorial de PedidAI en YouTube",
+      "VIDEO_PLAY": "Reproducir el tutorial de PedidAI (2 minutos)",
+      "VIDEO_CAPTION": "Míralo en 2 minutos: albaranes, precios, tarifas y pedidos por chat (bar y datos de ejemplo)."
     },
     "SAVINGS": {
       "TITLE": "Un ejemplo con números",

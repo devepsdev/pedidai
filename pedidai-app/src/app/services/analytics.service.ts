@@ -96,6 +96,13 @@ export class AnalyticsService {
     window.gtag?.('event', 'page_view', { page_path: url, send_to: environment.analytics.gaId });
   }
 
+  /** Evento de GA4 sin parámetros (p. ej. reproducir el tutorial), solo con consentimiento de analítica. */
+  trackEvent(name: string): void {
+    const consent = this.getConsent();
+    if (!this.loaded || !consent?.analytics || !environment.analytics.gaId) return;
+    window.gtag?.('event', name, { send_to: environment.analytics.gaId });
+  }
+
   /** Registro completado: evento de GA4 y conversión de Google Ads (según consentimiento). */
   trackSignUp(): void {
     const consent = this.getConsent();

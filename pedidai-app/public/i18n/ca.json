@@ -921,7 +921,10 @@
       "STEP2_TITLE": "Mira qui et cobra de més",
       "STEP2_TEXT": "Comparem el mateix producte entre els teus proveïdors, també amb els que encara no et serveixen.\nT’avisem de cada pujada de preu i de si et serveixen una cosa diferent del que vas demanar.",
       "STEP3_TITLE": "Demana per xat al més barat",
-      "STEP3_TEXT": "Escriu «10 kg de tomàquets i 5 garrafes d’aigua».\nEt preparem la comanda al proveïdor més barat i l’envies amb un clic."
+      "STEP3_TEXT": "Escriu «10 kg de tomàquets i 5 garrafes d’aigua».\nEt preparem la comanda al proveïdor més barat i l’envies amb un clic.",
+      "VIDEO_TITLE": "Tutorial de PedidAI a YouTube",
+      "VIDEO_PLAY": "Reproduir el tutorial de PedidAI (2 minuts)",
+      "VIDEO_CAPTION": "Mira-ho en 2 minuts: albarans, preus, tarifes i comandes per xat (vídeo en castellà, amb un bar i dades d’exemple)."
     },
     "SAVINGS": {
       "TITLE": "Un exemple amb números",

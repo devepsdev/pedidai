@@ -6,7 +6,7 @@ import { Bilingual, LegalDoc, LegalDocument } from '../legal-doc';
 const CONTENT: Bilingual<LegalDocument> = {
   es: {
     title: 'Política de cookies',
-    updated: 'Última actualización: septiembre de 2026',
+    updated: 'Última actualización: octubre de 2026',
     intro: 'Las cookies y el almacenamiento local son pequeños datos que la web guarda en tu navegador. Usamos los técnicos imprescindibles y, solo si lo aceptas, los de analítica y publicidad de Google.',
     sections: [
       {
@@ -42,6 +42,12 @@ const CONTENT: Bilingual<LegalDocument> = {
         paragraphs: ['Usamos el modo de consentimiento de Google: si no aceptas, no se carga ninguna etiqueta de Google.'],
       },
       {
+        title: 'Vídeo de YouTube (solo si lo reproduces)',
+        paragraphs: [
+          'En la página de inicio hay un vídeo que explica cómo funciona PedidAI, alojado en YouTube (Google Ireland Ltd.). No se carga nada de YouTube hasta que pulsas reproducir, y usamos su modo de privacidad mejorada (youtube-nocookie.com). Al reproducirlo, YouTube puede guardar datos en tu navegador según su propia política de privacidad.',
+        ],
+      },
+      {
         title: 'Cómo cambiar tu decisión',
         paragraphs: [
           'Puedes aceptar, rechazar o elegir por categorías en el aviso que aparece la primera vez, y cambiar de opinión en cualquier momento desde «Configurar cookies», en el pie de página. Si retiras el consentimiento, borramos las cookies de Google de este dominio.',
@@ -56,7 +62,7 @@ const CONTENT: Bilingual<LegalDocument> = {
   },
   ca: {
     title: 'Política de galetes',
-    updated: 'Darrera actualització: setembre de 2026',
+    updated: 'Darrera actualització: octubre de 2026',
     intro: 'Les galetes i l’emmagatzematge local són petites dades que el web desa al teu navegador. Fem servir les tècniques imprescindibles i, només si ho acceptes, les d’analítica i publicitat de Google.',
     sections: [
       {
@@ -90,6 +96,12 @@ const CONTENT: Bilingual<LegalDocument> = {
           ],
         },
         paragraphs: ['Fem servir el mode de consentiment de Google: si no ho acceptes, no es carrega cap etiqueta de Google.'],
+      },
+      {
+        title: 'Vídeo de YouTube (només si el reprodueixes)',
+        paragraphs: [
+          'A la pàgina d’inici hi ha un vídeo que explica com funciona PedidAI, allotjat a YouTube (Google Ireland Ltd.). No es carrega res de YouTube fins que prems reproduir, i fem servir el seu mode de privadesa millorada (youtube-nocookie.com). En reproduir-lo, YouTube pot desar dades al teu navegador segons la seva pròpia política de privadesa.',
+        ],
       },
       {
         title: 'Com canviar la teva decisió',

@@ -1,0 +1,22 @@
+<!-- No se carga nada de YouTube hasta que se pulsa reproducir -->
+<div class="mt-12 lg:max-w-4xl lg:mx-auto">
+  <div class="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 shadow-xl ring-1 ring-slate-900/10">
+    @if (playing()) {
+      <iframe class="absolute inset-0 w-full h-full" [src]="videoUrl" [title]="'LANDING.HOW.VIDEO_TITLE' | translate"
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+        referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    } @else {
+      <button type="button" (click)="play()" class="group absolute inset-0 w-full h-full cursor-pointer"
+        [attr.aria-label]="'LANDING.HOW.VIDEO_PLAY' | translate">
+        <img src="/video/tutorial-poster.webp" alt="" width="1280" height="720" loading="lazy" decoding="async"
+          class="w-full h-full object-cover">
+        <span class="absolute inset-0 flex items-center justify-center">
+          <span class="w-20 h-20 rounded-full bg-red-600 group-hover:bg-red-500 group-hover:scale-105 transition flex items-center justify-center shadow-2xl">
+            <svg class="w-9 h-9 text-white translate-x-0.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.14v13.72L19 12 8 5.14z"/></svg>
+          </span>
+        </span>
+      </button>
+    }
+  </div>
+  <p class="mt-3 text-center text-sm text-gray-500">{{ 'LANDING.HOW.VIDEO_CAPTION' | translate }}</p>
+</div>
