@@ -32,6 +32,18 @@
   html.facebook .linea { font-size: 30px; }
   html.facebook .izq { left: -90px; top: 20px; }
   html.facebook .der { right: -90px; top: 60px; }
+  /* Portada de LinkedIn (2256×382): el logo de la página tapa la esquina de abajo a la izquierda,
+     así que el texto va a la derecha del centro, en una sola columna y sin logo */
+  html.linkedin, html.linkedin body { width: 2256px; height: 382px; }
+  html.linkedin .seguro { left: 640px; width: 1400px; top: 0; height: 382px; justify-content: center; text-align: center; }
+  html.linkedin .logo { display: none; }
+  html.linkedin .texto { align-items: center; gap: 14px; }
+  html.linkedin .marca { font-size: 36px; }
+  html.linkedin h1 { font-size: 58px; }
+  html.linkedin .linea { font-size: 30px; }
+  html.linkedin .lado { width: 300px; height: 533px; }
+  html.linkedin .izq { left: 60px; top: -60px; }
+  html.linkedin .der { right: 40px; top: -40px; }
 </style>
 </head>
 <body>
@@ -47,7 +59,9 @@
   </div>
   <script>
     const q = new URLSearchParams(location.search);
-    if (q.get('formato') === 'facebook') document.documentElement.classList.add('facebook');
+    const formato = q.get('formato');
+    if (formato === 'facebook' || formato === 'linkedin') document.documentElement.classList.add(formato);
+    if (formato === 'linkedin') document.querySelector('h1 br').replaceWith(' ');
     for (const id of ['izq', 'der']) document.getElementById(id).style.backgroundImage = `url("${q.get(id)}")`;
   </script>
 </body>

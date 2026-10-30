@@ -1,4 +1,4 @@
-// Banner del canal de YouTube (2048×1152) y portada de Facebook (1640×624) con fotogramas del vídeo de la home a los lados.
+// Banner del canal de YouTube (2048×1152), portada de Facebook (1640×624) y de LinkedIn (2256×382, el doble de 1128×191) con fotogramas del vídeo de la home a los lados.
 //   node banner.mjs [fotograma izq] [fotograma der]   (por defecto 300 y 700)
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -8,7 +8,7 @@ const RAIZ = path.dirname(fileURLToPath(import.meta.url));
 const [izq = 300, der = 700] = process.argv.slice(2);
 const fotograma = n => pathToFileURL(path.join(RAIZ, 'salida', 'home', 'secuencia', `s${String(n).padStart(6, '0')}.jpg`)).href;
 
-const FORMATOS = { youtube: [2048, 1152], facebook: [1640, 624] };
+const FORMATOS = { youtube: [2048, 1152], facebook: [1640, 624], linkedin: [2256, 382] };
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
