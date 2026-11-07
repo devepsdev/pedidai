@@ -61,17 +61,16 @@ scripts/desplegar.sh web             # tests + build de Angular + copia + cambio
 
 ## Estado (2026-11-07)
 
-- **`main` = GitHub = producción** (`7c9acac`): web desplegada el 2026-10-30 y API el 2026-10-29 (`d238d58`).
+- **`main` = GitHub = producción**: web desplegada el 2026-10-30 y API el 2026-11-07 (`ea10db0`).
+- **Modelos de IA fijados (2026-11-07, desplegado)**: la API usa `mistral-small-2603` (Mistral Small 4; valor por
+  defecto de `ai.model`, el `.env` no tiene `AI_MODEL`) y el asistente `mistral-medium-2604` (Mistral Medium 3.5,
+  orderflow `6b69df9`). Son las versiones a las que apuntaban los alias `-latest` ese día (`GET /v1/models`).
 - **Ramas**: `feat/pagina-404`, `feat/prerender-publicas` y `appmod/java-upgrade-20260927132009` ya están juntas con
   `main` (se pueden borrar). `docs/traspaso` lleva este archivo.
 - **Sin commit**: `docs/google-ads/negativas-2026-11-07.md` (51 negativas aplicadas en la campaña «PedidAI ·
   Búsqueda»; **revisar el efecto hacia el 2026-11-21**) y `.claude/launch.json`.
 - **Pendiente**:
   - Pago con Stripe desplegado pero **desactivado** (faltan las claves en el `.env`): ver `docs/pago-stripe.md`.
-  - Modelo de IA fijado (rama `chore/fijar-version-mistral`, sin desplegar): la API usa `mistral-small-2603`
-    (Mistral Small 4; valor por defecto de `ai.model`, el `.env` no tiene `AI_MODEL`) y el asistente
-    `mistral-medium-2604` (Mistral Medium 3.5). Son las versiones a las que apuntaban los alias `-latest` el
-    2026-11-07 (consultado en `GET /v1/models`).
   - Google Ads: para probar conversiones, desactivar Adblock en pedidai.es (detalles en `../CLAUDE.md`).
 
 ## Decisiones tomadas
