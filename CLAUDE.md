@@ -68,9 +68,10 @@ scripts/desplegar.sh web             # tests + build de Angular + copia + cambio
   Búsqueda»; **revisar el efecto hacia el 2026-11-21**) y `.claude/launch.json`.
 - **Pendiente**:
   - Pago con Stripe desplegado pero **desactivado** (faltan las claves en el `.env`): ver `docs/pago-stripe.md`.
-  - Modelo de IA: la API usa `mistral-small-latest` (valor por defecto de `ai.model`; el `.env` no tiene `AI_MODEL`)
-    y el asistente `mistral-medium-latest`. En deveps.dev se fijó `mistral-small-2603`; **falta decidir** si aquí
-    también se fija una versión.
+  - Modelo de IA fijado (rama `chore/fijar-version-mistral`, sin desplegar): la API usa `mistral-small-2603`
+    (Mistral Small 4; valor por defecto de `ai.model`, el `.env` no tiene `AI_MODEL`) y el asistente
+    `mistral-medium-2604` (Mistral Medium 3.5). Son las versiones a las que apuntaban los alias `-latest` el
+    2026-11-07 (consultado en `GET /v1/models`).
   - Google Ads: para probar conversiones, desactivar Adblock en pedidai.es (detalles en `../CLAUDE.md`).
 
 ## Decisiones tomadas

@@ -82,7 +82,7 @@ Variables de entorno (en producción, en `/opt/apps/pedidai/.env`):
 | `MAIL_USER_PEDIDAI`, `MAIL_PASS_PEDIDAI` | Respaldo | Cuenta de Gmail que se usa si no hay `SMTP_*` |
 | `JWT_SECRET` | Sí | Clave de firma de los tokens |
 | `AI_API_KEY` | Para la IA | Clave de la API de IA (Mistral AI) |
-| `AI_API_URL`, `AI_MODEL` | No | Por defecto `https://api.mistral.ai/v1` y `mistral-small-latest` |
+| `AI_API_URL`, `AI_MODEL` | No | Por defecto `https://api.mistral.ai/v1` y `mistral-small-2603` (Mistral Small 4, versión fija) |
 | `CORS_ALLOWED_ORIGINS` | No | Orígenes permitidos (por defecto los dominios públicos y `localhost:4200`) |
 | `SERVER_ADDRESS` | No | `127.0.0.1` en producción: la API solo escucha en local, detrás de nginx |
 | `N8N_NEW_COMPANY_WEBHOOK` | No | Webhook de n8n para el aviso de registro nuevo (vacío = desactivado) |

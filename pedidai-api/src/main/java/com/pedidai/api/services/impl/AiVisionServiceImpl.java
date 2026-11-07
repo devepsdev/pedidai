@@ -237,7 +237,7 @@ public class AiVisionServiceImpl implements AiVisionService {
             ObjectMapper objectMapper,
             @Value("${ai.api.key:}") String apiKey,
             @Value("${ai.api.url:https://api.mistral.ai/v1}") String apiUrl,
-            @Value("${ai.model:mistral-small-latest}") String model,
+            @Value("${ai.model:mistral-small-2603}") String model,
             @Value("${app.ocr.tesseract-command:tesseract}") String tesseractCommand) {
         this.objectMapper = objectMapper;
         this.model = model;
