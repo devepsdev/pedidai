@@ -46,7 +46,7 @@ en una. Fichas de los perfiles y textos anteriores en `../textos-redes.md`.
 
 | Fecha | Semana | Tema | LinkedIn | Facebook | Instagram | YouTube | TikTok |
 |---|---|---|---|---|---|---|---|
-| 2026-11-11 | 1 | Antes de firmar el albarán, mira 3 cosas | Página + perfil («Un consejo sencillo que se olvida con las prisas del reparto. ¿Cómo lo hacéis en vuestro bar o restaurante?») | Publicada | Publicada (colaborador `devepsdev`) | — | — |
+| 2026-11-11 | 1 | Antes de firmar el albarán, mira 3 cosas | Página + perfil («Un consejo sencillo que se olvida con las prisas del reparto. ¿Cómo lo hacéis en vuestro bar o restaurante?»); primer comentario con el enlace (`utm_campaign=semana-01`) | Publicada | Publicada (colaborador `devepsdev`) | — | — |
 
 ## Semana 1 · Antes de firmar el albarán, mira 3 cosas
 
