@@ -1,12 +1,12 @@
-// Exporta cada semana-*.html de esta carpeta a salida/linkedin/<nombre>.jpg (1080×1350, formato vertical de LinkedIn).
-//   node linkedin/imagenes.mjs [semana-01]   (sin argumento, todas)
+// Exporta cada semana-*.html de esta carpeta a salida/redes/<nombre>.jpg (1080×1350, vertical de LinkedIn, Facebook e Instagram).
+//   node redes/imagenes.mjs [semana-01]   (sin argumento, todas)
 import { chromium } from 'playwright-core';
 import { mkdirSync, readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const aqui = dirname(fileURLToPath(import.meta.url));
-const salida = join(aqui, '..', 'salida', 'linkedin');
+const salida = join(aqui, '..', 'salida', 'redes');
 mkdirSync(salida, { recursive: true });
 
 const filtro = process.argv[2];
