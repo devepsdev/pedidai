@@ -31,7 +31,7 @@ antes de publicar. Se publica desde la página y Enrique la comparte desde su pe
 
 | Fecha | Semana | Tema | Estado |
 |---|---|---|---|
-| 2026-11-11 | 1 | Antes de firmar el albarán, mira 3 cosas | Borrador (`semana-01.html`) |
+| 2026-11-11 | 1 | Antes de firmar el albarán, mira 3 cosas | Publicada en la página y compartida en el perfil de Enrique («Un consejo sencillo que se olvida con las prisas del reparto. ¿Cómo lo hacéis en vuestro bar o restaurante?») |
 
 ## Semana 1 · Antes de firmar el albarán, mira 3 cosas
 
