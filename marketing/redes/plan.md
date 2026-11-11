@@ -46,7 +46,7 @@ en una. Fichas de los perfiles y textos anteriores en `../textos-redes.md`.
 
 | Fecha | Semana | Tema | LinkedIn | Facebook | Instagram | YouTube | TikTok |
 |---|---|---|---|---|---|---|---|
-| 2026-11-11 | 1 | Antes de firmar el albarán, mira 3 cosas | Página + perfil («Un consejo sencillo que se olvida con las prisas del reparto. ¿Cómo lo hacéis en vuestro bar o restaurante?») | Pendiente | Pendiente | — | — |
+| 2026-11-11 | 1 | Antes de firmar el albarán, mira 3 cosas | Página + perfil («Un consejo sencillo que se olvida con las prisas del reparto. ¿Cómo lo hacéis en vuestro bar o restaurante?») | Publicada | Publicada (colaborador `devepsdev`) | — | — |
 
 ## Semana 1 · Antes de firmar el albarán, mira 3 cosas
 
@@ -68,4 +68,34 @@ Si algo no cuadra, anótalo en el albarán antes de firmar. Después es tu palab
 ¿Tú revisas los albaranes al recibirlos o a final de mes?
 
 #hostelería #restauración #bares #restaurantes #proveedores
+```
+
+Facebook (página):
+
+```
+¿Firmas el albarán sin mirarlo? 🙋
+
+Con el repartidor esperando y la cocina en marcha, es lo normal. Pero basta con un minuto para mirar 3 cosas:
+
+1️⃣ Cantidades y unidades: ¿pediste kilos y pone cajas?
+2️⃣ Precios: ¿es el de la última vez?
+3️⃣ Lo que falta o cambia: otra marca, otro calibre o algo que no ha llegado.
+
+Si algo no cuadra, anótalo en el albarán antes de firmar.
+
+¿Cómo lo hacéis vosotros? 👇
+```
+
+Instagram (`@pedidai.es`, colaborador `devepsdev`, sin ubicación):
+
+```
+Antes de firmar el albarán, mira 3 cosas 👀
+
+1️⃣ Cantidades y unidades
+2️⃣ Precios
+3️⃣ Lo que falta o cambia
+
+Si algo no cuadra, anótalo antes de firmar. Guárdalo para el próximo reparto 📌
+
+#hostelería #bares #restaurantes #proveedores #albaranes
 ```
