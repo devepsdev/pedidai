@@ -8,6 +8,8 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 2. **Compara lo que te cobra cada proveedor** por el mismo producto y te avisa cuando te suben un precio.
 3. **Pides por chat** («10 kg de tomates y 5 garrafas de agua»): el asistente prepara el pedido al proveedor más barato y tú lo envías por email con un clic.
 
+![Portada de pedidai.es](docs/capturas/portada.png)
+
 - **Web:** [pedidai.es](https://pedidai.es/)
 - **API (Swagger):** [pedidai.es/swagger-ui.html](https://pedidai.es/swagger-ui.html) (con contraseña: solo para el equipo)
 - **Repositorios:** [devepsdev/pedidai](https://github.com/devepsdev/pedidai) (web, API y base de datos) y [devepsdev/orderflow](https://github.com/devepsdev/orderflow) (asistente de pedidos por chat y automatizaciones con n8n)
@@ -15,6 +17,12 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 **Versión:** 2.4.0 · **Última actualización:** 17 de octubre de 2026
 
 ---
+
+## Capturas
+
+![Cómo funciona: albaranes, comparativa y pedidos por chat](docs/capturas/como-funciona.png)
+
+![Ejemplo de ahorro con números](docs/capturas/ahorro.png)
 
 ## Índice
 
