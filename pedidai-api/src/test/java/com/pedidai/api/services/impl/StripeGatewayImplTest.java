@@ -1,6 +1,6 @@
 package com.pedidai.api.services.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.pedidai.api.exceptions.BadRequestException;
 import com.stripe.net.Webhook;
 import org.junit.jupiter.api.DisplayName;

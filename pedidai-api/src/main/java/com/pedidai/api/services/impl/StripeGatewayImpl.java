@@ -1,8 +1,8 @@
 package com.pedidai.api.services.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.pedidai.api.exceptions.BadRequestException;
 import com.pedidai.api.services.StripeGateway;
 import com.stripe.exception.SignatureVerificationException;
@@ -126,7 +126,7 @@ public class StripeGatewayImpl implements StripeGateway {
             // Comprova la signatura i que l'avís tingui menys de 5 minuts (evita que es reenviï un avís antic)
             Webhook.constructEvent(payload, signatureHeader, webhookSecret);
             return objectMapper.readTree(payload);
-        } catch (SignatureVerificationException | JsonProcessingException e) {
+        } catch (SignatureVerificationException | JacksonException e) {
             log.warn("Stripe: avís rebutjat ({})", e.getMessage());
             throw new BadRequestException("error.billing.invalidSignature");
         }

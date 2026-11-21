@@ -1,7 +1,7 @@
 package com.pedidai.api.services.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.pedidai.api.dto.AiInvoiceDataDTO;
 import com.pedidai.api.services.AiVisionService;
 import lombok.extern.slf4j.Slf4j;

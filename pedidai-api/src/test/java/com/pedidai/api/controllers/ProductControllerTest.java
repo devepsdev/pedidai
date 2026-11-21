@@ -4,7 +4,7 @@ import com.pedidai.api.dto.ProductRequestDTO;
 import com.pedidai.api.dto.ProductResponseDTO;
 import com.pedidai.api.dto.ProductSupplierResponseDTO;
 import com.pedidai.api.services.ProductService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

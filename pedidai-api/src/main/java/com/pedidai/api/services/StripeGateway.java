@@ -1,6 +1,6 @@
 package com.pedidai.api.services;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Crides a Stripe. Separades de la lògica de negoci perquè els tests no depenguin de la xarxa.

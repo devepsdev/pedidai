@@ -1,7 +1,6 @@
 package com.pedidai.api.services.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
 import com.pedidai.api.dto.OpsCompanyDTO;
 import com.pedidai.api.services.OpsService;
 import com.sun.net.httpserver.HttpServer;
@@ -20,7 +19,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("OpsNotifier: avís a n8n de cada registre")
 class OpsNotifierTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private HttpServer server;
 
     @AfterEach

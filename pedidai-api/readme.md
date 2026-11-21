@@ -4,7 +4,7 @@ API de [PedidAI](https://pedidai.es), la aplicación para bares y restaurantes q
 
 | | |
 | --- | --- |
-| **Framework** | Spring Boot 3.5 |
+| **Framework** | Spring Boot 4.1 |
 | **Lenguaje** | Java 25 |
 | **Base de datos** | MySQL 8 (H2 en memoria para los tests) |
 | **Autenticación** | JWT (HS512, 30 días renovables; `app.jwt.expiration-days`) |

@@ -1,6 +1,6 @@
 package com.pedidai.api.services.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.pedidai.api.dto.BillingUrlDTO;
 import com.pedidai.api.dto.LoginRequestDTO;
 import com.pedidai.api.entities.Company;

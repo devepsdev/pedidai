@@ -8,8 +8,7 @@ import com.pedidai.api.dto.UserResponseDTO;
 import com.pedidai.api.entities.Company;
 import com.pedidai.api.services.BillingService;
 import com.pedidai.api.services.CompanyService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,7 +42,6 @@ class CompanyControllerTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
 
         CompanyController companyController = new CompanyController(companyService, billingService);
 
