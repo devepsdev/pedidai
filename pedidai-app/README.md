@@ -136,7 +136,7 @@ En desarrollo, `ng serve` usa `proxy.conf.json` para redirigir `/ai` al asistent
 
 ## Desarrollo
 
-Requisitos: Node.js 22 y npm 10, con la API de PedidAI en `http://localhost:8085` (y, opcionalmente, el asistente en `127.0.0.1:3201`).
+Requisitos: Node.js 24 y npm 11, con la API de PedidAI en `http://localhost:8085` (y, opcionalmente, el asistente en `127.0.0.1:3201`).
 
 ```bash
 cd pedidai-app

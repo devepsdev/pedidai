@@ -129,8 +129,8 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 | Backend | Java 25, Spring Boot 4.1 (Web, Data JPA, Security, Validation, Mail), JJWT, OpenPDF, SpringDoc (Swagger) |
 | Base de datos | MySQL 8 (InnoDB, `utf8mb4`); H2 en memoria para los tests |
 | IA | Tesseract OCR (castellano + catalán) en el servidor; Mistral AI (empresa europea, servidores en la UE) para estructurar albaranes y para el chat. Configurable: cualquier API compatible con OpenAI |
-| Asistente | Node.js 20 + Express 5, en Docker |
-| Automatización | n8n 2 en Docker: emails informativos al equipo (webhook + tarea diaria + SMTP) |
+| Asistente | Node.js 24 + Express 5, en Docker |
+| Automatización | n8n 2.48 en Docker, con el código de los nodos en un contenedor de *runners* aparte: emails informativos al equipo (webhook + tarea diaria + SMTP) |
 | Servidor | VPS Ubuntu, nginx (HTTPS con Let's Encrypt), systemd, ufw |
 
 ---
