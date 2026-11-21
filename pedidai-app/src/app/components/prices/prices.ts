@@ -1,4 +1,11 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PriceService } from '../../services/price';
@@ -10,6 +17,7 @@ import { formatDate, formatMoney, formatNumber } from '../../shared/format';
 @Component({
   selector: 'app-prices',
   imports: [RouterLink, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './prices.html',
 })
 export class Prices implements OnInit {
@@ -37,11 +45,11 @@ export class Prices implements OnInit {
     this.loading.set(true);
     this.error.set('');
     this.priceService.overview(days).subscribe({
-      next: data => {
+      next: (data) => {
         this.overview.set(data);
         this.loading.set(false);
       },
-      error: err => {
+      error: (err) => {
         this.error.set(err?.error?.message || this.translate.instant('PRICES.LOAD_ERROR'));
         this.loading.set(false);
       },
@@ -50,7 +58,10 @@ export class Prices implements OnInit {
 
   /** Abre el chat con el producto ya escrito para pedirlo al más barato. */
   orderCheapest(group: PriceGroup) {
-    const text = this.translate.instant('PRICES.ORDER_PREFILL', { product: group.name.toLowerCase(), unit: group.unit || '' });
+    const text = this.translate.instant('PRICES.ORDER_PREFILL', {
+      product: group.name.toLowerCase(),
+      unit: group.unit || '',
+    });
     this.router.navigate(['/chat'], { queryParams: { q: text } });
   }
 
@@ -66,7 +77,7 @@ export class Prices implements OnInit {
    */
   spreadPercent(group: PriceGroup): number | null {
     if (!group.cheapestPrice || !group.offers.length) return null;
-    const highest = Math.max(...group.offers.map(o => o.latestPrice));
+    const highest = Math.max(...group.offers.map((o) => o.latestPrice));
     return ((highest - group.cheapestPrice) / group.cheapestPrice) * 100;
   }
 
@@ -76,7 +87,7 @@ export class Prices implements OnInit {
    */
   quoteHint(group: PriceGroup): { offer: PriceOffer; paid: PriceOffer; pct: number } | null {
     const offer = group.offers[0];
-    const paid = group.offers.find(o => !o.quoted);
+    const paid = group.offers.find((o) => !o.quoted);
     if (!offer?.quoted || !paid || paid.latestPrice <= offer.latestPrice) return null;
     return { offer, paid, pct: ((paid.latestPrice - offer.latestPrice) / paid.latestPrice) * 100 };
   }

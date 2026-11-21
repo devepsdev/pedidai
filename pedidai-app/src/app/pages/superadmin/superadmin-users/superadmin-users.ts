@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -8,6 +8,7 @@ import { SuperAdminService, UserAdmin, PagedResponse } from '../../../services/s
 @Component({
   selector: 'app-superadmin-users',
   imports: [RouterLink, FormsModule, TranslateModule, DatePipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './superadmin-users.html',
 })
 export class SuperadminUsers implements OnInit {
@@ -25,24 +26,28 @@ export class SuperadminUsers implements OnInit {
   searchValue = '';
   roleFilterValue = '';
 
-  ngOnInit() { this.load(); }
+  ngOnInit() {
+    this.load();
+  }
 
   load() {
     this.loading.set(true);
-    this.svc.getUsers({
-      search: this.search(),
-      role: this.roleFilter(),
-      page: this.currentPage(),
-      size: 20
-    }).subscribe({
-      next: (r: PagedResponse<UserAdmin>) => {
-        this.users.set(r.content);
-        this.totalElements.set(r.totalElements);
-        this.totalPages.set(r.totalPages);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false)
-    });
+    this.svc
+      .getUsers({
+        search: this.search(),
+        role: this.roleFilter(),
+        page: this.currentPage(),
+        size: 20,
+      })
+      .subscribe({
+        next: (r: PagedResponse<UserAdmin>) => {
+          this.users.set(r.content);
+          this.totalElements.set(r.totalElements);
+          this.totalPages.set(r.totalPages);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 
   onSearchChange(val: string) {
@@ -55,13 +60,21 @@ export class SuperadminUsers implements OnInit {
     this.applyFilters();
   }
 
-  applyFilters() { this.currentPage.set(0); this.load(); }
-  goToPage(p: number) { this.currentPage.set(p); this.load(); }
+  applyFilters() {
+    this.currentPage.set(0);
+    this.load();
+  }
+  goToPage(p: number) {
+    this.currentPage.set(p);
+    this.load();
+  }
 
   roleBadge(role: string): string {
-    return role === 'ADMIN' ? 'bg-blue-500/20 text-blue-400' :
-           role === 'SUPER_ADMIN' ? 'bg-amber-500/20 text-amber-400' :
-           'bg-slate-600/50 text-slate-400';
+    return role === 'ADMIN'
+      ? 'bg-blue-500/20 text-blue-400'
+      : role === 'SUPER_ADMIN'
+        ? 'bg-amber-500/20 text-amber-400'
+        : 'bg-slate-600/50 text-slate-400';
   }
 
   pages(): number[] {

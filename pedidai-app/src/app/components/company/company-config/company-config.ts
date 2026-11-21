@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CompanyService } from '../../../services/company';
@@ -9,6 +9,7 @@ import { apiError } from '../../../shared/api-error';
 @Component({
   selector: 'app-company-config',
   imports: [ReactiveFormsModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './company-config.html',
 })
 export class CompanyConfig implements OnInit {
@@ -39,7 +40,9 @@ export class CompanyConfig implements OnInit {
   });
 
   ngOnInit() {
-    this.companyService.getMyPlan().subscribe({ next: plan => this.plan.set(plan), error: () => {} });
+    this.companyService
+      .getMyPlan()
+      .subscribe({ next: (plan) => this.plan.set(plan), error: () => {} });
     this.loading.set(true);
     this.companyService.get().subscribe({
       next: (company) => {
@@ -109,11 +112,11 @@ export class CompanyConfig implements OnInit {
     this.billingError.set('');
     const request = plan.subscriptionStatus ? this.billing.portal() : this.billing.checkout();
     request.subscribe({
-      next: url => window.location.href = url,
-      error: err => {
+      next: (url) => (window.location.href = url),
+      error: (err) => {
         this.billingError.set(apiError(err, this.translate.instant('BILLING.ERROR')));
         this.billingLoading.set(false);
-      }
+      },
     });
   }
 }

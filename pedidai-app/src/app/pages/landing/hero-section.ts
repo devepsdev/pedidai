@@ -1,4 +1,13 @@
-import { Component, ElementRef, HostListener, OnDestroy, ViewChild, afterNextRender, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  ViewChild,
+  afterNextRender,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { LinesPipe } from '../../shared/lines.pipe';
@@ -6,6 +15,7 @@ import { LinesPipe } from '../../shared/lines.pipe';
 @Component({
   selector: 'app-hero-section',
   imports: [RouterLink, TranslateModule, LinesPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './hero-section.html',
 })
 export class HeroSection implements OnDestroy {
@@ -38,10 +48,13 @@ export class HeroSection implements OnDestroy {
       video.controls = true;
       return;
     }
-    this.observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) video.play().catch(() => (video.controls = true));
-      else video.pause();
-    }, { threshold: 0.35 });
+    this.observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) video.play().catch(() => (video.controls = true));
+        else video.pause();
+      },
+      { threshold: 0.35 },
+    );
     this.observer.observe(video);
   }
 

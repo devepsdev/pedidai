@@ -1,4 +1,11 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReportService } from '../../../services/report';
@@ -21,6 +28,7 @@ import { formatDate, formatMoney } from '../../../shared/format';
 @Component({
   selector: 'app-dashboard',
   imports: [RouterLink, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
@@ -73,15 +81,21 @@ export class Dashboard implements OnInit {
       { n: 3, done: p.comparable.length > 0, link: '/prices' },
       { n: 4, done: this.recentOrders().length > 0, link: '/chat' },
     ];
-    const done = steps.filter(s => s.done).length;
-    const current = steps.find(s => !s.done)?.n ?? null;
+    const done = steps.filter((s) => s.done).length;
+    const current = steps.find((s) => !s.done)?.n ?? null;
     return { steps, done, current, noMatch: p.suppliersTracked >= 2 && p.comparable.length === 0 };
   });
   /** Productos que otro proveedor ofrece en su tarifa más baratos de lo que se paga ahora. */
-  cheaperOffers = computed(() => (this.prices()?.comparable ?? []).filter(g => {
-    const cheapest = g.offers[0];
-    return cheapest?.quoted && g.offers.some(o => !o.quoted && o.latestPrice > cheapest.latestPrice);
-  }).length);
+  cheaperOffers = computed(
+    () =>
+      (this.prices()?.comparable ?? []).filter((g) => {
+        const cheapest = g.offers[0];
+        return (
+          cheapest?.quoted &&
+          g.offers.some((o) => !o.quoted && o.latestPrice > cheapest.latestPrice)
+        );
+      }).length,
+  );
 
   /** El usuario ha ocultado los primeros pasos (solo en este navegador). */
   onboardingHidden = signal(this.readOnboardingHidden());
@@ -105,8 +119,18 @@ export class Dashboard implements OnInit {
   });
 
   ngOnInit() {
-    this.auth.refreshMe().subscribe({ next: u => this.me.set(u), error: () => { /* se mantiene el usuario guardado */ } });
-    this.priceService.overview(90).subscribe({ next: p => this.prices.set(p), error: () => { /* sin resumen de precios */ } });
+    this.auth.refreshMe().subscribe({
+      next: (u) => this.me.set(u),
+      error: () => {
+        /* se mantiene el usuario guardado */
+      },
+    });
+    this.priceService.overview(90).subscribe({
+      next: (p) => this.prices.set(p),
+      error: () => {
+        /* sin resumen de precios */
+      },
+    });
     this.reports.getDashboard().subscribe({
       next: (data) => {
         this.stats.set(data ?? null);
@@ -115,13 +139,13 @@ export class Dashboard implements OnInit {
       error: (err) => {
         this.statsError.set(this.translate.instant('DASHBOARD.STATS_ERROR'));
         this.loadingStats.set(false);
-      }
+      },
     });
 
     this.supplierService.getAll(0, 200).subscribe({
       next: (data) => {
         const map: Record<string, string> = {};
-        data.content.forEach(s => (map[s.uuid] = s.name));
+        data.content.forEach((s) => (map[s.uuid] = s.name));
         this.supplierMap.set(map);
       },
       error: () => {},
@@ -135,7 +159,7 @@ export class Dashboard implements OnInit {
       error: (err) => {
         this.recentOrders.set([]);
         this.loadingOrders.set(false);
-      }
+      },
     });
 
     this.loadPlan(this.paymentResult() === 'ok' ? 5 : 0);
@@ -148,17 +172,25 @@ export class Dashboard implements OnInit {
       error: (err) => {
         this.suggestionsError.set(this.translate.instant('DASHBOARD.SUGGESTIONS_ERROR'));
         this.loadingSuggestions.set(false);
-      }
+      },
     });
   }
 
   hideOnboarding() {
     this.onboardingHidden.set(true);
-    try { localStorage.setItem(this.onboardingKey(), '1'); } catch { /* almacenamiento no disponible */ }
+    try {
+      localStorage.setItem(this.onboardingKey(), '1');
+    } catch {
+      /* almacenamiento no disponible */
+    }
   }
 
   private readOnboardingHidden(): boolean {
-    try { return localStorage.getItem(this.onboardingKey()) === '1'; } catch { return false; }
+    try {
+      return localStorage.getItem(this.onboardingKey()) === '1';
+    } catch {
+      return false;
+    }
   }
 
   private onboardingKey(): string {
@@ -181,9 +213,11 @@ export class Dashboard implements OnInit {
   }
 
   urgencyClass(urgency: string): string {
-    return urgency === 'high' ? 'bg-red-100 text-red-700'
-      : urgency === 'medium' ? 'bg-orange-100 text-orange-700'
-      : 'bg-green-100 text-green-700';
+    return urgency === 'high'
+      ? 'bg-red-100 text-red-700'
+      : urgency === 'medium'
+        ? 'bg-orange-100 text-orange-700'
+        : 'bg-green-100 text-green-700';
   }
 
   statusClass(status: string): string {
@@ -203,13 +237,13 @@ export class Dashboard implements OnInit {
    */
   private loadPlan(retries: number) {
     this.companyService.getMyPlan().subscribe({
-      next: data => {
+      next: (data) => {
         this.myPlan.set(data);
         if (retries > 0 && data.trialEndsAt) {
           setTimeout(() => this.loadPlan(retries - 1), 2000);
         }
       },
-      error: () => {} // silencioso, el banner simplemente no se muestra
+      error: () => {}, // silencioso, el banner simplemente no se muestra
     });
   }
 
@@ -218,11 +252,11 @@ export class Dashboard implements OnInit {
     this.checkoutLoading.set(true);
     this.checkoutError.set('');
     this.billing.checkout().subscribe({
-      next: url => window.location.href = url,
-      error: err => {
+      next: (url) => (window.location.href = url),
+      error: (err) => {
         this.checkoutError.set(err.error?.message || this.translate.instant('BILLING.ERROR'));
         this.checkoutLoading.set(false);
-      }
+      },
     });
   }
 }

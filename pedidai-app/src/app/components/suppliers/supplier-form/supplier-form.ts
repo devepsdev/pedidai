@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -9,6 +9,7 @@ import { apiError } from '../../../shared/api-error';
 @Component({
   selector: 'app-supplier-form',
   imports: [ReactiveFormsModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './supplier-form.html',
 })
 export class SupplierForm implements OnInit {
@@ -32,7 +33,9 @@ export class SupplierForm implements OnInit {
     notes: [''],
   });
 
-  get isEdit() { return !!this.uuid(); }
+  get isEdit() {
+    return !!this.uuid();
+  }
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('uuid');
@@ -54,7 +57,7 @@ export class SupplierForm implements OnInit {
         error: () => {
           this.error.set(this.translate.instant('ERRORS.LOAD_SUPPLIER'));
           this.loading.set(false);
-        }
+        },
       });
     }
   }
@@ -89,7 +92,7 @@ export class SupplierForm implements OnInit {
       error: (err) => {
         this.error.set(apiError(err, this.translate.instant('ERRORS.SAVE_SUPPLIER')));
         this.saving.set(false);
-      }
+      },
     });
   }
 

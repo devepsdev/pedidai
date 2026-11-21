@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { LanguageService } from '../../../services/language.service';
 import { Bilingual, LegalDoc, LegalDocument } from '../legal-doc';
 
@@ -9,15 +9,25 @@ const CONTENT: Bilingual<LegalDocument> = {
     sections: [
       {
         title: 'Titular del sitio web',
-        facts: [['Nombre', 'Enrique Pérez Sánchez'], ['NIF', '43444166H'], ['Domicilio', 'Barcelona, España'], ['Email', 'hola@pedidai.es'], ['Web', 'https://pedidai.es']],
+        facts: [
+          ['Nombre', 'Enrique Pérez Sánchez'],
+          ['NIF', '43444166H'],
+          ['Domicilio', 'Barcelona, España'],
+          ['Email', 'hola@pedidai.es'],
+          ['Web', 'https://pedidai.es'],
+        ],
       },
       {
         title: 'Objeto',
-        paragraphs: ['PedidAI es una herramienta para bares y restaurantes que compara los precios de sus proveedores a partir de sus albaranes, avisa de las subidas de precio y permite preparar y enviar pedidos. Usa inteligencia artificial para leer documentos y preparar pedidos.'],
+        paragraphs: [
+          'PedidAI es una herramienta para bares y restaurantes que compara los precios de sus proveedores a partir de sus albaranes, avisa de las subidas de precio y permite preparar y enviar pedidos. Usa inteligencia artificial para leer documentos y preparar pedidos.',
+        ],
       },
       {
         title: 'Propiedad intelectual',
-        paragraphs: ['Los textos, el diseño, el código, los logotipos y demás elementos de este sitio web pertenecen a su titular y están protegidos por la normativa de propiedad intelectual. No se permite su reproducción o distribución sin autorización previa por escrito.'],
+        paragraphs: [
+          'Los textos, el diseño, el código, los logotipos y demás elementos de este sitio web pertenecen a su titular y están protegidos por la normativa de propiedad intelectual. No se permite su reproducción o distribución sin autorización previa por escrito.',
+        ],
       },
       {
         title: 'Responsabilidad',
@@ -30,7 +40,9 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Ley aplicable',
-        paragraphs: ['Este aviso legal se rige por la ley española. Para cualquier controversia son competentes los juzgados y tribunales de Barcelona, salvo que la ley disponga otra cosa.'],
+        paragraphs: [
+          'Este aviso legal se rige por la ley española. Para cualquier controversia son competentes los juzgados y tribunales de Barcelona, salvo que la ley disponga otra cosa.',
+        ],
       },
     ],
   },
@@ -40,15 +52,25 @@ const CONTENT: Bilingual<LegalDocument> = {
     sections: [
       {
         title: 'Titular del lloc web',
-        facts: [['Nom', 'Enrique Pérez Sánchez'], ['NIF', '43444166H'], ['Domicili', 'Barcelona, Espanya'], ['Email', 'hola@pedidai.es'], ['Web', 'https://pedidai.es']],
+        facts: [
+          ['Nom', 'Enrique Pérez Sánchez'],
+          ['NIF', '43444166H'],
+          ['Domicili', 'Barcelona, Espanya'],
+          ['Email', 'hola@pedidai.es'],
+          ['Web', 'https://pedidai.es'],
+        ],
       },
       {
         title: 'Objecte',
-        paragraphs: ['PedidAI és una eina per a bars i restaurants que compara els preus dels seus proveïdors a partir dels seus albarans, avisa de les pujades de preu i permet preparar i enviar comandes. Fa servir intel·ligència artificial per llegir documents i preparar comandes.'],
+        paragraphs: [
+          'PedidAI és una eina per a bars i restaurants que compara els preus dels seus proveïdors a partir dels seus albarans, avisa de les pujades de preu i permet preparar i enviar comandes. Fa servir intel·ligència artificial per llegir documents i preparar comandes.',
+        ],
       },
       {
         title: 'Propietat intel·lectual',
-        paragraphs: ['Els textos, el disseny, el codi, els logotips i la resta d’elements d’aquest lloc web pertanyen al seu titular i estan protegits per la normativa de propietat intel·lectual. No se’n permet la reproducció o distribució sense autorització prèvia per escrit.'],
+        paragraphs: [
+          'Els textos, el disseny, el codi, els logotips i la resta d’elements d’aquest lloc web pertanyen al seu titular i estan protegits per la normativa de propietat intel·lectual. No se’n permet la reproducció o distribució sense autorització prèvia per escrit.',
+        ],
       },
       {
         title: 'Responsabilitat',
@@ -61,7 +83,9 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Llei aplicable',
-        paragraphs: ['Aquest avís legal es regeix per la llei espanyola. Per a qualsevol controvèrsia són competents els jutjats i tribunals de Barcelona, llevat que la llei disposi una altra cosa.'],
+        paragraphs: [
+          'Aquest avís legal es regeix per la llei espanyola. Per a qualsevol controvèrsia són competents els jutjats i tribunals de Barcelona, llevat que la llei disposi una altra cosa.',
+        ],
       },
     ],
   },
@@ -70,6 +94,7 @@ const CONTENT: Bilingual<LegalDocument> = {
 @Component({
   selector: 'app-legal-notice',
   imports: [LegalDoc],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `<app-legal-doc [doc]="doc()" />`,
 })
 export class LegalNotice {

@@ -4,8 +4,8 @@ Aplicación web de [PedidAI](https://pedidai.es) para **bares y restaurantes**: 
 
 | | |
 | --- | --- |
-| **Framework** | Angular 21 (componentes standalone, *signals*, sin zone.js) |
-| **Lenguaje** | TypeScript 5.9 |
+| **Framework** | Angular 22 (componentes standalone, *signals*, sin zone.js) |
+| **Lenguaje** | TypeScript 6.0 |
 | **Estilos** | Tailwind CSS 4 |
 | **Idiomas** | Castellano y catalán (ngx-translate 17) |
 | **Tests** | Vitest 4 |

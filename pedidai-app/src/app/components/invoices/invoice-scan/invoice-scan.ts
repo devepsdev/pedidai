@@ -1,11 +1,24 @@
-import { Component, inject, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+  computed,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { InvoiceService } from '../../../services/invoice';
 import { SupplierService } from '../../../services/supplier';
 import { LanguageService } from '../../../services/language.service';
-import { DocumentKind, InvoiceConfirmRequestDTO, InvoiceLineStatus, InvoiceScanResultDTO } from '../../../models/invoice.model';
+import {
+  DocumentKind,
+  InvoiceConfirmRequestDTO,
+  InvoiceLineStatus,
+  InvoiceScanResultDTO,
+} from '../../../models/invoice.model';
 import { SupplierResponse } from '../../../models/supplier.model';
 import { formatDate, formatMoney, formatNumber, unitFor } from '../../../shared/format';
 
@@ -41,6 +54,7 @@ const MAX_BYTES = 10 * 1024 * 1024;
 @Component({
   selector: 'app-invoice-scan',
   imports: [RouterLink, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './invoice-scan.html',
 })
 export class InvoiceScan implements OnInit, OnDestroy {
@@ -88,9 +102,13 @@ export class InvoiceScan implements OnInit, OnDestroy {
 
   private objectUrl: string | null = null;
 
-  selectedCount = computed(() => this.lines().filter(l => l.selected).length);
-  allSelected = computed(() => this.lines().length > 0 && this.lines().every(l => l.selected));
-  increases = computed(() => this.lines().filter(l => l.selected && this.change(l) !== null && this.change(l)! > 0).length);
+  selectedCount = computed(() => this.lines().filter((l) => l.selected).length);
+  allSelected = computed(() => this.lines().length > 0 && this.lines().every((l) => l.selected));
+  increases = computed(
+    () =>
+      this.lines().filter((l) => l.selected && this.change(l) !== null && this.change(l)! > 0)
+        .length,
+  );
 
   /**
    * Lo servido frente a lo pedido: compara las líneas marcadas con el último pedido enviado a este proveedor.
@@ -99,12 +117,18 @@ export class InvoiceScan implements OnInit, OnDestroy {
   orderCheck = computed(() => {
     const result = this.scanResult();
     const order = result?.matchedOrder;
-    if (!order || this.isPriceList() || !this.supplierUuid() || this.supplierUuid() !== result.matchedSupplierUuid) return null;
-    const items = new Map(order.items.map(i => [i.productUuid, i]));
+    if (
+      !order ||
+      this.isPriceList() ||
+      !this.supplierUuid() ||
+      this.supplierUuid() !== result.matchedSupplierUuid
+    )
+      return null;
+    const items = new Map(order.items.map((i) => [i.productUuid, i]));
     const received = new Set<string>();
     const issues: OrderIssue[] = [];
     let matching = 0;
-    for (const l of this.lines().filter(x => x.selected)) {
+    for (const l of this.lines().filter((x) => x.selected)) {
       const item = l.matchedProductUuid ? items.get(l.matchedProductUuid) : undefined;
       if (!item) {
         issues.push({ type: 'EXTRA', product: l.name });
@@ -112,20 +136,44 @@ export class InvoiceScan implements OnInit, OnDestroy {
       }
       received.add(item.productUuid);
       let same = true;
-      if (l.quantity != null && item.quantity != null && Math.abs(l.quantity - item.quantity) > 0.001) {
-        issues.push({ type: 'QTY', product: item.productName, ordered: item.quantity, received: l.quantity, unit: item.unit });
+      if (
+        l.quantity != null &&
+        item.quantity != null &&
+        Math.abs(l.quantity - item.quantity) > 0.001
+      ) {
+        issues.push({
+          type: 'QTY',
+          product: item.productName,
+          ordered: item.quantity,
+          received: l.quantity,
+          unit: item.unit,
+        });
         same = false;
       }
-      if (l.unitPrice != null && item.unitPrice != null && Math.abs(l.unitPrice - item.unitPrice) >= 0.005) {
-        issues.push({ type: l.unitPrice > item.unitPrice ? 'PRICE_UP' : 'PRICE_DOWN', product: item.productName,
-          ordered: item.unitPrice, received: l.unitPrice, unit: item.unit });
+      if (
+        l.unitPrice != null &&
+        item.unitPrice != null &&
+        Math.abs(l.unitPrice - item.unitPrice) >= 0.005
+      ) {
+        issues.push({
+          type: l.unitPrice > item.unitPrice ? 'PRICE_UP' : 'PRICE_DOWN',
+          product: item.productName,
+          ordered: item.unitPrice,
+          received: l.unitPrice,
+          unit: item.unit,
+        });
         same = false;
       }
       if (same) matching++;
     }
     for (const item of order.items) {
       if (!received.has(item.productUuid)) {
-        issues.push({ type: 'MISSING', product: item.productName, ordered: item.quantity, unit: item.unit });
+        issues.push({
+          type: 'MISSING',
+          product: item.productName,
+          ordered: item.quantity,
+          unit: item.unit,
+        });
       }
     }
     return { order, issues, matching };
@@ -146,8 +194,10 @@ export class InvoiceScan implements OnInit, OnDestroy {
 
   private loadSuppliers() {
     this.supplierService.getAll(0, 200, 'name', 'asc').subscribe({
-      next: d => this.suppliers.set(d.content),
-      error: () => { /* el selector queda vacío: se puede crear el proveedor */ },
+      next: (d) => this.suppliers.set(d.content),
+      error: () => {
+        /* el selector queda vacío: se puede crear el proveedor */
+      },
     });
   }
 
@@ -179,7 +229,7 @@ export class InvoiceScan implements OnInit, OnDestroy {
 
   private processFile(file: File) {
     const name = file.name.toLowerCase();
-    const sheet = SHEET_EXTENSIONS.find(ext => name.endsWith(ext));
+    const sheet = SHEET_EXTENSIONS.find((ext) => name.endsWith(ext));
     if (!sheet && !ACCEPTED_TYPES.includes(file.type)) {
       this.error.set(this.translate.instant('INVOICE_SCAN.ERR_FORMAT'));
       return;
@@ -202,63 +252,68 @@ export class InvoiceScan implements OnInit, OnDestroy {
     if (!file || this.loading()) return;
     this.loading.set(true);
     this.error.set('');
-    this.invoiceService.scanInvoice(file, this.preselectedSupplierUuid() || undefined, 'AUTO').subscribe({
-      next: resp => {
-        const data = resp.data;
-        this.scanResult.set(data);
-        this.kind.set(data.documentKind === 'PRICE_LIST' ? 'PRICE_LIST' : 'INVOICE');
-        this.lines.set(data.products.map(p => ({
-          selected: p.unitPrice != null,
-          name: p.name,
-          genericName: p.genericName ?? '',
-          quantity: p.quantity ?? null,
-          unit: p.unit ?? '',
-          unitPrice: p.unitPrice ?? null,
-          status: p.status,
-          matchedProductUuid: p.matchedProductUuid,
-          previousPrice: p.previousPrice,
-        })));
-        this.supplierUuid.set(data.matchedSupplierUuid ?? '');
-        this.newSupplierName.set(data.detectedSupplierName ?? '');
-        this.newSupplierEmail.set('');
-        this.invoiceDate.set(data.invoiceDate ?? new Date().toISOString().slice(0, 10));
-        this.invoiceNumber.set(data.invoiceNumber ?? '');
-        this.validUntil.set(data.validUntil ?? '');
-        this.loading.set(false);
-        this.step.set(2);
-      },
-      error: err => {
-        this.error.set(err?.error?.message ?? this.translate.instant('INVOICE_SCAN.ERR_SCAN'));
-        this.loading.set(false);
-      },
-    });
+    this.invoiceService
+      .scanInvoice(file, this.preselectedSupplierUuid() || undefined, 'AUTO')
+      .subscribe({
+        next: (resp) => {
+          const data = resp.data;
+          this.scanResult.set(data);
+          this.kind.set(data.documentKind === 'PRICE_LIST' ? 'PRICE_LIST' : 'INVOICE');
+          this.lines.set(
+            data.products.map((p) => ({
+              selected: p.unitPrice != null,
+              name: p.name,
+              genericName: p.genericName ?? '',
+              quantity: p.quantity ?? null,
+              unit: p.unit ?? '',
+              unitPrice: p.unitPrice ?? null,
+              status: p.status,
+              matchedProductUuid: p.matchedProductUuid,
+              previousPrice: p.previousPrice,
+            })),
+          );
+          this.supplierUuid.set(data.matchedSupplierUuid ?? '');
+          this.newSupplierName.set(data.detectedSupplierName ?? '');
+          this.newSupplierEmail.set('');
+          this.invoiceDate.set(data.invoiceDate ?? new Date().toISOString().slice(0, 10));
+          this.invoiceNumber.set(data.invoiceNumber ?? '');
+          this.validUntil.set(data.validUntil ?? '');
+          this.loading.set(false);
+          this.step.set(2);
+        },
+        error: (err) => {
+          this.error.set(err?.error?.message ?? this.translate.instant('INVOICE_SCAN.ERR_SCAN'));
+          this.loading.set(false);
+        },
+      });
   }
 
   // ───────── Paso 2: revisión ─────────
 
   updateLine(i: number, patch: Partial<EditableLine>) {
-    this.lines.update(ls => ls.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
+    this.lines.update((ls) => ls.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
   }
 
   toggleAll() {
     const all = this.allSelected();
-    this.lines.update(ls => ls.map(l => ({ ...l, selected: !all })));
+    this.lines.update((ls) => ls.map((l) => ({ ...l, selected: !all })));
   }
 
   /** Variación del precio escrito respecto al último conocido, en %. */
   change(line: EditableLine): number | null {
-    if (line.previousPrice == null || line.unitPrice == null || line.previousPrice === 0) return null;
+    if (line.previousPrice == null || line.unitPrice == null || line.previousPrice === 0)
+      return null;
     const pct = ((line.unitPrice - line.previousPrice) / line.previousPrice) * 100;
     return Math.abs(pct) < 0.05 ? 0 : pct;
   }
 
   confirm() {
-    const selected = this.lines().filter(l => l.selected);
+    const selected = this.lines().filter((l) => l.selected);
     if (!selected.length) {
       this.error.set(this.translate.instant('INVOICE_SCAN.ERR_NO_LINES'));
       return;
     }
-    if (selected.some(l => l.unitPrice == null || l.unitPrice < 0 || !l.name.trim())) {
+    if (selected.some((l) => l.unitPrice == null || l.unitPrice < 0 || !l.name.trim())) {
       this.error.set(this.translate.instant('INVOICE_SCAN.ERR_MISSING_PRICE'));
       return;
     }
@@ -270,17 +325,22 @@ export class InvoiceScan implements OnInit, OnDestroy {
 
     const request: InvoiceConfirmRequestDTO = {
       ...(creatingSupplier
-        ? { newSupplier: { name: this.newSupplierName().trim(), email: this.newSupplierEmail().trim() || undefined,
-            phone: this.scanResult()?.detectedSupplierPhone } }
+        ? {
+            newSupplier: {
+              name: this.newSupplierName().trim(),
+              email: this.newSupplierEmail().trim() || undefined,
+              phone: this.scanResult()?.detectedSupplierPhone,
+            },
+          }
         : { supplierUuid: this.supplierUuid() }),
       invoiceNumber: this.invoiceNumber().trim() || undefined,
       invoiceDate: this.invoiceDate() || undefined,
       documentKind: this.kind(),
       validUntil: this.isPriceList() ? this.validUntil() || undefined : undefined,
-      products: selected.map(l => ({
+      products: selected.map((l) => ({
         name: l.name.trim(),
         genericName: l.genericName.trim() || undefined,
-        quantity: this.isPriceList() ? undefined : l.quantity ?? undefined,
+        quantity: this.isPriceList() ? undefined : (l.quantity ?? undefined),
         unit: l.unit.trim() || undefined,
         unitPrice: l.unitPrice!,
         matchedProductUuid: creatingSupplier ? undefined : l.matchedProductUuid,
@@ -290,13 +350,13 @@ export class InvoiceScan implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set('');
     this.invoiceService.confirmInvoice(request).subscribe({
-      next: resp => {
+      next: (resp) => {
         this.confirmResult.set(resp.data);
         this.loading.set(false);
         this.step.set(3);
         this.loadSuppliers();
       },
-      error: err => {
+      error: (err) => {
         this.error.set(err?.error?.message ?? this.translate.instant('INVOICE_SCAN.ERR_CONFIRM'));
         this.loading.set(false);
       },
@@ -334,7 +394,10 @@ export class InvoiceScan implements OnInit, OnDestroy {
 
   /** «Hemos guardado 5 precios (1 producto nuevo).» */
   doneText(r: InvoiceScanResultDTO): string {
-    const prices = this.plural(this.isPriceList() ? 'INVOICE_SCAN.PRICES_OFFERED' : 'INVOICE_SCAN.PRICES_SAVED', r.pricesRecorded ?? 0);
+    const prices = this.plural(
+      this.isPriceList() ? 'INVOICE_SCAN.PRICES_OFFERED' : 'INVOICE_SCAN.PRICES_SAVED',
+      r.pricesRecorded ?? 0,
+    );
     const products = this.plural('INVOICE_SCAN.NEW_PRODUCTS', r.productsCreated ?? 0);
     return this.translate.instant('INVOICE_SCAN.DONE_TEXT' + this.k(), { prices, products });
   }
@@ -342,11 +405,17 @@ export class InvoiceScan implements OnInit, OnDestroy {
   /** «Tomate pera: pediste 20 kg y el albarán dice 15 kg.» */
   issueText(i: OrderIssue): string {
     const isPrice = i.type === 'PRICE_UP' || i.type === 'PRICE_DOWN';
-    const fmt = (v?: number) => (isPrice ? this.money(v) + (i.unit ? '/' + i.unit : '') : formatNumber(v, this.language.current(), 3));
+    const fmt = (v?: number) =>
+      isPrice
+        ? this.money(v) + (i.unit ? '/' + i.unit : '')
+        : formatNumber(v, this.language.current(), 3);
     const lang = this.language.current();
     return this.translate.instant('INVOICE_SCAN.ORDER_CHECK_' + i.type, {
-      product: i.product, ordered: fmt(i.ordered), received: fmt(i.received),
-      orderedUnit: unitFor(i.unit, i.ordered, lang), receivedUnit: unitFor(i.unit, i.received, lang),
+      product: i.product,
+      ordered: fmt(i.ordered),
+      received: fmt(i.received),
+      orderedUnit: unitFor(i.unit, i.ordered, lang),
+      receivedUnit: unitFor(i.unit, i.received, lang),
     });
   }
 

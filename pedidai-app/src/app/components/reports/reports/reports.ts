@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ReportService } from '../../../services/report';
@@ -11,6 +11,7 @@ type QuickRange = 'LAST_WEEK' | 'LAST_MONTH' | 'LAST_YEAR' | '';
 @Component({
   selector: 'app-reports',
   imports: [FormsModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './reports.html',
 })
 export class Reports implements OnInit {
@@ -106,7 +107,7 @@ export class Reports implements OnInit {
   maxSpend(): number {
     const r = this.report();
     if (!r?.despesaProveidors?.length) return 1;
-    return Math.max(...r.despesaProveidors.map(s => s.despesaTotal));
+    return Math.max(...r.despesaProveidors.map((s) => s.despesaTotal));
   }
 
   percent(value: number): string {

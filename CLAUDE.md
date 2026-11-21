@@ -10,7 +10,7 @@ proyectos en `../CLAUDE.md`.
 | Carpeta | Qué es |
 |---|---|
 | `pedidai-api/` | Java 25, Spring Boot 3.5 (Web, JPA, Security, Validation, Mail), JWT, OpenPDF, Swagger. Lectura de albaranes con Tesseract (spa + cat) y Mistral. Código en `src/main/java/com/pedidai/api/` (`controllers`, `services/impl`, `repositories`, `entities`, `dto`, `security`, `config`, `exceptions`); textos en `resources/i18n/` |
-| `pedidai-app/` | Angular 21 (standalone, signals, sin zone.js), Tailwind 4, ngx-translate (`public/i18n/es.json` y `ca.json`), Vitest. Páginas públicas prerenderizadas (SSR estático) |
+| `pedidai-app/` | Angular 22 (standalone, signals, sin zone.js), Tailwind 4, ngx-translate (`public/i18n/es.json` y `ca.json`), Vitest. Páginas públicas prerenderizadas (SSR estático) |
 | `pedidai-db/` | `pedidai_db_schema.sql` y `migrations/` (001 a 006; la 006 es la del pago con Stripe) |
 | `scripts/` | `desplegar.sh`, `nginx-404.sh`, `nginx-prerender.sh` (cambios de nginx ya aplicados, de una vez) y `pruebas-lectura/` (albaranes inventados con su resultado esperado, para probar la IA real) |
 | `docs/` | `pago-stripe.md`; `google-ads/` (sin commit todavía) |

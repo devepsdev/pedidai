@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -9,6 +9,7 @@ import { apiError } from '../../../shared/api-error';
 @Component({
   selector: 'app-supplier-list',
   imports: [FormsModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './supplier-list.html',
 })
 export class SupplierList implements OnInit {
@@ -59,8 +60,13 @@ export class SupplierList implements OnInit {
       if (this.advPhone().trim()) params['phone'] = this.advPhone().trim();
 
       this.supplierService.filter(params).subscribe({
-        next: (data) => { this.setData(data); },
-        error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_SUPPLIERS')); this.loading.set(false); },
+        next: (data) => {
+          this.setData(data);
+        },
+        error: () => {
+          this.error.set(this.translate.instant('ERRORS.LOAD_SUPPLIERS'));
+          this.loading.set(false);
+        },
       });
     } else {
       const text = this.searchText().trim();
@@ -69,13 +75,21 @@ export class SupplierList implements OnInit {
         : this.supplierService.getAll(this.currentPage(), this.pageSize());
 
       obs.subscribe({
-        next: (data) => { this.setData(data); },
-        error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_SUPPLIERS')); this.loading.set(false); },
+        next: (data) => {
+          this.setData(data);
+        },
+        error: () => {
+          this.error.set(this.translate.instant('ERRORS.LOAD_SUPPLIERS'));
+          this.loading.set(false);
+        },
       });
     }
   }
 
-  private setData(data: { content: SupplierResponse[]; pageable: { totalPages: number; totalElements: number } }) {
+  private setData(data: {
+    content: SupplierResponse[];
+    pageable: { totalPages: number; totalElements: number };
+  }) {
     this.suppliers.set(data.content);
     this.totalPages.set(data.pageable.totalPages);
     this.totalElements.set(data.pageable.totalElements);
@@ -83,7 +97,7 @@ export class SupplierList implements OnInit {
   }
 
   toggleAdvanced() {
-    this.showAdvanced.update(v => !v);
+    this.showAdvanced.update((v) => !v);
   }
 
   clearFilters() {
@@ -152,7 +166,7 @@ export class SupplierList implements OnInit {
     this.closeToggleModal();
     this.supplierService.toggleStatus(supplier.uuid, !supplier.isActive).subscribe({
       next: (updated) => {
-        this.suppliers.update(list => list.map(s => s.uuid === updated.uuid ? updated : s));
+        this.suppliers.update((list) => list.map((s) => (s.uuid === updated.uuid ? updated : s)));
       },
       error: (err) => this.error.set(apiError(err, this.translate.instant('ERRORS.CHANGE_STATUS'))),
     });

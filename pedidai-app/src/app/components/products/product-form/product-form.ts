@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -11,13 +11,40 @@ import { LanguageService } from '../../../services/language.service';
 
 /** Sugerencias del campo unidad; se admite cualquier texto (los albaranes traen unidades variadas). */
 const UNITS: Record<string, string[]> = {
-  es: ['kg', 'g', 'l', 'ud', 'docena', 'caja', 'paquete', 'botella', 'garrafa', 'barril', 'saco', 'bandeja'],
-  ca: ['kg', 'g', 'l', 'u.', 'dotzena', 'caixa', 'paquet', 'ampolla', 'garrafa', 'barril', 'sac', 'safata'],
+  es: [
+    'kg',
+    'g',
+    'l',
+    'ud',
+    'docena',
+    'caja',
+    'paquete',
+    'botella',
+    'garrafa',
+    'barril',
+    'saco',
+    'bandeja',
+  ],
+  ca: [
+    'kg',
+    'g',
+    'l',
+    'u.',
+    'dotzena',
+    'caixa',
+    'paquet',
+    'ampolla',
+    'garrafa',
+    'barril',
+    'sac',
+    'safata',
+  ],
 };
 
 @Component({
   selector: 'app-product-form',
   imports: [ReactiveFormsModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './product-form.html',
 })
 export class ProductForm implements OnInit {
@@ -52,12 +79,14 @@ export class ProductForm implements OnInit {
     supplierUuid: ['', [Validators.required]],
   });
 
-  get isEdit() { return !!this.uuid(); }
+  get isEdit() {
+    return !!this.uuid();
+  }
 
   ngOnInit() {
     this.supplierService.getAll(0, 200).subscribe({
       next: (data) => this.suppliers.set(data.content),
-      error: () => {}
+      error: () => {},
     });
 
     const id = this.route.snapshot.paramMap.get('uuid');
@@ -81,7 +110,7 @@ export class ProductForm implements OnInit {
         error: () => {
           this.error.set(this.translate.instant('ERRORS.LOAD_PRODUCT'));
           this.loading.set(false);
-        }
+        },
       });
     }
   }
@@ -123,7 +152,7 @@ export class ProductForm implements OnInit {
             error: (err) => {
               this.error.set(apiError(err, this.translate.instant('ERRORS.UPLOAD_IMAGE')));
               this.uploadingImage.set(false);
-            }
+            },
           });
         } else {
           this.router.navigate(['/products']);
@@ -132,7 +161,7 @@ export class ProductForm implements OnInit {
       error: (err) => {
         this.error.set(apiError(err, this.translate.instant('ERRORS.SAVE_PRODUCT')));
         this.saving.set(false);
-      }
+      },
     });
   }
 

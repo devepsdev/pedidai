@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { LanguageService } from '../../services/language.service';
@@ -12,6 +12,7 @@ import { LinesPipe } from '../../shared/lines.pipe';
 @Component({
   selector: 'app-savings-section',
   imports: [RouterLink, TranslateModule, LinesPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './savings-section.html',
 })
 export class SavingsSection {
@@ -24,8 +25,8 @@ export class SavingsSection {
 
   monthly = signal(6000);
 
-  comparable = computed(() => this.monthly() * this.sharePercent / 100);
-  saving = computed(() => Math.round(this.comparable() * this.gapPercent / 100));
+  comparable = computed(() => (this.monthly() * this.sharePercent) / 100);
+  saving = computed(() => Math.round((this.comparable() * this.gapPercent) / 100));
   net = computed(() => this.saving() - this.launchPrice);
 
   money(v: number) {

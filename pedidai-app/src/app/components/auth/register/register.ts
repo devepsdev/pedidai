@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -12,6 +12,7 @@ export const PASSWORD_PATTERN = /^(?=.*\p{L})(?=.*\d).{8,100}$/u;
 @Component({
   selector: 'app-register',
   imports: [ReactiveFormsModule, RouterLink, TranslateModule, LinesPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './register.html',
 })
 export class Register {
@@ -42,23 +43,27 @@ export class Register {
     this.saving.set(true);
     this.error.set('');
 
-    this.authService.register({
-      companyName: raw.companyName!.trim(),
-      adminFirstName: raw.adminFirstName!.trim(),
-      adminEmail: raw.adminEmail!.trim(),
-      adminPassword: raw.adminPassword!,
-      acceptTerms: true,
-    }).subscribe({
-      next: () => {
-        // Conversión de la campaña: registro completado (solo se envía si hay consentimiento)
-        this.analytics.trackSignUp();
-        this.router.navigate(['/dashboard'], { queryParams: { welcome: 1 } });
-      },
-      error: (err) => {
-        this.error.set(err?.error?.message || this.translate.instant('AUTH.REGISTER.ERROR_GENERIC'));
-        this.saving.set(false);
-      },
-    });
+    this.authService
+      .register({
+        companyName: raw.companyName!.trim(),
+        adminFirstName: raw.adminFirstName!.trim(),
+        adminEmail: raw.adminEmail!.trim(),
+        adminPassword: raw.adminPassword!,
+        acceptTerms: true,
+      })
+      .subscribe({
+        next: () => {
+          // Conversión de la campaña: registro completado (solo se envía si hay consentimiento)
+          this.analytics.trackSignUp();
+          this.router.navigate(['/dashboard'], { queryParams: { welcome: 1 } });
+        },
+        error: (err) => {
+          this.error.set(
+            err?.error?.message || this.translate.instant('AUTH.REGISTER.ERROR_GENERIC'),
+          );
+          this.saving.set(false);
+        },
+      });
   }
 
   fieldError(field: string): boolean {

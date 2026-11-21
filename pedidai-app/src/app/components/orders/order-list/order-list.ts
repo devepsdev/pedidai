@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -13,6 +13,7 @@ import { formatMoney } from '../../../shared/format';
 @Component({
   selector: 'app-order-list',
   imports: [FormsModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './order-list.html',
 })
 export class OrderList implements OnInit {
@@ -64,7 +65,7 @@ export class OrderList implements OnInit {
     this.supplierService.getAll(0, 200).subscribe({
       next: (data) => {
         const map: Record<string, string> = {};
-        data.content.forEach(s => (map[s.uuid] = s.name));
+        data.content.forEach((s) => (map[s.uuid] = s.name));
         this.supplierMap.set(map);
         this.suppliers.set(data.content);
       },
@@ -114,7 +115,7 @@ export class OrderList implements OnInit {
   }
 
   toggleAdvanced() {
-    this.showAdvanced.update(v => !v);
+    this.showAdvanced.update((v) => !v);
   }
 
   clearFilters() {
@@ -208,7 +209,7 @@ export class OrderList implements OnInit {
     this.showSendModal.set(false);
     this.orderService.send(order.uuid).subscribe({
       next: (updated) => {
-        this.orders.update(list => list.map(o => (o.uuid === updated.uuid ? updated : o)));
+        this.orders.update((list) => list.map((o) => (o.uuid === updated.uuid ? updated : o)));
         this.sendingUuid.set('');
         this.pendingOrder.set(null);
       },
@@ -237,7 +238,6 @@ export class OrderList implements OnInit {
     };
     return map[status] ?? 'bg-gray-100 text-gray-600';
   }
-
 
   formatDate(dateStr: string): string {
     if (!dateStr) return '—';

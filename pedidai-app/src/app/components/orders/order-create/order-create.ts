@@ -1,4 +1,11 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -23,6 +30,7 @@ interface CartItem {
 @Component({
   selector: 'app-order-create',
   imports: [FormsModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './order-create.html',
 })
 export class OrderCreate implements OnInit {
@@ -49,9 +57,7 @@ export class OrderCreate implements OnInit {
   notes = signal('');
   deliveryDate = signal('');
 
-  totalAmount = computed(() =>
-    this.orderItems().reduce((sum, item) => sum + item.subtotal, 0)
-  );
+  totalAmount = computed(() => this.orderItems().reduce((sum, item) => sum + item.subtotal, 0));
 
   ngOnInit() {
     const uuid = this.route.snapshot.paramMap.get('uuid');
@@ -63,7 +69,7 @@ export class OrderCreate implements OnInit {
 
     this.supplierService.getAll(0, 200).subscribe({
       next: (data) => {
-        this.suppliers.set(data.content.filter(s => s.isActive));
+        this.suppliers.set(data.content.filter((s) => s.isActive));
         if (uuid) this.loadOrderForEdit(uuid);
       },
       error: () => {
@@ -80,21 +86,23 @@ export class OrderCreate implements OnInit {
         this.deliveryDate.set(order.deliveryDate ?? '');
         this.selectedSupplierUuid.set(order.supplierUuid);
         // Load products for supplier then restore items
-        this.productService.filter({ supplierUuid: order.supplierUuid, page: 0, size: 100 }).subscribe({
-          next: (data) => {
-            this.products.set(data.content.filter(p => p.isActive));
-            const items: CartItem[] = order.items.map(i => ({
-              productUuid: i.productUuid,
-              productName: i.productName,
-              unitPrice: i.unitPrice,
-              quantity: i.quantity,
-              subtotal: i.subtotal,
-            }));
-            this.orderItems.set(items);
-            this.loading.set(false);
-          },
-          error: () => this.loading.set(false),
-        });
+        this.productService
+          .filter({ supplierUuid: order.supplierUuid, page: 0, size: 100 })
+          .subscribe({
+            next: (data) => {
+              this.products.set(data.content.filter((p) => p.isActive));
+              const items: CartItem[] = order.items.map((i) => ({
+                productUuid: i.productUuid,
+                productName: i.productName,
+                unitPrice: i.unitPrice,
+                quantity: i.quantity,
+                subtotal: i.subtotal,
+              }));
+              this.orderItems.set(items);
+              this.loading.set(false);
+            },
+            error: () => this.loading.set(false),
+          });
       },
       error: () => {
         this.error.set(this.translate.instant('ERRORS.LOAD_ORDER'));
@@ -112,7 +120,7 @@ export class OrderCreate implements OnInit {
     this.loadingProducts.set(true);
     this.productService.filter({ supplierUuid: uuid, page: 0, size: 100 }).subscribe({
       next: (data) => {
-        this.products.set(data.content.filter(p => p.isActive));
+        this.products.set(data.content.filter((p) => p.isActive));
         this.loadingProducts.set(false);
       },
       error: () => this.loadingProducts.set(false),
@@ -125,23 +133,23 @@ export class OrderCreate implements OnInit {
 
   setQty(productUuid: string, value: string) {
     const n = parseFloat(value);
-    this.quantities.update(q => ({ ...q, [productUuid]: isNaN(n) || n <= 0 ? 1 : n }));
+    this.quantities.update((q) => ({ ...q, [productUuid]: isNaN(n) || n <= 0 ? 1 : n }));
   }
 
   isInCart(productUuid: string): boolean {
-    return this.orderItems().some(i => i.productUuid === productUuid);
+    return this.orderItems().some((i) => i.productUuid === productUuid);
   }
 
   addItem(product: ProductResponse) {
     const qty = this.getQty(product.uuid);
-    this.orderItems.update(items => {
-      const existing = items.find(i => i.productUuid === product.uuid);
+    this.orderItems.update((items) => {
+      const existing = items.find((i) => i.productUuid === product.uuid);
       if (existing) {
         const newQty = existing.quantity + qty;
-        return items.map(i =>
+        return items.map((i) =>
           i.productUuid === product.uuid
             ? { ...i, quantity: newQty, subtotal: newQty * i.unitPrice }
-            : i
+            : i,
         );
       }
       return [
@@ -158,12 +166,18 @@ export class OrderCreate implements OnInit {
   }
 
   removeItem(productUuid: string) {
-    this.orderItems.update(items => items.filter(i => i.productUuid !== productUuid));
+    this.orderItems.update((items) => items.filter((i) => i.productUuid !== productUuid));
   }
 
-  onNameInput(value: string) { this.name.set(value); }
-  onNotesInput(value: string) { this.notes.set(value); }
-  onDeliveryDateInput(value: string) { this.deliveryDate.set(value); }
+  onNameInput(value: string) {
+    this.name.set(value);
+  }
+  onNotesInput(value: string) {
+    this.notes.set(value);
+  }
+  onDeliveryDateInput(value: string) {
+    this.deliveryDate.set(value);
+  }
 
   submit() {
     this.error.set('');
@@ -180,7 +194,7 @@ export class OrderCreate implements OnInit {
       return;
     }
     this.saving.set(true);
-    const items: OrderItemRequest[] = this.orderItems().map(i => ({
+    const items: OrderItemRequest[] = this.orderItems().map((i) => ({
       productUuid: i.productUuid,
       quantity: i.quantity,
     }));
@@ -193,9 +207,7 @@ export class OrderCreate implements OnInit {
     };
 
     const uuid = this.editUuid();
-    const obs = uuid
-      ? this.orderService.update(uuid, payload)
-      : this.orderService.create(payload);
+    const obs = uuid ? this.orderService.update(uuid, payload) : this.orderService.create(payload);
 
     obs.subscribe({
       next: (order) => {
@@ -203,7 +215,12 @@ export class OrderCreate implements OnInit {
         this.router.navigate(['/orders', order.uuid]);
       },
       error: (err) => {
-        this.error.set(apiError(err, this.translate.instant(uuid ? 'ERRORS.UPDATE_ORDER' : 'ERRORS.CREATE_ORDER')));
+        this.error.set(
+          apiError(
+            err,
+            this.translate.instant(uuid ? 'ERRORS.UPDATE_ORDER' : 'ERRORS.CREATE_ORDER'),
+          ),
+        );
         this.saving.set(false);
       },
     });

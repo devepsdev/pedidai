@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DatePipe, CurrencyPipe } from '@angular/common';
@@ -9,6 +9,7 @@ import { apiError } from '../../../shared/api-error';
 @Component({
   selector: 'app-superadmin-company-detail',
   imports: [RouterLink, TranslateModule, DatePipe, CurrencyPipe, FormsModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './superadmin-company-detail.html',
 })
 export class SuperadminCompanyDetail implements OnInit {
@@ -31,8 +32,14 @@ export class SuperadminCompanyDetail implements OnInit {
   ngOnInit() {
     const uuid = this.route.snapshot.paramMap.get('uuid')!;
     this.svc.getCompany(uuid).subscribe({
-      next: data => { this.company.set(data); this.loading.set(false); },
-      error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_COMPANY')); this.loading.set(false); }
+      next: (data) => {
+        this.company.set(data);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set(this.translate.instant('ERRORS.LOAD_COMPANY'));
+        this.loading.set(false);
+      },
     });
   }
 
@@ -52,33 +59,39 @@ export class SuperadminCompanyDetail implements OnInit {
     if (!c) return;
     this.saving.set(true);
     this.svc.updateCompanyStatus(c.uuid, this.newStatus()).subscribe({
-      next: updated => {
-        this.company.update(prev => prev ? { ...prev, status: updated.status } : prev);
+      next: (updated) => {
+        this.company.update((prev) => (prev ? { ...prev, status: updated.status } : prev));
         this.showStatusModal.set(false);
         this.saving.set(false);
       },
-      error: () => this.saving.set(false)
+      error: () => this.saving.set(false),
     });
   }
 
   statusBadge(status: string): string {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-500/20 text-green-400';
-      case 'INACTIVE': return 'bg-gray-500/20 text-gray-400';
-      case 'SUSPENDED': return 'bg-red-500/20 text-red-400';
-      default: return 'bg-yellow-500/20 text-yellow-400';
+      case 'ACTIVE':
+        return 'bg-green-500/20 text-green-400';
+      case 'INACTIVE':
+        return 'bg-gray-500/20 text-gray-400';
+      case 'SUSPENDED':
+        return 'bg-red-500/20 text-red-400';
+      default:
+        return 'bg-yellow-500/20 text-yellow-400';
     }
   }
 
   roleBadge(role: string): string {
-    return role === 'ADMIN' ? 'bg-blue-500/20 text-blue-400' :
-           role === 'SUPER_ADMIN' ? 'bg-amber-500/20 text-amber-400' :
-           'bg-slate-600/50 text-slate-400';
+    return role === 'ADMIN'
+      ? 'bg-blue-500/20 text-blue-400'
+      : role === 'SUPER_ADMIN'
+        ? 'bg-amber-500/20 text-amber-400'
+        : 'bg-slate-600/50 text-slate-400';
   }
 
   /** La cuenta de la plataforma (tiene un SUPER_ADMIN) no tiene prueba ni plan. */
   isPlatform(c: { users: { role: string }[] }): boolean {
-    return c.users.some(u => u.role === 'SUPER_ADMIN');
+    return c.users.some((u) => u.role === 'SUPER_ADMIN');
   }
 
   extendTrial(days: number = 14) {
@@ -87,18 +100,22 @@ export class SuperadminCompanyDetail implements OnInit {
     this.actionSaving.set(true);
     this.actionError.set('');
     this.svc.extendTrial(c.uuid, days).subscribe({
-      next: updated => {
-        this.company.update(prev => prev ? {
-          ...prev,
-          status: updated.status,
-          trialEndsAt: updated.trialEndsAt ?? undefined
-        } : prev);
+      next: (updated) => {
+        this.company.update((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: updated.status,
+                trialEndsAt: updated.trialEndsAt ?? undefined,
+              }
+            : prev,
+        );
         this.actionSaving.set(false);
       },
       error: (err) => {
         this.actionError.set(apiError(err, this.translate.instant('ERRORS.EXTEND_TRIAL')));
         this.actionSaving.set(false);
-      }
+      },
     });
   }
 
@@ -108,18 +125,22 @@ export class SuperadminCompanyDetail implements OnInit {
     this.actionSaving.set(true);
     this.actionError.set('');
     this.svc.activatePro(c.uuid).subscribe({
-      next: updated => {
-        this.company.update(prev => prev ? {
-          ...prev,
-          status: updated.status,
-          trialEndsAt: undefined
-        } : prev);
+      next: (updated) => {
+        this.company.update((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: updated.status,
+                trialEndsAt: undefined,
+              }
+            : prev,
+        );
         this.actionSaving.set(false);
       },
       error: (err) => {
         this.actionError.set(apiError(err, this.translate.instant('ERRORS.ACTIVATE_PLAN')));
         this.actionSaving.set(false);
-      }
+      },
     });
   }
 

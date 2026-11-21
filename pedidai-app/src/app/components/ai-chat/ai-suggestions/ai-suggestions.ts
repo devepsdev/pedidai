@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AiService } from '../../../services/ai';
 import { OrderService } from '../../../services/order';
@@ -8,6 +8,7 @@ import { apiError } from '../../../shared/api-error';
 @Component({
   selector: 'app-ai-suggestions',
   imports: [TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './ai-suggestions.html',
 })
 export class AiSuggestions implements OnInit {
@@ -27,23 +28,35 @@ export class AiSuggestions implements OnInit {
 
   ngOnInit() {
     this.ai.suggestOrders().subscribe({
-      next: (data) => { this.suggestions.set(data ?? []); this.loading.set(false); },
-      error: () => { this.error.set(this.translate.instant('ERRORS.AI_UNAVAILABLE')); this.loading.set(false); }
+      next: (data) => {
+        this.suggestions.set(data ?? []);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set(this.translate.instant('ERRORS.AI_UNAVAILABLE'));
+        this.loading.set(false);
+      },
     });
   }
 
   urgencyClass(urgency: string): string {
-    return urgency === 'high' ? 'bg-red-100 text-red-700 border-red-200'
-      : urgency === 'medium' ? 'bg-orange-100 text-orange-700 border-orange-200'
-      : 'bg-green-100 text-green-700 border-green-200';
+    return urgency === 'high'
+      ? 'bg-red-100 text-red-700 border-red-200'
+      : urgency === 'medium'
+        ? 'bg-orange-100 text-orange-700 border-orange-200'
+        : 'bg-green-100 text-green-700 border-green-200';
   }
 
   urgencyLabel(urgency: string): string {
     return urgency === 'high' ? 'Urgente' : urgency === 'medium' ? 'Medio' : 'Bajo';
   }
 
-  openConfirm(index: number) { this.confirmIndex.set(index); }
-  closeConfirm() { this.confirmIndex.set(null); }
+  openConfirm(index: number) {
+    this.confirmIndex.set(index);
+  }
+  closeConfirm() {
+    this.confirmIndex.set(null);
+  }
 
   createOrder(index: number) {
     const s = this.suggestions()[index];
@@ -51,21 +64,23 @@ export class AiSuggestions implements OnInit {
     this.creatingIndex.set(index);
     this.createError.set('');
 
-    this.orderService.create({
-      supplierUuid: s.supplier_uuid ?? '',
-      // Las notas llegan al proveedor en el email del pedido: no se le indica que es una sugerencia ni el ahorro
-      name: this.translate.instant('AI.SUGGESTIONS.ORDER_NAME', { product: s.product }),
-      notes: '',
-      items: s.product_uuid ? [{ productUuid: s.product_uuid, quantity: s.quantity }] : []
-    }).subscribe({
-      next: () => {
-        this.createdUuids.set(new Set([...this.createdUuids(), index]));
-        this.creatingIndex.set(null);
-      },
-      error: (err) => {
-        this.creatingIndex.set(null);
-        this.createError.set(apiError(err, this.translate.instant('ERRORS.CREATE_ORDER')));
-      }
-    });
+    this.orderService
+      .create({
+        supplierUuid: s.supplier_uuid ?? '',
+        // Las notas llegan al proveedor en el email del pedido: no se le indica que es una sugerencia ni el ahorro
+        name: this.translate.instant('AI.SUGGESTIONS.ORDER_NAME', { product: s.product }),
+        notes: '',
+        items: s.product_uuid ? [{ productUuid: s.product_uuid, quantity: s.quantity }] : [],
+      })
+      .subscribe({
+        next: () => {
+          this.createdUuids.set(new Set([...this.createdUuids(), index]));
+          this.creatingIndex.set(null);
+        },
+        error: (err) => {
+          this.creatingIndex.set(null);
+          this.createError.set(apiError(err, this.translate.instant('ERRORS.CREATE_ORDER')));
+        },
+      });
   }
 }

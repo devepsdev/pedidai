@@ -1,4 +1,12 @@
-import { Component, inject, input, output, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  inject,
+  input,
+  output,
+  OnInit,
+  OnDestroy,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { Router, NavigationEnd, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../services/auth';
@@ -7,6 +15,7 @@ import { Subscription, filter } from 'rxjs';
 @Component({
   selector: 'app-sidebar',
   imports: [RouterLink, RouterLinkActive, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './sidebar.html',
 })
 export class Sidebar implements OnInit, OnDestroy {
@@ -16,7 +25,9 @@ export class Sidebar implements OnInit, OnDestroy {
   private router = inject(Router);
   private navSub?: Subscription;
 
-  get user() { return this.auth.getCurrentUser(); }
+  get user() {
+    return this.auth.getCurrentUser();
+  }
 
   /** Administrador de la empresa: ve la sección «Gestión». */
   get isAdmin(): boolean {
@@ -30,7 +41,7 @@ export class Sidebar implements OnInit, OnDestroy {
   ngOnInit() {
     // Auto-close sidebar on navigation (mobile only — desktop always open)
     this.navSub = this.router.events
-      .pipe(filter(e => e instanceof NavigationEnd))
+      .pipe(filter((e) => e instanceof NavigationEnd))
       .subscribe(() => {
         if (this.open()) this.close.emit();
       });

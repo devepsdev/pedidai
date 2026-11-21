@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -9,6 +9,7 @@ import { apiError } from '../../../shared/api-error';
 @Component({
   selector: 'app-user-list',
   imports: [FormsModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './user-list.html',
 })
 export class UserList implements OnInit {
@@ -59,8 +60,13 @@ export class UserList implements OnInit {
       if (this.advPhone().trim()) params['phone'] = this.advPhone().trim();
 
       this.userService.filter(params).subscribe({
-        next: (data) => { this.setData(data); },
-        error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_USERS')); this.loading.set(false); },
+        next: (data) => {
+          this.setData(data);
+        },
+        error: () => {
+          this.error.set(this.translate.instant('ERRORS.LOAD_USERS'));
+          this.loading.set(false);
+        },
       });
     } else {
       const text = this.searchText().trim();
@@ -69,13 +75,21 @@ export class UserList implements OnInit {
         : this.userService.getAll(this.currentPage(), this.pageSize());
 
       obs.subscribe({
-        next: (data) => { this.setData(data); },
-        error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_USERS')); this.loading.set(false); },
+        next: (data) => {
+          this.setData(data);
+        },
+        error: () => {
+          this.error.set(this.translate.instant('ERRORS.LOAD_USERS'));
+          this.loading.set(false);
+        },
       });
     }
   }
 
-  private setData(data: { content: UserResponse[]; pageable: { totalPages: number; totalElements: number } }) {
+  private setData(data: {
+    content: UserResponse[];
+    pageable: { totalPages: number; totalElements: number };
+  }) {
     this.users.set(data.content);
     this.totalPages.set(data.pageable.totalPages);
     this.totalElements.set(data.pageable.totalElements);
@@ -83,7 +97,7 @@ export class UserList implements OnInit {
   }
 
   toggleAdvanced() {
-    this.showAdvanced.update(v => !v);
+    this.showAdvanced.update((v) => !v);
   }
 
   clearFilters() {
@@ -164,7 +178,7 @@ export class UserList implements OnInit {
     this.closeToggleModal();
     this.userService.toggleStatus(user.uuid, !user.isActive).subscribe({
       next: (updated) => {
-        this.users.update(list => list.map(u => (u.uuid === updated.uuid ? updated : u)));
+        this.users.update((list) => list.map((u) => (u.uuid === updated.uuid ? updated : u)));
       },
       error: (err) => this.error.set(apiError(err, this.translate.instant('ERRORS.CHANGE_STATUS'))),
     });

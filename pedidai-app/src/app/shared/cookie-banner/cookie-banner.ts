@@ -1,4 +1,11 @@
-import { Component, DestroyRef, PLATFORM_ID, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  PLATFORM_ID,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -14,6 +21,7 @@ import { LinesPipe } from '../lines.pipe';
 @Component({
   selector: 'app-cookie-banner',
   imports: [RouterLink, TranslateModule, LinesPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './cookie-banner.html',
 })
 export class CookieBanner {

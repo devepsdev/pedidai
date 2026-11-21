@@ -1,5 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
-import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../services/auth';
 import { UserService } from '../../services/user';
@@ -10,6 +16,7 @@ import { apiError } from '../../shared/api-error';
 @Component({
   selector: 'app-account',
   imports: [ReactiveFormsModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './account.html',
 })
 export class Account {
@@ -23,12 +30,17 @@ export class Account {
   error = signal('');
   success = signal(false);
 
-  form = this.fb.group({
-    currentPassword: ['', Validators.required],
-    newPassword: ['', [Validators.required, Validators.pattern(PASSWORD_PATTERN)]],
-    confirmPassword: ['', Validators.required],
-  }, { validators: (g: AbstractControl): ValidationErrors | null =>
-      g.get('newPassword')?.value === g.get('confirmPassword')?.value ? null : { mismatch: true } });
+  form = this.fb.group(
+    {
+      currentPassword: ['', Validators.required],
+      newPassword: ['', [Validators.required, Validators.pattern(PASSWORD_PATTERN)]],
+      confirmPassword: ['', Validators.required],
+    },
+    {
+      validators: (g: AbstractControl): ValidationErrors | null =>
+        g.get('newPassword')?.value === g.get('confirmPassword')?.value ? null : { mismatch: true },
+    },
+  );
 
   get mismatch(): boolean {
     return this.form.hasError('mismatch') && !!this.form.get('confirmPassword')?.touched;
@@ -36,9 +48,11 @@ export class Account {
 
   roleLabel(): string {
     const role = this.user?.role;
-    return role === 'ADMIN' ? this.translate.instant('USERS.FORM.ROLE_ADMIN')
-      : role === 'SUPER_ADMIN' ? 'SUPER_ADMIN'
-      : this.translate.instant('USERS.FORM.ROLE_USER');
+    return role === 'ADMIN'
+      ? this.translate.instant('USERS.FORM.ROLE_ADMIN')
+      : role === 'SUPER_ADMIN'
+        ? 'SUPER_ADMIN'
+        : this.translate.instant('USERS.FORM.ROLE_USER');
   }
 
   changePassword() {
@@ -52,7 +66,7 @@ export class Account {
     this.error.set('');
     this.success.set(false);
     this.userService.changePassword(this.user.uuid, currentPassword!, newPassword!).subscribe({
-      next: session => {
+      next: (session) => {
         this.auth.startSession(session);
         this.saving.set(false);
         this.success.set(true);

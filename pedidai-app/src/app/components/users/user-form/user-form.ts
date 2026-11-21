@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -9,6 +9,7 @@ import { apiError } from '../../../shared/api-error';
 @Component({
   selector: 'app-user-form',
   imports: [ReactiveFormsModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './user-form.html',
 })
 export class UserForm implements OnInit {
@@ -32,7 +33,9 @@ export class UserForm implements OnInit {
     password: ['', [Validators.minLength(8)]],
   });
 
-  get isEdit() { return !!this.uuid(); }
+  get isEdit() {
+    return !!this.uuid();
+  }
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('uuid');

@@ -1,4 +1,12 @@
-import { Component, computed, HostListener, PLATFORM_ID, inject, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  HostListener,
+  PLATFORM_ID,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -10,6 +18,7 @@ import { LinesPipe } from '../../shared/lines.pipe';
 @Component({
   selector: 'app-public-layout',
   imports: [RouterOutlet, RouterLink, TranslateModule, LinesPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './public-layout.html',
 })
 export class PublicLayoutComponent {
@@ -29,7 +38,7 @@ export class PublicLayoutComponent {
   constructor() {
     this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-      .subscribe(e => {
+      .subscribe((e) => {
         this.isLanding.set(e.urlAfterRedirects === '/');
         this.menuOpen.set(false);
         if (this.isBrowser) setTimeout(() => this.isScrolled.set(window.scrollY > 20), 0);
@@ -42,7 +51,7 @@ export class PublicLayoutComponent {
   }
 
   toggleMenu() {
-    this.menuOpen.update(v => !v);
+    this.menuOpen.update((v) => !v);
   }
 
   closeMenu() {

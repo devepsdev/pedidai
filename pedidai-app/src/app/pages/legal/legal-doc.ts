@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 
 /** Bloque de un documento legal: párrafos, lista, tabla o ficha de datos. */
 export interface LegalSection {
@@ -22,6 +22,7 @@ export type Bilingual<T> = { es: T; ca: T };
 /** Presentación común de las páginas legales (el texto viene de cada página, en castellano o catalán). */
 @Component({
   selector: 'app-legal-doc',
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div class="min-h-screen bg-white text-gray-700 pt-24 pb-20 px-4">
       <article class="max-w-3xl mx-auto">
@@ -39,7 +40,10 @@ export type Bilingual<T> = { es: T; ca: T };
               @if (s.facts) {
                 <dl class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-1 mb-3">
                   @for (f of s.facts; track $index) {
-                    <div class="flex flex-col sm:flex-row sm:gap-2"><dt class="text-gray-500 sm:w-40 shrink-0">{{ f[0] }}</dt><dd class="text-gray-900 break-words">{{ f[1] }}</dd></div>
+                    <div class="flex flex-col sm:flex-row sm:gap-2">
+                      <dt class="text-gray-500 sm:w-40 shrink-0">{{ f[0] }}</dt>
+                      <dd class="text-gray-900 break-words">{{ f[1] }}</dd>
+                    </div>
                   }
                 </dl>
               }
@@ -48,25 +52,39 @@ export type Bilingual<T> = { es: T; ca: T };
               }
               @if (s.list) {
                 <ul class="list-disc pl-5 space-y-2 mb-3">
-                  @for (item of s.list; track $index) { <li>{{ item }}</li> }
+                  @for (item of s.list; track $index) {
+                    <li>{{ item }}</li>
+                  }
                 </ul>
               }
               @if (s.table) {
                 <div class="overflow-x-auto mb-3">
                   <table class="w-full text-sm border border-slate-200 rounded-lg">
                     <thead class="bg-slate-50">
-                      <tr>@for (h of s.table.head; track $index) { <th class="text-left px-3 py-2 font-semibold text-gray-800">{{ h }}</th> }</tr>
+                      <tr>
+                        @for (h of s.table.head; track $index) {
+                          <th class="text-left px-3 py-2 font-semibold text-gray-800">{{ h }}</th>
+                        }
+                      </tr>
                     </thead>
                     <tbody>
                       @for (row of s.table.rows; track $index) {
-                        <tr class="border-t border-slate-200">@for (c of row; track $index) { <td class="px-3 py-2 align-top">{{ c }}</td> }</tr>
+                        <tr class="border-t border-slate-200">
+                          @for (c of row; track $index) {
+                            <td class="px-3 py-2 align-top">{{ c }}</td>
+                          }
+                        </tr>
                       }
                     </tbody>
                   </table>
                 </div>
               }
               @if (s.note) {
-                <p class="text-sm bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-900">{{ s.note }}</p>
+                <p
+                  class="text-sm bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-900"
+                >
+                  {{ s.note }}
+                </p>
               }
             </section>
           }

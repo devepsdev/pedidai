@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { HeroSection } from './hero-section';
 import { HowItWorksSection } from './how-it-works-section';
 import { SavingsSection } from './savings-section';
@@ -9,6 +9,7 @@ import { CtaSection } from './cta-section';
 @Component({
   selector: 'app-landing',
   imports: [HeroSection, HowItWorksSection, SavingsSection, PricingSection, FaqSection, CtaSection],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './landing.html',
 })
 export class Landing {}

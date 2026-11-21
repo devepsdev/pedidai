@@ -1,5 +1,11 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import {
+  FormBuilder,
+  Validators,
+  ReactiveFormsModule,
+  AbstractControl,
+  ValidationErrors,
+} from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../services/auth';
@@ -15,6 +21,7 @@ function passwordsMatch(control: AbstractControl): ValidationErrors | null {
   selector: 'app-reset-password',
   imports: [ReactiveFormsModule, RouterLink, TranslateModule],
   templateUrl: './reset-password.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './reset-password.scss',
 })
 export class ResetPassword implements OnInit {
@@ -30,13 +37,23 @@ export class ResetPassword implements OnInit {
 
   readonly pwPattern = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\s]).{8,}$/;
 
-  form = this.fb.group({
-    password: ['', [Validators.required, Validators.minLength(8), Validators.pattern(this.pwPattern)]],
-    confirmPassword: ['', Validators.required],
-  }, { validators: passwordsMatch });
+  form = this.fb.group(
+    {
+      password: [
+        '',
+        [Validators.required, Validators.minLength(8), Validators.pattern(this.pwPattern)],
+      ],
+      confirmPassword: ['', Validators.required],
+    },
+    { validators: passwordsMatch },
+  );
 
-  get pw() { return this.form.get('password'); }
-  get mismatch() { return this.form.hasError('mismatch') && this.form.get('confirmPassword')?.touched; }
+  get pw() {
+    return this.form.get('password');
+  }
+  get mismatch() {
+    return this.form.hasError('mismatch') && this.form.get('confirmPassword')?.touched;
+  }
 
   ngOnInit() {
     const t = this.route.snapshot.queryParamMap.get('token') ?? '';
@@ -45,13 +62,22 @@ export class ResetPassword implements OnInit {
   }
 
   submit() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     if (!this.token()) return;
     this.loading.set(true);
     this.error.set('');
     this.auth.resetPassword(this.token(), this.pw!.value!).subscribe({
-      next: () => { this.loading.set(false); this.success.set(true); },
-      error: (err) => { this.loading.set(false); this.error.set(apiError(err, this.translate.instant('ERRORS.INVALID_RESET_LINK'))); },
+      next: () => {
+        this.loading.set(false);
+        this.success.set(true);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.error.set(apiError(err, this.translate.instant('ERRORS.INVALID_RESET_LINK')));
+      },
     });
   }
 }

@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { LanguageService } from '../../../services/language.service';
 import { AnalyticsService } from '../../../services/analytics.service';
 import { Bilingual, LegalDoc, LegalDocument } from '../legal-doc';
@@ -7,7 +7,8 @@ const CONTENT: Bilingual<LegalDocument> = {
   es: {
     title: 'Política de cookies',
     updated: 'Última actualización: octubre de 2026',
-    intro: 'Las cookies y el almacenamiento local son pequeños datos que la web guarda en tu navegador. Usamos los técnicos imprescindibles y, solo si lo aceptas, los de analítica y publicidad de Google.',
+    intro:
+      'Las cookies y el almacenamiento local son pequeños datos que la web guarda en tu navegador. Usamos los técnicos imprescindibles y, solo si lo aceptas, los de analítica y publicidad de Google.',
     sections: [
       {
         title: 'Técnicos (siempre activos)',
@@ -15,10 +16,22 @@ const CONTENT: Bilingual<LegalDocument> = {
         table: {
           head: ['Nombre', 'Para qué', 'Duración'],
           rows: [
-            ['token', 'Mantener tu sesión iniciada (almacenamiento local).', 'Hasta que cierras sesión o caduca'],
-            ['user', 'Datos básicos de tu usuario para mostrar la aplicación (almacenamiento local).', 'Hasta que cierras sesión'],
+            [
+              'token',
+              'Mantener tu sesión iniciada (almacenamiento local).',
+              'Hasta que cierras sesión o caduca',
+            ],
+            [
+              'user',
+              'Datos básicos de tu usuario para mostrar la aplicación (almacenamiento local).',
+              'Hasta que cierras sesión',
+            ],
             ['lang', 'Recordar el idioma elegido (almacenamiento local).', 'Permanente'],
-            ['cookieConsent', 'Recordar tu decisión sobre las cookies (almacenamiento local).', 'Hasta que la cambies'],
+            [
+              'cookieConsent',
+              'Recordar tu decisión sobre las cookies (almacenamiento local).',
+              'Hasta que la cambies',
+            ],
           ],
         },
       },
@@ -27,7 +40,12 @@ const CONTENT: Bilingual<LegalDocument> = {
         table: {
           head: ['Nombre', 'Proveedor', 'Para qué', 'Duración'],
           rows: [
-            ['_ga, _ga_*', 'Google Analytics (Google Ireland Ltd.)', 'Contar visitas y saber cómo se usa la web, de forma agregada.', '2 años'],
+            [
+              '_ga, _ga_*',
+              'Google Analytics (Google Ireland Ltd.)',
+              'Contar visitas y saber cómo se usa la web, de forma agregada.',
+              '2 años',
+            ],
           ],
         },
       },
@@ -36,10 +54,17 @@ const CONTENT: Bilingual<LegalDocument> = {
         table: {
           head: ['Nombre', 'Proveedor', 'Para qué', 'Duración'],
           rows: [
-            ['_gcl_au, _gcl_aw', 'Google Ads (Google Ireland Ltd.)', 'Saber si alguien llega desde nuestros anuncios y se registra, para medir las campañas.', '90 días'],
+            [
+              '_gcl_au, _gcl_aw',
+              'Google Ads (Google Ireland Ltd.)',
+              'Saber si alguien llega desde nuestros anuncios y se registra, para medir las campañas.',
+              '90 días',
+            ],
           ],
         },
-        paragraphs: ['Usamos el modo de consentimiento de Google: si no aceptas, no se carga ninguna etiqueta de Google.'],
+        paragraphs: [
+          'Usamos el modo de consentimiento de Google: si no aceptas, no se carga ninguna etiqueta de Google.',
+        ],
       },
       {
         title: 'Vídeo de YouTube (solo si lo reproduces)',
@@ -56,14 +81,17 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Más información',
-        paragraphs: ['Sobre cómo tratamos tus datos, consulta la política de privacidad. Para cualquier duda: hola@pedidai.es.'],
+        paragraphs: [
+          'Sobre cómo tratamos tus datos, consulta la política de privacidad. Para cualquier duda: hola@pedidai.es.',
+        ],
       },
     ],
   },
   ca: {
     title: 'Política de galetes',
     updated: 'Darrera actualització: octubre de 2026',
-    intro: 'Les galetes i l’emmagatzematge local són petites dades que el web desa al teu navegador. Fem servir les tècniques imprescindibles i, només si ho acceptes, les d’analítica i publicitat de Google.',
+    intro:
+      'Les galetes i l’emmagatzematge local són petites dades que el web desa al teu navegador. Fem servir les tècniques imprescindibles i, només si ho acceptes, les d’analítica i publicitat de Google.',
     sections: [
       {
         title: 'Tècniques (sempre actives)',
@@ -71,10 +99,22 @@ const CONTENT: Bilingual<LegalDocument> = {
         table: {
           head: ['Nom', 'Per a què', 'Durada'],
           rows: [
-            ['token', 'Mantenir la teva sessió iniciada (emmagatzematge local).', 'Fins que tanques la sessió o caduca'],
-            ['user', 'Dades bàsiques del teu usuari per mostrar l’aplicació (emmagatzematge local).', 'Fins que tanques la sessió'],
+            [
+              'token',
+              'Mantenir la teva sessió iniciada (emmagatzematge local).',
+              'Fins que tanques la sessió o caduca',
+            ],
+            [
+              'user',
+              'Dades bàsiques del teu usuari per mostrar l’aplicació (emmagatzematge local).',
+              'Fins que tanques la sessió',
+            ],
             ['lang', 'Recordar l’idioma triat (emmagatzematge local).', 'Permanent'],
-            ['cookieConsent', 'Recordar la teva decisió sobre les galetes (emmagatzematge local).', 'Fins que la canviïs'],
+            [
+              'cookieConsent',
+              'Recordar la teva decisió sobre les galetes (emmagatzematge local).',
+              'Fins que la canviïs',
+            ],
           ],
         },
       },
@@ -83,7 +123,12 @@ const CONTENT: Bilingual<LegalDocument> = {
         table: {
           head: ['Nom', 'Proveïdor', 'Per a què', 'Durada'],
           rows: [
-            ['_ga, _ga_*', 'Google Analytics (Google Ireland Ltd.)', 'Comptar visites i saber com s’utilitza el web, de manera agregada.', '2 anys'],
+            [
+              '_ga, _ga_*',
+              'Google Analytics (Google Ireland Ltd.)',
+              'Comptar visites i saber com s’utilitza el web, de manera agregada.',
+              '2 anys',
+            ],
           ],
         },
       },
@@ -92,10 +137,17 @@ const CONTENT: Bilingual<LegalDocument> = {
         table: {
           head: ['Nom', 'Proveïdor', 'Per a què', 'Durada'],
           rows: [
-            ['_gcl_au, _gcl_aw', 'Google Ads (Google Ireland Ltd.)', 'Saber si algú arriba des dels nostres anuncis i s’hi registra, per mesurar les campanyes.', '90 dies'],
+            [
+              '_gcl_au, _gcl_aw',
+              'Google Ads (Google Ireland Ltd.)',
+              'Saber si algú arriba des dels nostres anuncis i s’hi registra, per mesurar les campanyes.',
+              '90 dies',
+            ],
           ],
         },
-        paragraphs: ['Fem servir el mode de consentiment de Google: si no ho acceptes, no es carrega cap etiqueta de Google.'],
+        paragraphs: [
+          'Fem servir el mode de consentiment de Google: si no ho acceptes, no es carrega cap etiqueta de Google.',
+        ],
       },
       {
         title: 'Vídeo de YouTube (només si el reprodueixes)',
@@ -112,7 +164,9 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Més informació',
-        paragraphs: ['Sobre com tractem les teves dades, consulta la política de privacitat. Per a qualsevol dubte: hola@pedidai.es.'],
+        paragraphs: [
+          'Sobre com tractem les teves dades, consulta la política de privacitat. Per a qualsevol dubte: hola@pedidai.es.',
+        ],
       },
     ],
   },
@@ -121,12 +175,16 @@ const CONTENT: Bilingual<LegalDocument> = {
 @Component({
   selector: 'app-cookie-policy',
   imports: [LegalDoc],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <app-legal-doc [doc]="doc()" />
     <div class="bg-white pb-16 -mt-10 px-4">
       <div class="max-w-3xl mx-auto">
-        <button type="button" (click)="openSettings()"
-          class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg">
+        <button
+          type="button"
+          (click)="openSettings()"
+          class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg"
+        >
           {{ language.current() === 'ca' ? 'Configurar galetes' : 'Configurar cookies' }}
         </button>
       </div>

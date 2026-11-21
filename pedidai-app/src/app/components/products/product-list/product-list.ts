@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -13,6 +13,7 @@ import { formatMoney } from '../../../shared/format';
 @Component({
   selector: 'app-product-list',
   imports: [FormsModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './product-list.html',
 })
 export class ProductList implements OnInit {
@@ -74,8 +75,13 @@ export class ProductList implements OnInit {
       if (this.advActive() !== '') params['isActive'] = this.advActive();
 
       this.productService.filter(params).subscribe({
-        next: (data) => { this.setData(data); },
-        error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_PRODUCTS')); this.loading.set(false); },
+        next: (data) => {
+          this.setData(data);
+        },
+        error: () => {
+          this.error.set(this.translate.instant('ERRORS.LOAD_PRODUCTS'));
+          this.loading.set(false);
+        },
       });
     } else {
       const text = this.searchText().trim();
@@ -84,13 +90,21 @@ export class ProductList implements OnInit {
         : this.productService.getAll(this.currentPage(), this.pageSize());
 
       obs.subscribe({
-        next: (data) => { this.setData(data); },
-        error: () => { this.error.set(this.translate.instant('ERRORS.LOAD_PRODUCTS')); this.loading.set(false); },
+        next: (data) => {
+          this.setData(data);
+        },
+        error: () => {
+          this.error.set(this.translate.instant('ERRORS.LOAD_PRODUCTS'));
+          this.loading.set(false);
+        },
       });
     }
   }
 
-  private setData(data: { content: ProductResponse[]; pageable: { totalPages: number; totalElements: number } }) {
+  private setData(data: {
+    content: ProductResponse[];
+    pageable: { totalPages: number; totalElements: number };
+  }) {
     this.products.set(data.content);
     this.totalPages.set(data.pageable.totalPages);
     this.totalElements.set(data.pageable.totalElements);
@@ -98,7 +112,7 @@ export class ProductList implements OnInit {
   }
 
   toggleAdvanced() {
-    this.showAdvanced.update(v => !v);
+    this.showAdvanced.update((v) => !v);
   }
 
   clearFilters() {
@@ -169,9 +183,10 @@ export class ProductList implements OnInit {
     this.closeDeactivateModal();
     this.productService.deactivate(product.uuid).subscribe({
       next: (updated) => {
-        this.products.update(list => list.map(p => p.uuid === updated.uuid ? updated : p));
+        this.products.update((list) => list.map((p) => (p.uuid === updated.uuid ? updated : p)));
       },
-      error: (err) => this.error.set(apiError(err, this.translate.instant('ERRORS.DEACTIVATE_PRODUCT'))),
+      error: (err) =>
+        this.error.set(apiError(err, this.translate.instant('ERRORS.DEACTIVATE_PRODUCT'))),
     });
   }
 

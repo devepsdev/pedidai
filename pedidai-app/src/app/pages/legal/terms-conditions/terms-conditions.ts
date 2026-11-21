@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { LanguageService } from '../../../services/language.service';
 import { Bilingual, LegalDoc, LegalDocument } from '../legal-doc';
 
@@ -9,7 +9,9 @@ const CONTENT: Bilingual<LegalDocument> = {
     sections: [
       {
         title: 'Objeto',
-        paragraphs: ['Estas condiciones regulan el uso de PedidAI (el «Servicio»), una herramienta para comparar los precios de tus proveedores a partir de tus albaranes y enviarles pedidos, ofrecida por Enrique Pérez Sánchez (NIF 43444166H). Al registrarte aceptas estas condiciones.'],
+        paragraphs: [
+          'Estas condiciones regulan el uso de PedidAI (el «Servicio»), una herramienta para comparar los precios de tus proveedores a partir de tus albaranes y enviarles pedidos, ofrecida por Enrique Pérez Sánchez (NIF 43444166H). Al registrarte aceptas estas condiciones.',
+        ],
       },
       {
         title: 'Cuenta',
@@ -38,7 +40,9 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Uso razonable',
-        paragraphs: ['Para proteger el Servicio y su coste, se aplican límites razonables de uso (por ejemplo, número de documentos leídos o de pedidos enviados por día). Si los necesitas ampliar, escríbenos.'],
+        paragraphs: [
+          'Para proteger el Servicio y su coste, se aplican límites razonables de uso (por ejemplo, número de documentos leídos o de pedidos enviados por día). Si los necesitas ampliar, escríbenos.',
+        ],
         list: [
           'No puedes usar el Servicio para fines ilegales, para enviar comunicaciones no solicitadas ni para intentar acceder a datos de otras empresas.',
           'No puedes sobrecargar, atacar ni intentar eludir las medidas de seguridad de la plataforma.',
@@ -69,11 +73,15 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Cambios',
-        paragraphs: ['Si cambiamos estas condiciones de forma relevante te avisaremos con al menos 30 días de antelación. Si no estás de acuerdo, puedes darte de baja.'],
+        paragraphs: [
+          'Si cambiamos estas condiciones de forma relevante te avisaremos con al menos 30 días de antelación. Si no estás de acuerdo, puedes darte de baja.',
+        ],
       },
       {
         title: 'Ley aplicable',
-        paragraphs: ['Estas condiciones se rigen por la ley española. Para cualquier controversia son competentes los juzgados y tribunales de Barcelona, salvo que la ley disponga otra cosa.'],
+        paragraphs: [
+          'Estas condiciones se rigen por la ley española. Para cualquier controversia son competentes los juzgados y tribunales de Barcelona, salvo que la ley disponga otra cosa.',
+        ],
       },
     ],
   },
@@ -83,7 +91,9 @@ const CONTENT: Bilingual<LegalDocument> = {
     sections: [
       {
         title: 'Objecte',
-        paragraphs: ['Aquestes condicions regulen l’ús de PedidAI (el «Servei»), una eina per comparar els preus dels teus proveïdors a partir dels teus albarans i enviar-los comandes, oferta per Enrique Pérez Sánchez (NIF 43444166H). En registrar-te acceptes aquestes condicions.'],
+        paragraphs: [
+          'Aquestes condicions regulen l’ús de PedidAI (el «Servei»), una eina per comparar els preus dels teus proveïdors a partir dels teus albarans i enviar-los comandes, oferta per Enrique Pérez Sánchez (NIF 43444166H). En registrar-te acceptes aquestes condicions.',
+        ],
       },
       {
         title: 'Compte',
@@ -112,7 +122,9 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Ús raonable',
-        paragraphs: ['Per protegir el Servei i el seu cost, s’apliquen límits raonables d’ús (per exemple, nombre de documents llegits o de comandes enviades per dia). Si els necessites ampliar, escriu-nos.'],
+        paragraphs: [
+          'Per protegir el Servei i el seu cost, s’apliquen límits raonables d’ús (per exemple, nombre de documents llegits o de comandes enviades per dia). Si els necessites ampliar, escriu-nos.',
+        ],
         list: [
           'No pots fer servir el Servei per a finalitats il·legals, per enviar comunicacions no sol·licitades ni per intentar accedir a dades d’altres empreses.',
           'No pots sobrecarregar, atacar ni intentar eludir les mesures de seguretat de la plataforma.',
@@ -143,11 +155,15 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Canvis',
-        paragraphs: ['Si canviem aquestes condicions de manera rellevant t’avisarem amb almenys 30 dies d’antelació. Si no hi estàs d’acord, pots donar-te de baixa.'],
+        paragraphs: [
+          'Si canviem aquestes condicions de manera rellevant t’avisarem amb almenys 30 dies d’antelació. Si no hi estàs d’acord, pots donar-te de baixa.',
+        ],
       },
       {
         title: 'Llei aplicable',
-        paragraphs: ['Aquestes condicions es regeixen per la llei espanyola. Per a qualsevol controvèrsia són competents els jutjats i tribunals de Barcelona, llevat que la llei disposi una altra cosa.'],
+        paragraphs: [
+          'Aquestes condicions es regeixen per la llei espanyola. Per a qualsevol controvèrsia són competents els jutjats i tribunals de Barcelona, llevat que la llei disposi una altra cosa.',
+        ],
       },
     ],
   },
@@ -156,6 +172,7 @@ const CONTENT: Bilingual<LegalDocument> = {
 @Component({
   selector: 'app-terms-conditions',
   imports: [LegalDoc],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `<app-legal-doc [doc]="doc()" />`,
 })
 export class TermsConditions {

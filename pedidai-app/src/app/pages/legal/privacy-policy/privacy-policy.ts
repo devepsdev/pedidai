@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { LanguageService } from '../../../services/language.service';
 import { Bilingual, LegalDoc, LegalDocument } from '../legal-doc';
 
@@ -13,7 +13,8 @@ const CONTENT: Bilingual<LegalDocument> = {
   es: {
     title: 'Política de privacidad',
     updated: 'Última actualización: octubre de 2026',
-    intro: 'Explicamos qué datos tratamos en PedidAI, para qué, con quién los compartimos y cómo puedes ejercer tus derechos.',
+    intro:
+      'Explicamos qué datos tratamos en PedidAI, para qué, con quién los compartimos y cómo puedes ejercer tus derechos.',
     sections: [
       { title: 'Responsable del tratamiento', facts: OWNER },
       {
@@ -45,16 +46,42 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Con quién compartimos los datos',
-        paragraphs: ['Solo con los proveedores de servicios necesarios para que PedidAI funcione, que tratan los datos siguiendo nuestras instrucciones:'],
+        paragraphs: [
+          'Solo con los proveedores de servicios necesarios para que PedidAI funcione, que tratan los datos siguiendo nuestras instrucciones:',
+        ],
         table: {
           head: ['Proveedor', 'Para qué', 'Dónde'],
           rows: [
-            ['OVHcloud', 'Alojamiento del servidor y de la base de datos.', 'Unión Europea (Francia)'],
-            ['Mistral AI (Francia)', 'Inteligencia artificial: (1) estructurar el texto de tus albaranes y facturas, que extraemos antes en nuestro propio servidor (la imagen no se envía); (2) preparar los pedidos que pides por chat, para lo que recibe tu mensaje y los datos de proveedores, productos y precios necesarios. Tenemos desactivado el uso de estos datos para entrenar sus modelos.', 'Unión Europea (Francia)'],
-            ['Brevo (Sendinblue SAS, Francia)', 'Envío de los emails de la plataforma y de los pedidos a tus proveedores. Registra de forma anónima, sin asociarlas a cada destinatario, las aperturas y los clics.', 'Unión Europea (Francia)'],
-            ['Google (Gmail)', 'Buzón en el que recibimos y respondemos los emails que escribes a hola@pedidai.es.', 'UE y EE. UU. (Marco de Privacidad de Datos UE-EE. UU.)'],
-            ['Google Analytics y Google Ads (Google Ireland Ltd.)', 'Analítica de la web y medición de campañas. Solo con tu consentimiento.', 'UE y EE. UU. (Marco de Privacidad de Datos UE-EE. UU.)'],
-            ['Cloudflare', 'Servicio de DNS del dominio (traduce pedidai.es a la dirección del servidor; el tráfico de la web no pasa por sus servidores) y reenvío de los emails dirigidos a hola@pedidai.es.', 'Global'],
+            [
+              'OVHcloud',
+              'Alojamiento del servidor y de la base de datos.',
+              'Unión Europea (Francia)',
+            ],
+            [
+              'Mistral AI (Francia)',
+              'Inteligencia artificial: (1) estructurar el texto de tus albaranes y facturas, que extraemos antes en nuestro propio servidor (la imagen no se envía); (2) preparar los pedidos que pides por chat, para lo que recibe tu mensaje y los datos de proveedores, productos y precios necesarios. Tenemos desactivado el uso de estos datos para entrenar sus modelos.',
+              'Unión Europea (Francia)',
+            ],
+            [
+              'Brevo (Sendinblue SAS, Francia)',
+              'Envío de los emails de la plataforma y de los pedidos a tus proveedores. Registra de forma anónima, sin asociarlas a cada destinatario, las aperturas y los clics.',
+              'Unión Europea (Francia)',
+            ],
+            [
+              'Google (Gmail)',
+              'Buzón en el que recibimos y respondemos los emails que escribes a hola@pedidai.es.',
+              'UE y EE. UU. (Marco de Privacidad de Datos UE-EE. UU.)',
+            ],
+            [
+              'Google Analytics y Google Ads (Google Ireland Ltd.)',
+              'Analítica de la web y medición de campañas. Solo con tu consentimiento.',
+              'UE y EE. UU. (Marco de Privacidad de Datos UE-EE. UU.)',
+            ],
+            [
+              'Cloudflare',
+              'Servicio de DNS del dominio (traduce pedidai.es a la dirección del servidor; el tráfico de la web no pasa por sus servidores) y reenvío de los emails dirigidos a hola@pedidai.es.',
+              'Global',
+            ],
           ],
         },
         list: [
@@ -79,7 +106,9 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Seguridad',
-        paragraphs: ['Usamos conexiones cifradas (HTTPS), guardamos las contraseñas cifradas, separamos los datos de cada empresa y limitamos los intentos de acceso. Ningún sistema es infalible; si detectamos una brecha que afecte a tus datos, te lo comunicaremos según la ley.'],
+        paragraphs: [
+          'Usamos conexiones cifradas (HTTPS), guardamos las contraseñas cifradas, separamos los datos de cada empresa y limitamos los intentos de acceso. Ningún sistema es infalible; si detectamos una brecha que afecte a tus datos, te lo comunicaremos según la ley.',
+        ],
       },
       {
         title: 'Tus derechos',
@@ -90,14 +119,17 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Cambios en esta política',
-        paragraphs: ['Si hacemos cambios importantes te avisaremos por email o en la propia aplicación.'],
+        paragraphs: [
+          'Si hacemos cambios importantes te avisaremos por email o en la propia aplicación.',
+        ],
       },
     ],
   },
   ca: {
     title: 'Política de privacitat',
     updated: 'Darrera actualització: octubre de 2026',
-    intro: 'T’expliquem quines dades tractem a PedidAI, per a què, amb qui les compartim i com pots exercir els teus drets.',
+    intro:
+      'T’expliquem quines dades tractem a PedidAI, per a què, amb qui les compartim i com pots exercir els teus drets.',
     sections: [
       { title: 'Responsable del tractament', facts: OWNER },
       {
@@ -129,16 +161,42 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Amb qui compartim les dades',
-        paragraphs: ['Només amb els proveïdors de serveis necessaris perquè PedidAI funcioni, que tracten les dades seguint les nostres instruccions:'],
+        paragraphs: [
+          'Només amb els proveïdors de serveis necessaris perquè PedidAI funcioni, que tracten les dades seguint les nostres instruccions:',
+        ],
         table: {
           head: ['Proveïdor', 'Per a què', 'On'],
           rows: [
-            ['OVHcloud', 'Allotjament del servidor i de la base de dades.', 'Unió Europea (França)'],
-            ['Mistral AI (França)', 'Intel·ligència artificial: (1) estructurar el text dels teus albarans i factures, que extraiem abans al nostre propi servidor (la imatge no s’envia); (2) preparar les comandes que demanes per xat, per a la qual cosa rep el teu missatge i les dades de proveïdors, productes i preus necessàries. Tenim desactivat l’ús d’aquestes dades per entrenar els seus models.', 'Unió Europea (França)'],
-            ['Brevo (Sendinblue SAS, França)', 'Enviament dels correus de la plataforma i de les comandes als teus proveïdors. Registra de manera anònima, sense associar-les a cada destinatari, les obertures i els clics.', 'Unió Europea (França)'],
-            ['Google (Gmail)', 'Bústia on rebem i responem els correus que escrius a hola@pedidai.es.', 'UE i EUA (Marc de Privacitat de Dades UE-EUA)'],
-            ['Google Analytics i Google Ads (Google Ireland Ltd.)', 'Analítica del web i mesura de campanyes. Només amb el teu consentiment.', 'UE i EUA (Marc de Privacitat de Dades UE-EUA)'],
-            ['Cloudflare', 'Servei de DNS del domini (tradueix pedidai.es a l’adreça del servidor; el trànsit del web no passa pels seus servidors) i reenviament dels correus adreçats a hola@pedidai.es.', 'Global'],
+            [
+              'OVHcloud',
+              'Allotjament del servidor i de la base de dades.',
+              'Unió Europea (França)',
+            ],
+            [
+              'Mistral AI (França)',
+              'Intel·ligència artificial: (1) estructurar el text dels teus albarans i factures, que extraiem abans al nostre propi servidor (la imatge no s’envia); (2) preparar les comandes que demanes per xat, per a la qual cosa rep el teu missatge i les dades de proveïdors, productes i preus necessàries. Tenim desactivat l’ús d’aquestes dades per entrenar els seus models.',
+              'Unió Europea (França)',
+            ],
+            [
+              'Brevo (Sendinblue SAS, França)',
+              'Enviament dels correus de la plataforma i de les comandes als teus proveïdors. Registra de manera anònima, sense associar-les a cada destinatari, les obertures i els clics.',
+              'Unió Europea (França)',
+            ],
+            [
+              'Google (Gmail)',
+              'Bústia on rebem i responem els correus que escrius a hola@pedidai.es.',
+              'UE i EUA (Marc de Privacitat de Dades UE-EUA)',
+            ],
+            [
+              'Google Analytics i Google Ads (Google Ireland Ltd.)',
+              'Analítica del web i mesura de campanyes. Només amb el teu consentiment.',
+              'UE i EUA (Marc de Privacitat de Dades UE-EUA)',
+            ],
+            [
+              'Cloudflare',
+              'Servei de DNS del domini (tradueix pedidai.es a l’adreça del servidor; el trànsit del web no passa pels seus servidors) i reenviament dels correus adreçats a hola@pedidai.es.',
+              'Global',
+            ],
           ],
         },
         list: [
@@ -163,7 +221,9 @@ const CONTENT: Bilingual<LegalDocument> = {
       },
       {
         title: 'Seguretat',
-        paragraphs: ['Fem servir connexions xifrades (HTTPS), desem les contrasenyes xifrades, separem les dades de cada empresa i limitem els intents d’accés. Cap sistema és infal·lible; si detectem una bretxa que afecti les teves dades, t’ho comunicarem segons la llei.'],
+        paragraphs: [
+          'Fem servir connexions xifrades (HTTPS), desem les contrasenyes xifrades, separem les dades de cada empresa i limitem els intents d’accés. Cap sistema és infal·lible; si detectem una bretxa que afecti les teves dades, t’ho comunicarem segons la llei.',
+        ],
       },
       {
         title: 'Els teus drets',
@@ -183,6 +243,7 @@ const CONTENT: Bilingual<LegalDocument> = {
 @Component({
   selector: 'app-privacy-policy',
   imports: [LegalDoc],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `<app-legal-doc [doc]="doc()" />`,
 })
 export class PrivacyPolicy {

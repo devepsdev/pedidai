@@ -125,7 +125,7 @@ PedidAI es una aplicación web para **bares y restaurantes** (de 1 a 5 locales) 
 
 | Capa | Tecnología |
 | --- | --- |
-| Frontend | Angular 21 (standalone, *signals*, sin zone.js), TypeScript 5.9, Tailwind CSS 4, ngx-translate 17, Vitest |
+| Frontend | Angular 22 (standalone, *signals*, sin zone.js), TypeScript 6.0, Tailwind CSS 4, ngx-translate 17, Vitest |
 | Backend | Java 25, Spring Boot 3.5 (Web, Data JPA, Security, Validation, Mail), JJWT, OpenPDF, SpringDoc (Swagger) |
 | Base de datos | MySQL 8 (InnoDB, `utf8mb4`); H2 en memoria para los tests |
 | IA | Tesseract OCR (castellano + catalán) en el servidor; Mistral AI (empresa europea, servidores en la UE) para estructurar albaranes y para el chat. Configurable: cualquier API compatible con OpenAI |

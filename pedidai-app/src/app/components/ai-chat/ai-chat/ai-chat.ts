@@ -1,4 +1,13 @@
-import { Component, inject, ElementRef, ViewChild, AfterViewChecked, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  inject,
+  ElementRef,
+  ViewChild,
+  AfterViewChecked,
+  OnInit,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -22,6 +31,7 @@ type SendState = 'idle' | 'sending' | 'sent' | 'error';
 @Component({
   selector: 'app-ai-chat',
   imports: [ReactiveFormsModule, TranslateModule, RouterLink, BoldPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './ai-chat.html',
 })
 export class AiChat implements OnInit, AfterViewChecked {
@@ -69,10 +79,14 @@ export class AiChat implements OnInit, AfterViewChecked {
     this.loading.set(true);
 
     this.aiService.processOrder({ source: 'chat', body: text }).subscribe({
-      next: res => {
+      next: (res) => {
         this.push({
           role: 'assistant',
-          content: res.message || this.translate.instant(res.orders?.length ? 'AI.CHAT.ORDERS_READY' : 'AI.CHAT.NOTHING_FOUND'),
+          content:
+            res.message ||
+            this.translate.instant(
+              res.orders?.length ? 'AI.CHAT.ORDERS_READY' : 'AI.CHAT.NOTHING_FOUND',
+            ),
           timestamp: new Date(),
           orders: res.orders ?? [],
           unmatched: res.unmatched ?? [],
@@ -80,9 +94,14 @@ export class AiChat implements OnInit, AfterViewChecked {
         });
         this.loading.set(false);
       },
-      error: err => {
+      error: (err) => {
         const key = err?.status === 429 ? 'AI.CHAT.ERR_RATE_LIMIT' : 'AI.CHAT.ERR_UNAVAILABLE';
-        this.push({ role: 'assistant', content: this.translate.instant(key), timestamp: new Date(), isError: true });
+        this.push({
+          role: 'assistant',
+          content: this.translate.instant(key),
+          timestamp: new Date(),
+          isError: true,
+        });
         this.loading.set(false);
       },
     });
@@ -93,9 +112,12 @@ export class AiChat implements OnInit, AfterViewChecked {
     this.setSend(order.uuid, 'sending');
     this.orderService.send(order.uuid).subscribe({
       next: () => this.setSend(order.uuid, 'sent'),
-      error: err => {
+      error: (err) => {
         if (err?.status === 403) this.needsVerification.set(true);
-        this.sendError.update(e => ({ ...e, [order.uuid]: err?.error?.message || this.translate.instant('AI.CHAT.ERR_SEND') }));
+        this.sendError.update((e) => ({
+          ...e,
+          [order.uuid]: err?.error?.message || this.translate.instant('AI.CHAT.ERR_SEND'),
+        }));
         this.setSend(order.uuid, 'error');
         if (err?.status === 400) this.checkSupplierEmail(order.uuid);
       },
@@ -104,16 +126,17 @@ export class AiChat implements OnInit, AfterViewChecked {
 
   /** Si el envío ha fallado porque el proveedor no tiene email, se le pide al usuario sin salir del chat. */
   private checkSupplierEmail(orderUuid: string) {
-    this.orderService.getByUuid(orderUuid)
-      .pipe(switchMap(o => this.supplierService.getByUuid(o.supplierUuid)))
-      .subscribe(supplier => {
-        if (!supplier.email) this.missingEmail.update(m => ({ ...m, [orderUuid]: supplier }));
+    this.orderService
+      .getByUuid(orderUuid)
+      .pipe(switchMap((o) => this.supplierService.getByUuid(o.supplierUuid)))
+      .subscribe((supplier) => {
+        if (!supplier.email) this.missingEmail.update((m) => ({ ...m, [orderUuid]: supplier }));
       });
   }
 
   setEmailDraft(orderUuid: string, value: string) {
-    this.emailDraft.update(d => ({ ...d, [orderUuid]: value }));
-    this.emailError.update(e => ({ ...e, [orderUuid]: '' }));
+    this.emailDraft.update((d) => ({ ...d, [orderUuid]: value }));
+    this.emailError.update((e) => ({ ...e, [orderUuid]: '' }));
   }
 
   /** Guarda el email en la ficha del proveedor y vuelve a enviar el pedido. */
@@ -122,22 +145,32 @@ export class AiChat implements OnInit, AfterViewChecked {
     const email = (this.emailDraft()[order.uuid] ?? '').trim();
     if (!supplier) return;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      this.emailError.update(e => ({ ...e, [order.uuid]: this.translate.instant('AI.CHAT.EMAIL_INVALID') }));
+      this.emailError.update((e) => ({
+        ...e,
+        [order.uuid]: this.translate.instant('AI.CHAT.EMAIL_INVALID'),
+      }));
       return;
     }
     this.setSend(order.uuid, 'sending');
     const { name, contactName, phone, address, notes } = supplier;
-    this.supplierService.update(supplier.uuid, { name, contactName, email, phone, address, notes }).subscribe({
-      next: () => {
-        // El mismo proveedor puede tener más pedidos en esta conversación: ya no les falta el email
-        this.missingEmail.update(m => Object.fromEntries(Object.entries(m).filter(([, s]) => s.uuid !== supplier.uuid)));
-        this.sendOrder(order);
-      },
-      error: err => {
-        this.emailError.update(e => ({ ...e, [order.uuid]: err?.error?.message || this.translate.instant('AI.CHAT.ERR_SEND') }));
-        this.setSend(order.uuid, 'error');
-      },
-    });
+    this.supplierService
+      .update(supplier.uuid, { name, contactName, email, phone, address, notes })
+      .subscribe({
+        next: () => {
+          // El mismo proveedor puede tener más pedidos en esta conversación: ya no les falta el email
+          this.missingEmail.update((m) =>
+            Object.fromEntries(Object.entries(m).filter(([, s]) => s.uuid !== supplier.uuid)),
+          );
+          this.sendOrder(order);
+        },
+        error: (err) => {
+          this.emailError.update((e) => ({
+            ...e,
+            [order.uuid]: err?.error?.message || this.translate.instant('AI.CHAT.ERR_SEND'),
+          }));
+          this.setSend(order.uuid, 'error');
+        },
+      });
   }
 
   resendVerification() {
@@ -171,11 +204,11 @@ export class AiChat implements OnInit, AfterViewChecked {
   }
 
   private setSend(uuid: string, state: SendState) {
-    this.sendState.update(s => ({ ...s, [uuid]: state }));
+    this.sendState.update((s) => ({ ...s, [uuid]: state }));
   }
 
   private push(message: AiMessage) {
-    this.messages.update(m => [...m, message]);
+    this.messages.update((m) => [...m, message]);
     this.scrollPending = true;
   }
 }

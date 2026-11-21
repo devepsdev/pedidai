@@ -1,12 +1,24 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  OnInit,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CurrencyPipe } from '@angular/common';
-import { SuperAdminService, SuperAdminDashboard, MonthlyStats } from '../../../services/super-admin.service';
+import {
+  SuperAdminService,
+  SuperAdminDashboard,
+  MonthlyStats,
+} from '../../../services/super-admin.service';
 
 @Component({
   selector: 'app-superadmin-dashboard',
   imports: [RouterLink, TranslateModule, CurrencyPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './superadmin-dashboard.html',
 })
 export class SuperadminDashboard implements OnInit {
@@ -20,22 +32,22 @@ export class SuperadminDashboard implements OnInit {
 
   maxOrders = computed(() => {
     const stats = this.monthlyStats();
-    return stats.length ? Math.max(...stats.map(s => s.orderCount), 1) : 1;
+    return stats.length ? Math.max(...stats.map((s) => s.orderCount), 1) : 1;
   });
 
   ngOnInit() {
     this.superAdminService.getDashboard().subscribe({
-      next: data => {
+      next: (data) => {
         this.dashboard.set(data);
         this.loading.set(false);
       },
       error: () => {
         this.error.set(this.translate.instant('ERRORS.LOAD_DASHBOARD'));
         this.loading.set(false);
-      }
+      },
     });
     this.superAdminService.getMonthlyStats().subscribe({
-      next: stats => this.monthlyStats.set(stats)
+      next: (stats) => this.monthlyStats.set(stats),
     });
   }
 
@@ -46,10 +58,14 @@ export class SuperadminDashboard implements OnInit {
 
   statusBadge(status: string): string {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-500/20 text-green-400';
-      case 'INACTIVE': return 'bg-gray-500/20 text-gray-400';
-      case 'SUSPENDED': return 'bg-red-500/20 text-red-400';
-      default: return 'bg-yellow-500/20 text-yellow-400';
+      case 'ACTIVE':
+        return 'bg-green-500/20 text-green-400';
+      case 'INACTIVE':
+        return 'bg-gray-500/20 text-gray-400';
+      case 'SUSPENDED':
+        return 'bg-red-500/20 text-red-400';
+      default:
+        return 'bg-yellow-500/20 text-yellow-400';
     }
   }
 }

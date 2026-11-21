@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { AnalyticsService } from '../../services/analytics.service';
@@ -9,6 +9,7 @@ const TUTORIAL_URL = 'https://www.youtube-nocookie.com/embed/ZqmVVGxOQeY?autopla
 @Component({
   selector: 'app-tutorial-video',
   imports: [TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './tutorial-video.html',
 })
 export class TutorialVideo {

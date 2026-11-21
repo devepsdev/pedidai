@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { OrderService } from '../../../services/order';
@@ -11,6 +11,7 @@ import { formatMoney } from '../../../shared/format';
 @Component({
   selector: 'app-order-detail',
   imports: [TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './order-detail.html',
 })
 export class OrderDetail implements OnInit {
@@ -114,7 +115,6 @@ export class OrderDetail implements OnInit {
     };
     return map[status] ?? 'bg-gray-100 text-gray-600';
   }
-
 
   formatDate(dateStr: string): string {
     if (!dateStr) return '—';

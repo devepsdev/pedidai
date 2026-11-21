@@ -1,4 +1,4 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, inject, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { LanguageService } from '../../services/language.service';
 import { AuthService } from '../../services/auth';
@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth';
 @Component({
   selector: 'app-navbar',
   imports: [TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './navbar.html',
 })
 export class Navbar {
@@ -15,9 +16,13 @@ export class Navbar {
   private language = inject(LanguageService);
   currentLang = this.language.current;
 
-  get user() { return this.auth.getCurrentUser(); }
+  get user() {
+    return this.auth.getCurrentUser();
+  }
 
-  logout() { this.auth.logout(); }
+  logout() {
+    this.auth.logout();
+  }
 
   setLang(lang: string) {
     this.language.use(lang === 'ca' ? 'ca' : 'es');

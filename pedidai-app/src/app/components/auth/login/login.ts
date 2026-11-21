@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -8,6 +8,7 @@ import { BillingService } from '../../../services/billing';
 @Component({
   selector: 'app-login',
   imports: [ReactiveFormsModule, RouterLink, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './login.html',
 })
 export class Login implements OnInit {
@@ -35,14 +36,23 @@ export class Login implements OnInit {
   paid = signal(this.route.snapshot.queryParamMap.get('pago') === 'ok');
 
   ngOnInit() {
-    this.billing.isEnabled().subscribe({ next: enabled => this.billingEnabled.set(enabled), error: () => {} });
+    this.billing
+      .isEnabled()
+      .subscribe({ next: (enabled) => this.billingEnabled.set(enabled), error: () => {} });
   }
 
-  get email() { return this.form.get('email'); }
-  get password() { return this.form.get('password'); }
+  get email() {
+    return this.form.get('email');
+  }
+  get password() {
+    return this.form.get('password');
+  }
 
   submit() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.loading.set(true);
     this.errorMsg.set('');
     this.trialEnded.set(false);
@@ -56,7 +66,7 @@ export class Login implements OnInit {
         this.subscriptionEnded.set(code === 'error.auth.subscriptionEnded');
         this.trialEnded.set(code === 'error.auth.trialEnded' || this.subscriptionEnded());
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -65,12 +75,12 @@ export class Login implements OnInit {
     const { email, password } = this.form.value;
     this.checkoutLoading.set(true);
     this.billing.checkoutAfterTrial(email!, password!).subscribe({
-      next: url => window.location.href = url,
+      next: (url) => (window.location.href = url),
       error: (err) => {
         this.errorMsg.set(err.error?.message || this.translate.instant('BILLING.ERROR'));
         this.trialEnded.set(false);
         this.checkoutLoading.set(false);
-      }
+      },
     });
   }
 }

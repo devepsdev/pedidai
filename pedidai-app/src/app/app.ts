@@ -1,4 +1,4 @@
-import { Component, PLATFORM_ID, inject } from '@angular/core';
+import { Component, PLATFORM_ID, inject, ChangeDetectionStrategy } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
@@ -10,10 +10,11 @@ import { SeoService } from './services/seo.service';
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, CookieBanner],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <router-outlet />
     <app-cookie-banner />
-  `
+  `,
 })
 export class App {
   private analytics = inject(AnalyticsService);
@@ -42,6 +43,6 @@ export class App {
     // Track every client-side navigation
     this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-      .subscribe(e => this.analytics.trackPageView(e.urlAfterRedirects));
+      .subscribe((e) => this.analytics.trackPageView(e.urlAfterRedirects));
   }
 }

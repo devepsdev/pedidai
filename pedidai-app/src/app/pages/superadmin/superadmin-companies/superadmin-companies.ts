@@ -1,13 +1,18 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
-import { SuperAdminService, CompanySummary, PagedResponse } from '../../../services/super-admin.service';
+import {
+  SuperAdminService,
+  CompanySummary,
+  PagedResponse,
+} from '../../../services/super-admin.service';
 
 @Component({
   selector: 'app-superadmin-companies',
   imports: [RouterLink, FormsModule, TranslateModule, DatePipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './superadmin-companies.html',
 })
 export class SuperadminCompanies implements OnInit {
@@ -25,24 +30,28 @@ export class SuperadminCompanies implements OnInit {
   searchValue = '';
   statusFilterValue = '';
 
-  ngOnInit() { this.load(); }
+  ngOnInit() {
+    this.load();
+  }
 
   load() {
     this.loading.set(true);
-    this.svc.getCompanies({
-      search: this.search(),
-      status: this.statusFilter(),
-      page: this.currentPage(),
-      size: 20
-    }).subscribe({
-      next: (r: PagedResponse<CompanySummary>) => {
-        this.companies.set(r.content);
-        this.totalElements.set(r.totalElements);
-        this.totalPages.set(r.totalPages);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false)
-    });
+    this.svc
+      .getCompanies({
+        search: this.search(),
+        status: this.statusFilter(),
+        page: this.currentPage(),
+        size: 20,
+      })
+      .subscribe({
+        next: (r: PagedResponse<CompanySummary>) => {
+          this.companies.set(r.content);
+          this.totalElements.set(r.totalElements);
+          this.totalPages.set(r.totalPages);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 
   onSearchChange(val: string) {
@@ -67,10 +76,14 @@ export class SuperadminCompanies implements OnInit {
 
   statusBadge(status: string): string {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-500/20 text-green-400';
-      case 'INACTIVE': return 'bg-gray-500/20 text-gray-400';
-      case 'SUSPENDED': return 'bg-red-500/20 text-red-400';
-      default: return 'bg-yellow-500/20 text-yellow-400';
+      case 'ACTIVE':
+        return 'bg-green-500/20 text-green-400';
+      case 'INACTIVE':
+        return 'bg-gray-500/20 text-gray-400';
+      case 'SUSPENDED':
+        return 'bg-red-500/20 text-red-400';
+      default:
+        return 'bg-yellow-500/20 text-yellow-400';
     }
   }
 
