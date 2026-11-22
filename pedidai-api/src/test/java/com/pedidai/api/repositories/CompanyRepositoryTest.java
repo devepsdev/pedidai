@@ -10,6 +10,9 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.pedidai.api.entities.User;
+
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -179,5 +182,31 @@ class CompanyRepositoryTest {
 
         // Then
         assertThat(found).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Tauler: compta pagament, prova i prova acabada només de clients (mai la plataforma)")
+    void dashboardCounts_OnlyClientsByPhase() {
+        LocalDateTime now = LocalDateTime.now();
+        Company paid = persistCompany("B00000001", CompanyStatus.ACTIVE, null);
+        persistCompany("B00000002", CompanyStatus.ACTIVE, now.plusDays(5));
+        persistCompany("B00000003", CompanyStatus.ACTIVE, now.minusDays(5));
+        persistCompany("B00000004", CompanyStatus.INACTIVE, null);
+        Company platform = persistCompany("B00000005", CompanyStatus.ACTIVE, null);
+        entityManager.persistAndFlush(User.builder().company(platform).email("admin@pedidai.test")
+                .password("x").firstName("A").lastName("B").role(User.UserRole.SUPER_ADMIN).build());
+
+        assertThat(companyRepository.countClients()).isEqualTo(4);
+        assertThat(companyRepository.countActivePaidClients()).isEqualTo(1);
+        assertThat(companyRepository.countActiveClientsInTrial(now)).isEqualTo(1);
+        assertThat(companyRepository.countActiveClientsWithTrialEnded(now)).isEqualTo(1);
+        assertThat(companyRepository.countClientsByStatus(CompanyStatus.INACTIVE)).isEqualTo(1);
+        assertThat(companyRepository.countClientsByStatus(CompanyStatus.ACTIVE)).isEqualTo(3);
+        assertThat(paid.getId()).isNotNull();
+    }
+
+    private Company persistCompany(String taxId, CompanyStatus status, LocalDateTime trialEndsAt) {
+        return entityManager.persistAndFlush(Company.builder().name("Empresa " + taxId).taxId(taxId).email(taxId + "@test.com")
+                .status(status).trialEndsAt(trialEndsAt).build());
     }
 }

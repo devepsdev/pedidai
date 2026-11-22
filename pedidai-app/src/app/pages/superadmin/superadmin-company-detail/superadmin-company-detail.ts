@@ -5,6 +5,7 @@ import { DatePipe, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SuperAdminService, CompanyDetail } from '../../../services/super-admin.service';
 import { apiError } from '../../../shared/api-error';
+import { companyBadge, companyBadgeClass } from '../company-badge';
 
 @Component({
   selector: 'app-superadmin-company-detail',
@@ -68,18 +69,8 @@ export class SuperadminCompanyDetail implements OnInit {
     });
   }
 
-  statusBadge(status: string): string {
-    switch (status) {
-      case 'ACTIVE':
-        return 'bg-green-500/20 text-green-400';
-      case 'INACTIVE':
-        return 'bg-gray-500/20 text-gray-400';
-      case 'SUSPENDED':
-        return 'bg-red-500/20 text-red-400';
-      default:
-        return 'bg-yellow-500/20 text-yellow-400';
-    }
-  }
+  readonly badge = companyBadge;
+  readonly badgeClass = companyBadgeClass;
 
   roleBadge(role: string): string {
     return role === 'ADMIN'
@@ -107,6 +98,8 @@ export class SuperadminCompanyDetail implements OnInit {
                 ...prev,
                 status: updated.status,
                 trialEndsAt: updated.trialEndsAt ?? undefined,
+                trialEnded: updated.trialEnded,
+                dataDeletionAt: updated.dataDeletionAt,
               }
             : prev,
         );
@@ -132,6 +125,8 @@ export class SuperadminCompanyDetail implements OnInit {
                 ...prev,
                 status: updated.status,
                 trialEndsAt: undefined,
+                trialEnded: false,
+                dataDeletionAt: null,
               }
             : prev,
         );

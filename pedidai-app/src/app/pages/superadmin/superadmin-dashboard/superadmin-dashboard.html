@@ -20,17 +20,25 @@
       <div class="bg-slate-800 rounded-xl p-5 border-l-4 border-cyan-500">
         <p class="text-xs text-slate-400 mb-1">{{ 'SUPERADMIN.DASHBOARD.TOTAL_COMPANIES' | translate }}</p>
         <p class="text-3xl font-extrabold text-white">{{ d.totalCompanies }}</p>
-        <div class="flex gap-2 mt-2 text-xs">
-          <span class="text-green-400">{{ 'SUPERADMIN.DASHBOARD.ACTIVE_SHORT' | translate: { n: d.activeCompanies } }}</span>
-          <span class="text-gray-400">{{ 'SUPERADMIN.DASHBOARD.INACTIVE_SHORT' | translate: { n: d.inactiveCompanies } }}</span>
-          <span class="text-red-400">{{ 'SUPERADMIN.DASHBOARD.SUSPENDED_SHORT' | translate: { n: d.suspendedCompanies } }}</span>
+        <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs">
+          <span class="text-green-400">{{ 'SUPERADMIN.DASHBOARD.PAID_SHORT' | translate: { n: d.paidCompanies } }}</span>
+          <span class="text-cyan-300">{{ 'SUPERADMIN.DASHBOARD.TRIAL_SHORT' | translate: { n: d.trialCompanies } }}</span>
+          @if (d.trialEndedCompanies) {
+            <span class="text-amber-300">{{ 'SUPERADMIN.DASHBOARD.TRIAL_ENDED_SHORT' | translate: { n: d.trialEndedCompanies } }}</span>
+          }
+          @if (d.inactiveCompanies) {
+            <span class="text-gray-400">{{ 'SUPERADMIN.DASHBOARD.INACTIVE_SHORT' | translate: { n: d.inactiveCompanies } }}</span>
+          }
+          @if (d.suspendedCompanies) {
+            <span class="text-red-400">{{ 'SUPERADMIN.DASHBOARD.SUSPENDED_SHORT' | translate: { n: d.suspendedCompanies } }}</span>
+          }
         </div>
       </div>
       <!-- Usuarios -->
       <div class="bg-slate-800 rounded-xl p-5 border-l-4 border-blue-500">
         <p class="text-xs text-slate-400 mb-1">{{ 'SUPERADMIN.DASHBOARD.TOTAL_USERS' | translate }}</p>
         <p class="text-3xl font-extrabold text-white">{{ d.totalUsers }}</p>
-        <div class="flex gap-2 mt-2 text-xs">
+        <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs">
           <span class="text-blue-400">{{ 'SUPERADMIN.DASHBOARD.ADMINS' | translate: { n: d.totalAdmins } }}</span>
           <span class="text-slate-400">{{ 'SUPERADMIN.DASHBOARD.REGULAR_USERS' | translate: { n: d.totalRegularUsers } }}</span>
         </div>

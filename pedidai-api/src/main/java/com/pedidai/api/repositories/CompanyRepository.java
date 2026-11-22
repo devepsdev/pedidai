@@ -76,4 +76,21 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
 
     @Query("SELECT COUNT(c) FROM Company c WHERE c.trialEndsAt IS NULL AND" + CLIENT)
     long countPaidClients();
+
+    // ── Tauler del SUPER_ADMIN: només empreses client ──
+
+    String ACTIVE = " c.status = com.pedidai.api.entities.Company.CompanyStatus.ACTIVE AND ";
+
+    @Query("SELECT COUNT(c) FROM Company c WHERE c.status = :status AND" + CLIENT)
+    long countClientsByStatus(@Param("status") Company.CompanyStatus status);
+
+    @Query("SELECT COUNT(c) FROM Company c WHERE" + ACTIVE + "c.trialEndsAt IS NULL AND" + CLIENT)
+    long countActivePaidClients();
+
+    @Query("SELECT COUNT(c) FROM Company c WHERE" + ACTIVE + "c.trialEndsAt > :now AND" + CLIENT)
+    long countActiveClientsInTrial(@Param("now") LocalDateTime now);
+
+    /** Prova acabada sense contractar: ja no poden entrar i les seves dades s'esborraran. */
+    @Query("SELECT COUNT(c) FROM Company c WHERE" + ACTIVE + "c.trialEndsAt <= :now AND" + CLIENT)
+    long countActiveClientsWithTrialEnded(@Param("now") LocalDateTime now);
 }

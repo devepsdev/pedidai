@@ -73,6 +73,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     long countByIsDeletedFalse();
 
+    long countByIsDeletedFalseAndRoleNot(User.UserRole role);
+
+    long countByRoleAndIsDeletedFalse(User.UserRole role);
+
     @Query("SELECT u FROM User u WHERE u.isDeleted = false AND " +
            "(:role IS NULL OR u.role = :role) AND " +
            "(:companyUuid IS NULL OR u.company.uuid = :companyUuid) AND " +

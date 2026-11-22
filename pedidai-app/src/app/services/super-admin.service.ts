@@ -5,8 +5,13 @@ import { ApiService } from './api';
 import { ApiResponse } from '../models/shared.model';
 
 export interface SuperAdminDashboard {
+  /** Empresas clientes (sin la de la plataforma) */
   totalCompanies: number;
+  /** De pago + en prueba */
   activeCompanies: number;
+  paidCompanies: number;
+  trialCompanies: number;
+  trialEndedCompanies: number;
   inactiveCompanies: number;
   suspendedCompanies: number;
   pendingCompanies: number;
@@ -37,6 +42,8 @@ export interface CompanySummary {
   orderCount: number;
   createdAt: string;
   trialEndsAt: string | null;
+  trialEnded: boolean;
+  dataDeletionAt: string | null;
   lastOrderDate: string | null;
 }
 
@@ -52,6 +59,8 @@ export interface CompanyDetail {
   status: string;
   createdAt: string;
   trialEndsAt?: string;
+  trialEnded: boolean;
+  dataDeletionAt?: string | null;
   users: UserSummary[];
   supplierCount: number;
   productCount: number;

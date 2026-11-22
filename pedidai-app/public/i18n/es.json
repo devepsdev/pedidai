@@ -624,29 +624,32 @@
     "SECTION": "Super Admin",
     "DASHBOARD": {
       "TITLE": "Dashboard de Administración",
-      "TOTAL_COMPANIES": "Total empresas",
-      "TOTAL_USERS": "Total usuarios",
+      "TOTAL_COMPANIES": "Empresas clientes",
+      "TOTAL_USERS": "Usuarios de clientes",
       "ORDERS_30D": "Pedidos (30d)",
       "SPENT_30D": "Gasto (30d)",
       "LAST_30_DAYS": "Últimos 30 días",
       "ORDERS_CHART": "Pedidos por mes",
       "TOP_COMPANIES": "Top empresas por actividad",
       "SEE_ALL": "Ver todas",
-      "ACTIVE_SHORT": "{{n}} activas",
       "INACTIVE_SHORT": "{{n}} inactivas",
       "SUSPENDED_SHORT": "{{n}} suspendidas",
-      "ADMINS": "{{n}} administradores",
-      "REGULAR_USERS": "{{n}} usuarios",
-      "MRR": "MRR potencial:",
+      "ADMINS": "Administradores: {{n}}",
+      "REGULAR_USERS": "Usuarios: {{n}}",
+      "MRR": "MRR potencial (pago + prueba):",
       "ORDERS_COUNT": "{{n}} pedidos",
-      "NO_DATA": "Sin datos"
+      "NO_DATA": "Sin datos",
+      "PAID_SHORT": "{{n}} de pago",
+      "TRIAL_SHORT": "{{n}} en prueba",
+      "TRIAL_ENDED_SHORT": "{{n}} con la prueba terminada"
     },
     "COMPANIES": {
       "TITLE": "Empresas",
       "SEARCH_PH": "Buscar por nombre o CIF...",
       "ALL_STATUSES": "Todos los estados",
       "EMPTY": "Sin empresas",
-      "COUNT": "{{n}} empresas"
+      "COUNT": "{{n}} empresas",
+      "DELETES_ON": "Se borra el {{date}}"
     },
     "USERS": {
       "TITLE": "Usuarios",
@@ -661,7 +664,9 @@
       "ACTIVE": "Activa",
       "INACTIVE": "Inactiva",
       "SUSPENDED": "Suspendida",
-      "PENDING": "Pendiente"
+      "PENDING": "Pendiente",
+      "TRIAL": "En prueba",
+      "TRIAL_ENDED": "Prueba terminada"
     },
     "ROLE": {
       "ADMIN": "Administrador",

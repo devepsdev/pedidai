@@ -30,17 +30,22 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
     @Override
     public SuperAdminDashboardDTO getDashboard() {
-        long totalCompanies = companyRepository.count();
-        long activeCompanies = companyRepository.countByStatus(Company.CompanyStatus.ACTIVE);
-        long inactiveCompanies = companyRepository.countByStatus(Company.CompanyStatus.INACTIVE);
-        long suspendedCompanies = companyRepository.countByStatus(Company.CompanyStatus.SUSPENDED);
-        long pendingCompanies = companyRepository.countByStatus(Company.CompanyStatus.PENDING);
+        // Només empreses client: la de la plataforma (SUPER_ADMIN) no compta
+        LocalDateTime now = LocalDateTime.now();
+        long totalCompanies = companyRepository.countClients();
+        long paidCompanies = companyRepository.countActivePaidClients();
+        long trialCompanies = companyRepository.countActiveClientsInTrial(now);
+        long trialEndedCompanies = companyRepository.countActiveClientsWithTrialEnded(now);
+        long activeCompanies = paidCompanies + trialCompanies;
+        long inactiveCompanies = companyRepository.countClientsByStatus(Company.CompanyStatus.INACTIVE);
+        long suspendedCompanies = companyRepository.countClientsByStatus(Company.CompanyStatus.SUSPENDED);
+        long pendingCompanies = companyRepository.countClientsByStatus(Company.CompanyStatus.PENDING);
 
-        long totalUsers = userRepository.countByIsDeletedFalse();
-        long totalAdmins = userRepository.countByRole(User.UserRole.ADMIN);
-        long totalRegularUsers = userRepository.countByRole(User.UserRole.USER);
+        long totalUsers = userRepository.countByIsDeletedFalseAndRoleNot(User.UserRole.SUPER_ADMIN);
+        long totalAdmins = userRepository.countByRoleAndIsDeletedFalse(User.UserRole.ADMIN);
+        long totalRegularUsers = userRepository.countByRoleAndIsDeletedFalse(User.UserRole.USER);
 
-        LocalDateTime since30d = LocalDateTime.now().minusDays(30);
+        LocalDateTime since30d = now.minusDays(30);
         long totalOrders30d = orderRepository.countRecentOrders(since30d, EXCLUDED_STATUSES);
         BigDecimal totalSpent30d = orderRepository.sumRecentOrdersAmount(since30d, EXCLUDED_STATUSES);
         if (totalSpent30d == null) totalSpent30d = BigDecimal.ZERO;
@@ -62,6 +67,9 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         return SuperAdminDashboardDTO.builder()
                 .totalCompanies(totalCompanies)
                 .activeCompanies(activeCompanies)
+                .paidCompanies(paidCompanies)
+                .trialCompanies(trialCompanies)
+                .trialEndedCompanies(trialEndedCompanies)
                 .inactiveCompanies(inactiveCompanies)
                 .suspendedCompanies(suspendedCompanies)
                 .pendingCompanies(pendingCompanies)
@@ -127,6 +135,8 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .status(company.getStatus().name())
                 .createdAt(company.getCreatedAt())
                 .trialEndsAt(company.getTrialEndsAt())
+                .trialEnded(trialEnded(company))
+                .dataDeletionAt(DataRetentionServiceImpl.deletionTime(company.getTrialEndsAt(), LocalDateTime.now()))
                 .users(userDTOs)
                 .supplierCount(0) // simplified
                 .productCount(0)  // simplified
@@ -229,8 +239,14 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .orderCount(orderCount)
                 .createdAt(c.getCreatedAt())
                 .trialEndsAt(c.getTrialEndsAt())
+                .trialEnded(trialEnded(c))
+                .dataDeletionAt(DataRetentionServiceImpl.deletionTime(c.getTrialEndsAt(), LocalDateTime.now()))
                 .lastOrderDate(lastOrder.orElse(null))
                 .build();
+    }
+
+    private static boolean trialEnded(Company c) {
+        return c.getTrialEndsAt() != null && !c.getTrialEndsAt().isAfter(LocalDateTime.now());
     }
 
     private UserSummaryDTO toUserSummaryDTO(User u) {

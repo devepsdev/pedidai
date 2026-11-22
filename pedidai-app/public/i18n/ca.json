@@ -624,29 +624,32 @@
     "SECTION": "Super Admin",
     "DASHBOARD": {
       "TITLE": "Dashboard d'Administració",
-      "TOTAL_COMPANIES": "Total empreses",
-      "TOTAL_USERS": "Total usuaris",
+      "TOTAL_COMPANIES": "Empreses clients",
+      "TOTAL_USERS": "Usuaris de clients",
       "ORDERS_30D": "Comandes (30d)",
       "SPENT_30D": "Despesa (30d)",
       "LAST_30_DAYS": "Últims 30 dies",
       "ORDERS_CHART": "Comandes per mes",
       "TOP_COMPANIES": "Top empreses per activitat",
       "SEE_ALL": "Veure totes",
-      "ACTIVE_SHORT": "{{n}} actives",
       "INACTIVE_SHORT": "{{n}} inactives",
       "SUSPENDED_SHORT": "{{n}} suspeses",
-      "ADMINS": "{{n}} administradors",
-      "REGULAR_USERS": "{{n}} usuaris",
-      "MRR": "MRR potencial:",
+      "ADMINS": "Administradors: {{n}}",
+      "REGULAR_USERS": "Usuaris: {{n}}",
+      "MRR": "MRR potencial (pagament + prova):",
       "ORDERS_COUNT": "{{n}} comandes",
-      "NO_DATA": "Sense dades"
+      "NO_DATA": "Sense dades",
+      "PAID_SHORT": "{{n}} de pagament",
+      "TRIAL_SHORT": "{{n}} en prova",
+      "TRIAL_ENDED_SHORT": "{{n}} amb la prova acabada"
     },
     "COMPANIES": {
       "TITLE": "Empreses",
       "SEARCH_PH": "Cercar per nom o CIF...",
       "ALL_STATUSES": "Tots els estats",
       "EMPTY": "Sense empreses",
-      "COUNT": "{{n}} empreses"
+      "COUNT": "{{n}} empreses",
+      "DELETES_ON": "S'esborra el {{date}}"
     },
     "USERS": {
       "TITLE": "Usuaris",
@@ -661,7 +664,9 @@
       "ACTIVE": "Activa",
       "INACTIVE": "Inactiva",
       "SUSPENDED": "Suspesa",
-      "PENDING": "Pendent"
+      "PENDING": "Pendent",
+      "TRIAL": "En prova",
+      "TRIAL_ENDED": "Prova acabada"
     },
     "ROLE": {
       "ADMIN": "Administrador",

@@ -47,14 +47,17 @@
                 <td class="px-4 py-3 text-slate-400 hidden sm:table-cell font-mono text-xs">{{ c.taxId }}</td>
                 <td class="px-4 py-3 text-slate-400 hidden md:table-cell">{{ c.city || '—' }}</td>
                 <td class="px-4 py-3">
-                  <span class="text-xs font-semibold px-2 py-0.5 rounded-full" [class]="statusBadge(c.status)">
-                    {{ 'SUPERADMIN.STATUS.' + c.status | translate }}
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" [class]="badgeClass(badge(c))">
+                    {{ 'SUPERADMIN.STATUS.' + badge(c) | translate }}
                   </span>
                 </td>
                 <td class="px-4 py-3 text-right text-slate-400 hidden lg:table-cell">{{ c.userCount }}</td>
                 <td class="px-4 py-3 text-right text-slate-400 hidden lg:table-cell">{{ c.orderCount }}</td>
                 <td class="px-4 py-3 text-slate-400 text-xs hidden xl:table-cell">
                   {{ c.trialEndsAt ? (c.trialEndsAt | date:'dd/MM/yy') : '—' }}
+                  @if (c.dataDeletionAt) {
+                    <span class="block text-amber-300/80">{{ 'SUPERADMIN.COMPANIES.DELETES_ON' | translate: { date: (c.dataDeletionAt | date:'dd/MM/yy') } }}</span>
+                  }
                 </td>
                 <td class="px-4 py-3 text-slate-400 text-xs hidden xl:table-cell">
                   {{ c.createdAt | date:'dd/MM/yy' }}

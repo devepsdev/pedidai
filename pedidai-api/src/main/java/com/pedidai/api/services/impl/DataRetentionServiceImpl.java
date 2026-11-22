@@ -26,6 +26,19 @@ import java.util.List;
 public class DataRetentionServiceImpl implements DataRetentionService {
 
     public static final int RETENTION_DAYS = 30;
+    /** Hora de la neteja diària (la del cron per defecte). */
+    private static final java.time.LocalTime PURGE_TIME = java.time.LocalTime.of(3, 30);
+
+    /**
+     * Quan s'esborraran les dades d'una empresa amb la prova acabada: la primera neteja diària posterior als
+     * {@link #RETENTION_DAYS} dies. Nul si no té prova (pagament o plataforma) o si encara no ha acabat.
+     */
+    public static LocalDateTime deletionTime(LocalDateTime trialEndsAt, LocalDateTime now) {
+        if (trialEndsAt == null || trialEndsAt.isAfter(now)) return null;
+        LocalDateTime limit = trialEndsAt.plusDays(RETENTION_DAYS);
+        LocalDateTime run = limit.toLocalDate().atTime(PURGE_TIME);
+        return run.isAfter(limit) ? run : run.plusDays(1);
+    }
 
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;

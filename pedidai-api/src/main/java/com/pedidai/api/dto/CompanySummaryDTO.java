@@ -14,5 +14,9 @@ public class CompanySummaryDTO {
     private long orderCount;
     private LocalDateTime createdAt;
     private LocalDateTime trialEndsAt;
+    /** La prova ha acabat sense contractar: ja no pot entrar. */
+    private boolean trialEnded;
+    /** Quan s'esborraran les seves dades (nul si no ha d'esborrar-se). */
+    private LocalDateTime dataDeletionAt;
     private LocalDateTime lastOrderDate;
 }

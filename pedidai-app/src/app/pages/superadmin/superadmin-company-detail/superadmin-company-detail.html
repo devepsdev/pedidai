@@ -20,7 +20,7 @@
           <p class="text-sm text-slate-400 mt-1">{{ c.taxId }} · {{ c.email }}</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <span class="text-xs font-semibold px-3 py-1 rounded-full" [class]="statusBadge(c.status)">{{ 'SUPERADMIN.STATUS.' + c.status | translate }}</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full" [class]="badgeClass(badge(c))">{{ 'SUPERADMIN.STATUS.' + badge(c) | translate }}</span>
           <button (click)="openStatusModal()"
             class="text-xs px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors">
             {{ 'SUPERADMIN.DETAIL.CHANGE_STATUS' | translate }}
@@ -51,7 +51,7 @@
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-5 border-t border-slate-700">
         <div><p class="text-xs text-slate-500">{{ 'SUPERADMIN.COL.CITY' | translate }}</p><p class="text-sm text-white">{{ c.city || '—' }}</p></div>
         <div><p class="text-xs text-slate-500">{{ 'SUPERADMIN.COL.CREATED' | translate }}</p><p class="text-sm text-white">{{ c.createdAt | date:'dd/MM/yyyy' }}</p></div>
-        <div><p class="text-xs text-slate-500">{{ 'SUPERADMIN.DETAIL.TRIAL_UNTIL' | translate }}</p><p class="text-sm text-white">{{ c.trialEndsAt ? (c.trialEndsAt | date:'dd/MM/yyyy') : (isPlatform(c) ? '—' : ('SUPERADMIN.DETAIL.PAID' | translate)) }}</p></div>
+        <div><p class="text-xs text-slate-500">{{ 'SUPERADMIN.DETAIL.TRIAL_UNTIL' | translate }}</p><p class="text-sm text-white">{{ c.trialEndsAt ? (c.trialEndsAt | date:'dd/MM/yyyy') : (isPlatform(c) ? '—' : ('SUPERADMIN.DETAIL.PAID' | translate)) }}</p>@if (c.dataDeletionAt) {<p class="text-xs text-amber-300/80 mt-0.5">{{ 'SUPERADMIN.COMPANIES.DELETES_ON' | translate: { date: (c.dataDeletionAt | date:'dd/MM/yyyy') } }}</p>}</div>
         <div><p class="text-xs text-slate-500">{{ 'SUPERADMIN.DETAIL.TOTAL_ORDERS' | translate }}</p><p class="text-sm text-white">{{ c.orderCount }}</p></div>
       </div>
     </div>

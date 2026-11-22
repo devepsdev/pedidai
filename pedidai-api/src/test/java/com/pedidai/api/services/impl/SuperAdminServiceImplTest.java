@@ -95,4 +95,90 @@ class SuperAdminServiceImplTest {
                 .isInstanceOf(BadRequestException.class).hasMessage("error.company.platformAccount");
         verify(companyRepository, never()).save(any());
     }
+
+    // ── Prova acabada i data d'esborrat al llistat ──
+
+    @Test
+    @DisplayName("llistat: prova acabada → trialEnded i data d'esborrat")
+    void summaryMarksEndedTrialWithDeletionDate() {
+        LocalDateTime end = LocalDateTime.now().minusDays(3);
+        company(end, Company.CompanyStatus.ACTIVE);
+        summaryStubs();
+
+        CompanySummaryDTO result = service.updateCompanyStatus("c1", "ACTIVE");
+
+        assertThat(result.isTrialEnded()).isTrue();
+        assertThat(result.getDataDeletionAt())
+                .isEqualTo(DataRetentionServiceImpl.deletionTime(end, LocalDateTime.now()));
+    }
+
+    @Test
+    @DisplayName("llistat: prova en curs o client de pagament → sense data d'esborrat")
+    void summaryWithoutDeletionWhenTrialRunningOrPaid() {
+        company(LocalDateTime.now().plusDays(3), Company.CompanyStatus.ACTIVE);
+        summaryStubs();
+        CompanySummaryDTO running = service.updateCompanyStatus("c1", "ACTIVE");
+        assertThat(running.isTrialEnded()).isFalse();
+        assertThat(running.getDataDeletionAt()).isNull();
+
+        company(null, Company.CompanyStatus.ACTIVE);
+        CompanySummaryDTO paid = service.updateCompanyStatus("c1", "ACTIVE");
+        assertThat(paid.isTrialEnded()).isFalse();
+        assertThat(paid.getDataDeletionAt()).isNull();
+    }
+
+    // ── Tauler: només empreses client (mai la de la plataforma) ──
+
+    @Test
+    @DisplayName("tauler: separa pagament, prova i prova acabada; MRR = (pagament + prova) × 29")
+    void dashboardCountsOnlyClients() {
+        when(companyRepository.countClients()).thenReturn(4L);
+        when(companyRepository.countActivePaidClients()).thenReturn(1L);
+        when(companyRepository.countActiveClientsInTrial(any())).thenReturn(1L);
+        when(companyRepository.countActiveClientsWithTrialEnded(any())).thenReturn(1L);
+        when(companyRepository.countClientsByStatus(Company.CompanyStatus.INACTIVE)).thenReturn(1L);
+        when(userRepository.countByIsDeletedFalseAndRoleNot(User.UserRole.SUPER_ADMIN)).thenReturn(3L);
+        when(userRepository.countByRoleAndIsDeletedFalse(User.UserRole.ADMIN)).thenReturn(2L);
+        when(userRepository.countByRoleAndIsDeletedFalse(User.UserRole.USER)).thenReturn(1L);
+        when(orderRepository.findTopCompaniesByOrderCount(any(), any(), any())).thenReturn(java.util.List.of());
+
+        var d = service.getDashboard();
+
+        assertThat(d.getTotalCompanies()).isEqualTo(4);
+        assertThat(d.getPaidCompanies()).isEqualTo(1);
+        assertThat(d.getTrialCompanies()).isEqualTo(1);
+        assertThat(d.getTrialEndedCompanies()).isEqualTo(1);
+        assertThat(d.getActiveCompanies()).isEqualTo(2);
+        assertThat(d.getInactiveCompanies()).isEqualTo(1);
+        assertThat(d.getPotentialMRR()).isEqualByComparingTo("58");
+        assertThat(d.getTotalUsers()).isEqualTo(3);
+        assertThat(d.getTotalAdmins()).isEqualTo(2);
+        assertThat(d.getTotalRegularUsers()).isEqualTo(1);
+    }
+
+    // ── Data d'esborrat: primera neteja (03:30) després de 30 dies ──
+
+    @Test
+    @DisplayName("esborrat: la neteja de les 03:30 de l'endemà si el límit cau de dia")
+    void deletionTimeNextNightlyRun() {
+        LocalDateTime end = LocalDateTime.of(2026, 11, 5, 11, 14);
+        assertThat(DataRetentionServiceImpl.deletionTime(end, end.plusDays(1)))
+                .isEqualTo(LocalDateTime.of(2026, 12, 6, 3, 30));
+    }
+
+    @Test
+    @DisplayName("esborrat: el mateix dia si el límit cau abans de les 03:30")
+    void deletionTimeSameNight() {
+        LocalDateTime end = LocalDateTime.of(2026, 11, 5, 1, 0);
+        assertThat(DataRetentionServiceImpl.deletionTime(end, end.plusDays(1)))
+                .isEqualTo(LocalDateTime.of(2026, 12, 5, 3, 30));
+    }
+
+    @Test
+    @DisplayName("esborrat: sense data si la prova no ha acabat o no n'hi ha")
+    void deletionTimeNullWhenNotEnded() {
+        LocalDateTime now = LocalDateTime.of(2026, 11, 22, 12, 0);
+        assertThat(DataRetentionServiceImpl.deletionTime(now.plusDays(1), now)).isNull();
+        assertThat(DataRetentionServiceImpl.deletionTime(null, now)).isNull();
+    }
 }

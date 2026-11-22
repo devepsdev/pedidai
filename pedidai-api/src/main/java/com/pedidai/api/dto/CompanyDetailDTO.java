@@ -16,6 +16,8 @@ public class CompanyDetailDTO {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime trialEndsAt;
+    private boolean trialEnded;
+    private LocalDateTime dataDeletionAt;
     private List<UserSummaryDTO> users;
     private long supplierCount;
     private long productCount;
