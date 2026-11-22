@@ -1,4 +1,4 @@
-import { companyBadge, companyBadgeClass } from './company-badge';
+import { companyBadge, companyBadgeClass, userAccess } from './company-badge';
 
 describe('companyBadge', () => {
   it('prueba terminada: ACTIVE con la prueba acabada', () => {
@@ -20,5 +20,24 @@ describe('companyBadge', () => {
 
   it('prueba terminada en ámbar', () => {
     expect(companyBadgeClass('TRIAL_ENDED')).toContain('amber');
+  });
+});
+
+describe('userAccess', () => {
+  it('puede entrar: activo y empresa sin bloqueo', () => {
+    expect(userAccess({ active: true, companyStatus: 'ACTIVE', companyTrialEnded: false })).toBe('OK');
+  });
+
+  it('empresa con la prueba terminada', () => {
+    expect(userAccess({ active: true, companyStatus: 'ACTIVE', companyTrialEnded: true })).toBe('TRIAL_ENDED');
+  });
+
+  it('empresa suspendida o inactiva', () => {
+    expect(userAccess({ active: true, companyStatus: 'SUSPENDED', companyTrialEnded: false })).toBe('SUSPENDED');
+    expect(userAccess({ active: true, companyStatus: 'INACTIVE', companyTrialEnded: true })).toBe('INACTIVE');
+  });
+
+  it('usuario desactivado: manda sobre todo lo demás', () => {
+    expect(userAccess({ active: false, companyStatus: 'ACTIVE', companyTrialEnded: true })).toBe('DISABLED');
   });
 });

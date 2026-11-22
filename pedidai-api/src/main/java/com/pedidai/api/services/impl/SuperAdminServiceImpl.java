@@ -272,6 +272,8 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .active(Boolean.TRUE.equals(u.getIsActive()))
                 .companyName(u.getCompany() != null ? u.getCompany().getName() : "")
                 .companyUuid(u.getCompany() != null ? u.getCompany().getUuid() : "")
+                .companyStatus(u.getCompany() != null ? u.getCompany().getStatus().name() : null)
+                .companyTrialEnded(u.getCompany() != null && trialEnded(u.getCompany()))
                 .createdAt(u.getCreatedAt())
                 .build();
     }

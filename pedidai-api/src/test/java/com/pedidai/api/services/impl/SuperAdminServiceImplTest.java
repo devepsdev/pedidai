@@ -181,4 +181,23 @@ class SuperAdminServiceImplTest {
         assertThat(DataRetentionServiceImpl.deletionTime(now.plusDays(1), now)).isNull();
         assertThat(DataRetentionServiceImpl.deletionTime(null, now)).isNull();
     }
+
+    @Test
+    @DisplayName("usuaris: marca els de l'empresa amb la prova acabada")
+    void usersMarkCompanyTrialEnded() {
+        Company ended = Company.builder().id(5L).uuid("c1").name("Bar")
+                .status(Company.CompanyStatus.ACTIVE).trialEndsAt(LocalDateTime.now().minusDays(1)).build();
+        Company paid = Company.builder().id(6L).uuid("c2").name("Pagat")
+                .status(Company.CompanyStatus.ACTIVE).build();
+        User a = User.builder().uuid("u1").firstName("A").lastName("B").email("a@test.com").company(ended).build();
+        User b = User.builder().uuid("u2").firstName("C").lastName("D").email("c@test.com").company(paid).build();
+        when(userRepository.findByAdminFilters(any(), any(), any(), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(a, b)));
+
+        var users = service.getUsers(null, null, null, org.springframework.data.domain.PageRequest.of(0, 20)).getContent();
+
+        assertThat(users.get(0).isCompanyTrialEnded()).isTrue();
+        assertThat(users.get(0).getCompanyStatus()).isEqualTo("ACTIVE");
+        assertThat(users.get(1).isCompanyTrialEnded()).isFalse();
+    }
 }

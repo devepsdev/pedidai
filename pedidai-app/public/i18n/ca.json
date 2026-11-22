@@ -656,7 +656,8 @@
       "SEARCH_PH": "Cerca per nom o email…",
       "ALL_ROLES": "Tots els rols",
       "EMPTY": "Sense usuaris",
-      "COUNT": "{{n}} usuaris"
+      "COUNT": "{{n}} usuaris",
+      "BLOCKED_HINT": "No pot entrar: ho bloqueja l'estat de la seva empresa"
     },
     "BACK_DASHBOARD": "← Tauler",
     "LOADING": "Carregant…",

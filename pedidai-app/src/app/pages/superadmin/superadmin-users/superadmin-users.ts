@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { SuperAdminService, UserAdmin, PagedResponse } from '../../../services/super-admin.service';
+import { companyBadgeClass, userAccess } from '../company-badge';
 
 @Component({
   selector: 'app-superadmin-users',
@@ -13,6 +14,9 @@ import { SuperAdminService, UserAdmin, PagedResponse } from '../../../services/s
 })
 export class SuperadminUsers implements OnInit {
   private svc = inject(SuperAdminService);
+
+  readonly access = userAccess;
+  readonly badgeClass = companyBadgeClass;
 
   loading = signal(true);
   users = signal<UserAdmin[]>([]);

@@ -48,7 +48,14 @@
                      class="hover:text-cyan-400 transition-colors">{{ u.companyName }}</a>
                 </td>
                 <td class="px-4 py-3 text-center hidden lg:table-cell">
-                  <span [class]="u.active ? 'text-green-400' : 'text-red-400'">{{ u.active ? '✓' : '✗' }}</span>
+                  @switch (access(u)) {
+                    @case ('OK') { <span class="text-green-400">✓</span> }
+                    @case ('DISABLED') { <span class="text-red-400">✗</span> }
+                    @default {
+                      <span class="text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" [class]="badgeClass(access(u))"
+                        [title]="'SUPERADMIN.USERS.BLOCKED_HINT' | translate">{{ 'SUPERADMIN.STATUS.' + access(u) | translate }}</span>
+                    }
+                  }
                 </td>
                 <td class="px-4 py-3 text-slate-400 text-xs hidden xl:table-cell">{{ u.createdAt | date:'dd/MM/yy' }}</td>
               </tr>

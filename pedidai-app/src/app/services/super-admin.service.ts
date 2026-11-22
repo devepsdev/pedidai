@@ -88,6 +88,8 @@ export interface UserAdmin {
   active: boolean;
   companyName: string;
   companyUuid: string;
+  companyStatus: string | null;
+  companyTrialEnded: boolean;
   createdAt: string;
 }
 

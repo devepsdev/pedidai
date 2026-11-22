@@ -656,7 +656,8 @@
       "SEARCH_PH": "Buscar por nombre o email…",
       "ALL_ROLES": "Todos los roles",
       "EMPTY": "Sin usuarios",
-      "COUNT": "{{n}} usuarios"
+      "COUNT": "{{n}} usuarios",
+      "BLOCKED_HINT": "No puede entrar: lo bloquea el estado de su empresa"
     },
     "BACK_DASHBOARD": "← Dashboard",
     "LOADING": "Cargando…",
