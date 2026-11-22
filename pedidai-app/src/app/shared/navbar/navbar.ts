@@ -1,4 +1,4 @@
-import { Component, inject, output, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { LanguageService } from '../../services/language.service';
 import { AuthService } from '../../services/auth';
@@ -12,6 +12,8 @@ import { AuthService } from '../../services/auth';
 export class Navbar {
   private auth = inject(AuthService);
   menuToggle = output<void>();
+  /** Si el menú lateral está abierto (para aria-expanded del botón). */
+  menuOpen = input(false);
 
   private language = inject(LanguageService);
   currentLang = this.language.current;

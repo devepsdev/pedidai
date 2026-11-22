@@ -19,7 +19,7 @@
         style="filter: blur(2px);">
     </div>
 
-    <app-navbar (menuToggle)="toggleSidebar()" />
+    <app-navbar [menuOpen]="sidebarOpen()" (menuToggle)="toggleSidebar()" />
     <main class="flex-1 overflow-y-auto relative z-10">
       <router-outlet />
     </main>

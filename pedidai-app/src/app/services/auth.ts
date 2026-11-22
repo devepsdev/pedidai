@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, tap, map } from 'rxjs';
 import { ApiService } from './api';
@@ -19,6 +19,21 @@ export class AuthService {
 
   private _authenticated$ = new BehaviorSubject<boolean>(this.hasToken());
   readonly authenticated$ = this._authenticated$.asObservable();
+
+  /**
+   * Usuario de la sesión. Es una señal para que la barra y el menú lateral se repinten cuando cambia
+   * (p. ej. al refrescarlo desde /users/me); antes se leía de localStorage en cada repintado.
+   */
+  private readonly _user = signal<UserResponse | null>(this.readUserFromStorage());
+
+  constructor() {
+    // Otra pestaña inicia o cierra sesión: mantener el usuario al día.
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', e => {
+        if (e.key === 'user' || e.key === null) this._user.set(this.readUserFromStorage());
+      });
+    }
+  }
 
   private hasToken(): boolean {
     return !!this.getToken();
@@ -43,6 +58,7 @@ export class AuthService {
   startSession(data: LoginResponse): void {
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
+    this._user.set(data.user);
     this.language.adoptFromAccount(data.user?.language);
     this._authenticated$.next(true);
   }
@@ -81,7 +97,10 @@ export class AuthService {
   refreshMe(): Observable<UserResponse> {
     return this.api.get<ApiResponse<UserResponse>>('/users/me').pipe(
       map(res => res.data),
-      tap(user => localStorage.setItem('user', JSON.stringify(user)))
+      tap(user => {
+        localStorage.setItem('user', JSON.stringify(user));
+        this._user.set(user);
+      })
     );
   }
 
@@ -92,6 +111,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    this._user.set(null);
     this._authenticated$.next(false);
     this.router.navigate(['/login']);
   }
@@ -106,6 +126,11 @@ export class AuthService {
   }
 
   getCurrentUser(): UserResponse | null {
+    return this._user();
+  }
+
+  /** null también al prerenderizar. */
+  private readUserFromStorage(): UserResponse | null {
     try {
       const u = localStorage.getItem('user');
       return u ? JSON.parse(u) : null;

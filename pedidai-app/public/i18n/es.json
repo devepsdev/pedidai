@@ -926,7 +926,10 @@
     "SAVINGS": "Ahorro",
     "PRICING": "Precio",
     "FAQ": "Preguntas",
-    "LOGIN": "Acceder"
+    "LOGIN": "Acceder",
+    "OPEN_MENU": "Abrir menú",
+    "CLOSE_MENU": "Cerrar menú",
+    "LANGUAGE": "Idioma"
   },
   "LANDING": {
     "HERO": {

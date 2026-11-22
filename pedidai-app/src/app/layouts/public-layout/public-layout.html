@@ -11,9 +11,9 @@
           [class]="navbarSolid() ? 'text-gray-900' : 'text-white'">Pedid<span class="brand-ai">AI</span></span>
       </a>
 
-      <!-- Desktop nav — only shown on landing -->
+      <!-- Desktop nav — only shown on landing (desde lg: a 768 px no caben junto a los botones) -->
       @if (isLanding()) {
-        <nav class="hidden md:flex items-center gap-8">
+        <nav class="hidden lg:flex items-center gap-8">
           <a href="#how-it-works" (click)="scrollTo('how-it-works', $event)"
             class="text-sm font-medium transition-colors"
             [class]="navbarSolid() ? 'text-gray-600 hover:text-gray-900' : 'text-slate-300 hover:text-white'">
@@ -40,19 +40,18 @@
       <!-- Desktop actions -->
       <div class="hidden md:flex items-center gap-3">
         <!-- Language selector -->
-        <div class="flex items-center gap-1 text-xs font-medium mr-1">
-          <button
+        <div class="flex items-center gap-0.5 text-xs font-medium mr-1" role="group" [attr.aria-label]="'NAV.LANGUAGE' | translate">
+          <button type="button" lang="es" [attr.aria-pressed]="currentLang() === 'es'"
             (click)="setLang('es')"
-            class="px-2 py-1 rounded transition-colors"
+            class="min-w-9 h-9 px-1.5 rounded-lg transition-colors"
             [class]="currentLang() === 'es'
               ? 'bg-blue-600 text-white'
               : (navbarSolid() ? 'text-gray-500 hover:text-gray-700' : 'text-slate-300 hover:text-white')">
             ES
           </button>
-          <span [class]="navbarSolid() ? 'text-gray-300' : 'text-slate-500'">|</span>
-          <button
+          <button type="button" lang="ca" [attr.aria-pressed]="currentLang() === 'ca'"
             (click)="setLang('ca')"
-            class="px-2 py-1 rounded transition-colors"
+            class="min-w-9 h-9 px-1.5 rounded-lg transition-colors"
             [class]="currentLang() === 'ca'
               ? 'bg-blue-600 text-white'
               : (navbarSolid() ? 'text-gray-500 hover:text-gray-700' : 'text-slate-300 hover:text-white')">
@@ -61,27 +60,29 @@
         </div>
 
         <a routerLink="/login"
-          class="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          class="inline-flex items-center h-10 whitespace-nowrap text-sm font-medium px-4 rounded-lg transition-colors"
           [class]="navbarSolid() ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' : 'text-slate-300 hover:text-white'">
           {{ 'NAV.LOGIN' | translate }}
         </a>
         <a routerLink="/register"
-          class="text-sm font-bold px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg transition-colors shadow-sm">
+          class="inline-flex items-center h-10 whitespace-nowrap text-sm font-bold px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg transition-colors shadow-sm">
           {{ 'CTA.TRIAL' | translate }}
         </a>
       </div>
 
       <!-- Mobile hamburger -->
-      <button
+      <button type="button"
         (click)="toggleMenu()"
-        class="md:hidden p-2 rounded-lg transition-colors"
-        [class]="navbarSolid() ? 'text-gray-600 hover:bg-gray-100' : 'text-white hover:bg-white/10'">
+        [attr.aria-label]="(menuOpen() ? 'NAV.CLOSE_MENU' : 'NAV.OPEN_MENU') | translate"
+        [attr.aria-expanded]="menuOpen()" aria-controls="public-menu"
+        class="inline-flex items-center justify-center w-11 h-11 -mr-2 rounded-lg transition-colors"
+        [class]="(isLanding() ? 'lg:hidden ' : 'md:hidden ') + (navbarSolid() ? 'text-gray-600 hover:bg-gray-100' : 'text-white hover:bg-white/10')">
         @if (menuOpen()) {
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         } @else {
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
         }
@@ -91,7 +92,7 @@
 
   <!-- Mobile menu -->
   @if (menuOpen()) {
-    <div class="md:hidden bg-white border-t border-gray-100 shadow-lg">
+    <div id="public-menu" class="lg:hidden bg-white border-t border-gray-100 shadow-lg">
       <nav class="flex flex-col px-6 py-4 gap-1">
         @if (isLanding()) {
           <a href="#how-it-works" (click)="scrollTo('how-it-works', $event)"
@@ -111,26 +112,27 @@
             {{ 'NAV.FAQ' | translate }}
           </a>
         }
-        <div class="border-t border-gray-100 mt-3 pt-3 flex flex-col gap-2" [class]="isLanding() ? '' : 'border-0 mt-0 pt-0'">
+        <!-- Idioma y acceso: desde md ya están en la barra -->
+        <div class="md:hidden border-t border-gray-100 mt-3 pt-3 flex flex-col gap-2" [class]="isLanding() ? '' : 'border-0 mt-0 pt-0'">
           <!-- Mobile language selector -->
-          <div class="flex items-center gap-2 py-1">
-            <button (click)="setLang('es')"
-              class="px-3 py-1 text-xs font-medium rounded transition-colors"
+          <div class="flex items-center gap-2 py-1" role="group" [attr.aria-label]="'NAV.LANGUAGE' | translate">
+            <button type="button" lang="es" [attr.aria-pressed]="currentLang() === 'es'" (click)="setLang('es')"
+              class="min-w-11 h-10 px-3 text-xs font-medium rounded-lg transition-colors"
               [class]="currentLang() === 'es' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'">
               ES
             </button>
-            <button (click)="setLang('ca')"
-              class="px-3 py-1 text-xs font-medium rounded transition-colors"
+            <button type="button" lang="ca" [attr.aria-pressed]="currentLang() === 'ca'" (click)="setLang('ca')"
+              class="min-w-11 h-10 px-3 text-xs font-medium rounded-lg transition-colors"
               [class]="currentLang() === 'ca' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'">
               CA
             </button>
           </div>
           <a routerLink="/login" (click)="closeMenu()"
-            class="py-2.5 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+            class="flex items-center justify-center min-h-11 rounded-lg border border-gray-300 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
             {{ 'NAV.LOGIN' | translate }}
           </a>
           <a routerLink="/register" (click)="closeMenu()"
-            class="py-3 text-center text-sm font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg transition-colors">
+            class="flex items-center justify-center min-h-11 py-2.5 text-center text-sm font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg transition-colors">
             {{ 'CTA.TRIAL' | translate }}
           </a>
         </div>

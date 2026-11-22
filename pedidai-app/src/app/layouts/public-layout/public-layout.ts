@@ -50,6 +50,12 @@ export class PublicLayoutComponent {
     this.isScrolled.set(window.scrollY > 20);
   }
 
+  /** Esc cierra el menú móvil. */
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.closeMenu();
+  }
+
   toggleMenu() {
     this.menuOpen.update((v) => !v);
   }
