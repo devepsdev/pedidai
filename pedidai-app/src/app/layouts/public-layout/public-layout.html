@@ -113,7 +113,8 @@
           </a>
         }
         <!-- Idioma y acceso: desde md ya están en la barra -->
-        <div class="md:hidden border-t border-gray-100 mt-3 pt-3 flex flex-col gap-2" [class]="isLanding() ? '' : 'border-0 mt-0 pt-0'">
+        <!-- La raya y el margen solo cuando hay enlaces de sección encima (portada); si no, quedaba un hueco -->
+        <div class="md:hidden flex flex-col gap-2" [class]="isLanding() ? 'border-t border-gray-100 mt-3 pt-3' : ''">
           <!-- Mobile language selector -->
           <div class="flex items-center gap-2 py-1" role="group" [attr.aria-label]="'NAV.LANGUAGE' | translate">
             <button type="button" lang="es" [attr.aria-pressed]="currentLang() === 'es'" (click)="setLang('es')"
