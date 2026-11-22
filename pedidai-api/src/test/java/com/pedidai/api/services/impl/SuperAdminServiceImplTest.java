@@ -200,4 +200,14 @@ class SuperAdminServiceImplTest {
         assertThat(users.get(0).getCompanyStatus()).isEqualTo("ACTIVE");
         assertThat(users.get(1).isCompanyTrialEnded()).isFalse();
     }
+
+    @Test
+    @DisplayName("llistat: marca el compte de la plataforma")
+    void summaryMarksPlatform() {
+        company(null, Company.CompanyStatus.ACTIVE);
+        summaryStubs();
+        when(userRepository.existsByCompany_IdAndRole(5L, User.UserRole.SUPER_ADMIN)).thenReturn(true);
+
+        assertThat(service.updateCompanyStatus("c1", "ACTIVE").isPlatform()).isTrue();
+    }
 }

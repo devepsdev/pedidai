@@ -621,27 +621,34 @@
     "NAME": "Nom"
   },
   "SUPERADMIN": {
-    "SECTION": "Super Admin",
+    "SECTION": "Administració",
     "DASHBOARD": {
-      "TITLE": "Dashboard d'Administració",
+      "TITLE": "Resum",
       "TOTAL_COMPANIES": "Empreses clients",
       "TOTAL_USERS": "Usuaris de clients",
       "ORDERS_30D": "Comandes (30d)",
-      "SPENT_30D": "Despesa (30d)",
-      "LAST_30_DAYS": "Últims 30 dies",
       "ORDERS_CHART": "Comandes per mes",
-      "TOP_COMPANIES": "Top empreses per activitat",
+      "TOP_COMPANIES": "Més actives (30 dies)",
       "SEE_ALL": "Veure totes",
-      "INACTIVE_SHORT": "{{n}} inactives",
-      "SUSPENDED_SHORT": "{{n}} suspeses",
       "ADMINS": "Administradors: {{n}}",
       "REGULAR_USERS": "Usuaris: {{n}}",
-      "MRR": "MRR potencial (pagament + prova):",
       "ORDERS_COUNT": "{{n}} comandes",
-      "NO_DATA": "Sense dades",
-      "PAID_SHORT": "{{n}} de pagament",
-      "TRIAL_SHORT": "{{n}} en prova",
-      "TRIAL_ENDED_SHORT": "{{n}} amb la prova acabada"
+      "TRIAL_ENDED_SHORT": "{{n}} amb la prova acabada",
+      "SUBTITLE": "Com van els clients de PedidAI.",
+      "ACTIVE_HINT": "{{n}} poden entrar (de pagament o en prova)",
+      "TRIAL_NOW": "En prova",
+      "MRR_TITLE": "MRR potencial",
+      "MRR_HINT": "{{n}} de pagament; la resta, si contracten",
+      "SPENT_HINT": "{{amount}} en comandes",
+      "STATUS_TITLE": "Estat de les empreses",
+      "STATUS_EMPTY": "Encara no hi ha empreses clients.",
+      "RECENT_TITLE": "Darrers registres",
+      "RECENT_EMPTY": "Encara no s'ha registrat ningú.",
+      "REGISTERED_ON": "Alta: {{date}}",
+      "TOP_EMPTY": "Cap client ha fet comandes en els darrers 30 dies.",
+      "SEE_ALL_USERS": "Veure'ls tots",
+      "INACTIVE_PLURAL": "Inactives",
+      "SUSPENDED_PLURAL": "Suspeses"
     },
     "COMPANIES": {
       "TITLE": "Empreses",
@@ -649,7 +656,8 @@
       "ALL_STATUSES": "Tots els estats",
       "EMPTY": "Sense empreses",
       "COUNT": "{{n}} empreses",
-      "DELETES_ON": "S'esborra el {{date}}"
+      "DELETES_ON": "S'esborra el {{date}}",
+      "SUBTITLE": "Totes les empreses registrades i en quin punt està cadascuna."
     },
     "USERS": {
       "TITLE": "Usuaris",
@@ -657,9 +665,11 @@
       "ALL_ROLES": "Tots els rols",
       "EMPTY": "Sense usuaris",
       "COUNT": "{{n}} usuaris",
-      "BLOCKED_HINT": "No pot entrar: ho bloqueja l'estat de la seva empresa"
+      "BLOCKED_HINT": "No pot entrar: ho bloqueja l'estat de la seva empresa",
+      "SUBTITLE": "Qui fa servir PedidAI i si pot entrar.",
+      "CAN_LOG_IN": "Pot entrar",
+      "DISABLED": "Desactivat"
     },
-    "BACK_DASHBOARD": "← Tauler",
     "LOADING": "Carregant…",
     "STATUS": {
       "ACTIVE": "Activa",
@@ -667,7 +677,9 @@
       "SUSPENDED": "Suspesa",
       "PENDING": "Pendent",
       "TRIAL": "En prova",
-      "TRIAL_ENDED": "Prova acabada"
+      "TRIAL_ENDED": "Prova acabada",
+      "PLATFORM": "Plataforma",
+      "PAID": "De pagament"
     },
     "ROLE": {
       "ADMIN": "Administrador",
@@ -686,10 +698,10 @@
       "USER": "Usuari",
       "EMAIL": "Email",
       "ROLE": "Rol",
-      "ACTIVE": "Actiu"
+      "ACTIVE": "Actiu",
+      "ACCESS": "Accés"
     },
     "DETAIL": {
-      "BACK": "← Empreses",
       "CHANGE_STATUS": "Canviar l’estat",
       "PLATFORM": "Compte de la plataforma",
       "PAID": "Client de pagament",
@@ -706,7 +718,15 @@
       "MODAL_TITLE": "Canviar l’estat de l’empresa",
       "CANCEL": "Cancel·lar",
       "CONFIRM": "Confirmar",
-      "SAVING": "Desant…"
+      "SAVING": "Desant…",
+      "BACK_LIST": "Empreses",
+      "LAST_LOGIN": "Darrer accés: {{date}}",
+      "NEVER_LOGGED": "No ha entrat mai"
+    },
+    "NAV": {
+      "DASHBOARD": "Resum",
+      "COMPANIES": "Empreses",
+      "USERS": "Usuaris"
     }
   },
   "about": {

@@ -1,15 +1,17 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { DatePipe, CurrencyPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SuperAdminService, CompanyDetail } from '../../../services/super-admin.service';
 import { apiError } from '../../../shared/api-error';
-import { companyBadge, companyBadgeClass } from '../company-badge';
+import { LanguageService } from '../../../services/language.service';
+import { formatMoney } from '../../../shared/format';
+import { avatarClass, companyBadge, companyBadgeClass, CompanyBadge, initials, roleBadgeClass } from '../company-badge';
 
 @Component({
   selector: 'app-superadmin-company-detail',
-  imports: [RouterLink, TranslateModule, DatePipe, CurrencyPipe, FormsModule],
+  imports: [RouterLink, TranslateModule, DatePipe, FormsModule],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './superadmin-company-detail.html',
 })
@@ -17,6 +19,11 @@ export class SuperadminCompanyDetail implements OnInit {
   private translate = inject(TranslateService);
   private svc = inject(SuperAdminService);
   private route = inject(ActivatedRoute);
+  private language = inject(LanguageService);
+
+  money(v: number | null | undefined): string {
+    return formatMoney(v, this.language.current());
+  }
 
   loading = signal(true);
   saving = signal(false);
@@ -69,15 +76,13 @@ export class SuperadminCompanyDetail implements OnInit {
     });
   }
 
-  readonly badge = companyBadge;
   readonly badgeClass = companyBadgeClass;
+  readonly roleBadge = roleBadgeClass;
+  readonly initials = initials;
+  readonly avatarClass = avatarClass;
 
-  roleBadge(role: string): string {
-    return role === 'ADMIN'
-      ? 'bg-blue-500/20 text-blue-400'
-      : role === 'SUPER_ADMIN'
-        ? 'bg-amber-500/20 text-amber-400'
-        : 'bg-slate-600/50 text-slate-400';
+  badge(c: CompanyDetail): CompanyBadge {
+    return companyBadge({ ...c, platform: this.isPlatform(c) });
   }
 
   /** La cuenta de la plataforma (tiene un SUPER_ADMIN) no tiene prueba ni plan. */
@@ -141,12 +146,12 @@ export class SuperadminCompanyDetail implements OnInit {
 
   orderStatusBadge(status: string): string {
     const map: Record<string, string> = {
-      PENDING: 'bg-yellow-500/20 text-yellow-400',
-      SENT: 'bg-blue-500/20 text-blue-400',
-      CONFIRMED: 'bg-cyan-500/20 text-cyan-400',
-      COMPLETED: 'bg-green-500/20 text-green-400',
-      CANCELLED: 'bg-gray-500/20 text-gray-400',
+      PENDING: 'bg-yellow-50 text-yellow-800 ring-yellow-600/25',
+      SENT: 'bg-blue-50 text-blue-700 ring-blue-600/20',
+      CONFIRMED: 'bg-sky-50 text-sky-700 ring-sky-600/20',
+      COMPLETED: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+      CANCELLED: 'bg-gray-100 text-gray-600 ring-gray-500/20',
     };
-    return map[status] ?? 'bg-slate-600/50 text-slate-400';
+    return map[status] ?? 'bg-gray-100 text-gray-600 ring-gray-500/20';
   }
 }

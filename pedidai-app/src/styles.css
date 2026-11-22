@@ -10,3 +10,22 @@
   color: #06b6d4;
   font-weight: 800;
 }
+
+/* ── Zona de administración (superadmin): piezas comunes ── */
+@layer components {
+  .sa-card {
+    @apply bg-white rounded-2xl border border-gray-200 shadow-[0_1px_2px_rgba(16,24,40,0.04)];
+  }
+  .sa-icon {
+    @apply w-10 h-10 shrink-0 rounded-xl ring-1 ring-inset flex items-center justify-center;
+  }
+  .sa-avatar {
+    @apply shrink-0 rounded-full flex items-center justify-center text-xs font-bold select-none;
+  }
+  .sa-badge {
+    @apply inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ring-1 ring-inset whitespace-nowrap;
+  }
+  .sa-input {
+    @apply bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 shadow-[0_1px_2px_rgba(16,24,40,0.04)] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20;
+  }
+}

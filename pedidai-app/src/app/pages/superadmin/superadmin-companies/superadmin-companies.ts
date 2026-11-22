@@ -8,11 +8,12 @@ import {
   CompanySummary,
   PagedResponse,
 } from '../../../services/super-admin.service';
-import { companyBadge, companyBadgeClass } from '../company-badge';
+import { avatarClass, companyBadge, companyBadgeClass, initials } from '../company-badge';
+import { SuperadminHeader } from '../superadmin-header/superadmin-header';
 
 @Component({
   selector: 'app-superadmin-companies',
-  imports: [RouterLink, FormsModule, TranslateModule, DatePipe],
+  imports: [RouterLink, FormsModule, TranslateModule, DatePipe, SuperadminHeader],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './superadmin-companies.html',
 })
@@ -77,6 +78,8 @@ export class SuperadminCompanies implements OnInit {
 
   readonly badge = companyBadge;
   readonly badgeClass = companyBadgeClass;
+  readonly initials = initials;
+  readonly avatarClass = avatarClass;
 
   pages(): number[] {
     return Array.from({ length: this.totalPages() }, (_, i) => i);

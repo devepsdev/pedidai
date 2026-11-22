@@ -621,27 +621,34 @@
     "NAME": "Nombre"
   },
   "SUPERADMIN": {
-    "SECTION": "Super Admin",
+    "SECTION": "Administración",
     "DASHBOARD": {
-      "TITLE": "Dashboard de Administración",
+      "TITLE": "Resumen",
       "TOTAL_COMPANIES": "Empresas clientes",
       "TOTAL_USERS": "Usuarios de clientes",
       "ORDERS_30D": "Pedidos (30d)",
-      "SPENT_30D": "Gasto (30d)",
-      "LAST_30_DAYS": "Últimos 30 días",
       "ORDERS_CHART": "Pedidos por mes",
-      "TOP_COMPANIES": "Top empresas por actividad",
+      "TOP_COMPANIES": "Más activas (30 días)",
       "SEE_ALL": "Ver todas",
-      "INACTIVE_SHORT": "{{n}} inactivas",
-      "SUSPENDED_SHORT": "{{n}} suspendidas",
       "ADMINS": "Administradores: {{n}}",
       "REGULAR_USERS": "Usuarios: {{n}}",
-      "MRR": "MRR potencial (pago + prueba):",
       "ORDERS_COUNT": "{{n}} pedidos",
-      "NO_DATA": "Sin datos",
-      "PAID_SHORT": "{{n}} de pago",
-      "TRIAL_SHORT": "{{n}} en prueba",
-      "TRIAL_ENDED_SHORT": "{{n}} con la prueba terminada"
+      "TRIAL_ENDED_SHORT": "{{n}} con la prueba terminada",
+      "SUBTITLE": "Cómo van los clientes de PedidAI.",
+      "ACTIVE_HINT": "{{n}} pueden entrar (de pago o en prueba)",
+      "TRIAL_NOW": "En prueba",
+      "MRR_TITLE": "MRR potencial",
+      "MRR_HINT": "{{n}} de pago; el resto, si contratan",
+      "SPENT_HINT": "{{amount}} en pedidos",
+      "STATUS_TITLE": "Estado de las empresas",
+      "STATUS_EMPTY": "Todavía no hay empresas clientes.",
+      "RECENT_TITLE": "Últimos registros",
+      "RECENT_EMPTY": "Todavía no se ha registrado nadie.",
+      "REGISTERED_ON": "Alta: {{date}}",
+      "TOP_EMPTY": "Ningún cliente ha hecho pedidos en los últimos 30 días.",
+      "SEE_ALL_USERS": "Ver todos",
+      "INACTIVE_PLURAL": "Inactivas",
+      "SUSPENDED_PLURAL": "Suspendidas"
     },
     "COMPANIES": {
       "TITLE": "Empresas",
@@ -649,7 +656,8 @@
       "ALL_STATUSES": "Todos los estados",
       "EMPTY": "Sin empresas",
       "COUNT": "{{n}} empresas",
-      "DELETES_ON": "Se borra el {{date}}"
+      "DELETES_ON": "Se borra el {{date}}",
+      "SUBTITLE": "Todas las empresas registradas y en qué punto está cada una."
     },
     "USERS": {
       "TITLE": "Usuarios",
@@ -657,9 +665,11 @@
       "ALL_ROLES": "Todos los roles",
       "EMPTY": "Sin usuarios",
       "COUNT": "{{n}} usuarios",
-      "BLOCKED_HINT": "No puede entrar: lo bloquea el estado de su empresa"
+      "BLOCKED_HINT": "No puede entrar: lo bloquea el estado de su empresa",
+      "SUBTITLE": "Quién usa PedidAI y si puede entrar.",
+      "CAN_LOG_IN": "Puede entrar",
+      "DISABLED": "Desactivado"
     },
-    "BACK_DASHBOARD": "← Dashboard",
     "LOADING": "Cargando…",
     "STATUS": {
       "ACTIVE": "Activa",
@@ -667,7 +677,9 @@
       "SUSPENDED": "Suspendida",
       "PENDING": "Pendiente",
       "TRIAL": "En prueba",
-      "TRIAL_ENDED": "Prueba terminada"
+      "TRIAL_ENDED": "Prueba terminada",
+      "PLATFORM": "Plataforma",
+      "PAID": "De pago"
     },
     "ROLE": {
       "ADMIN": "Administrador",
@@ -686,10 +698,10 @@
       "USER": "Usuario",
       "EMAIL": "Email",
       "ROLE": "Rol",
-      "ACTIVE": "Activo"
+      "ACTIVE": "Activo",
+      "ACCESS": "Acceso"
     },
     "DETAIL": {
-      "BACK": "← Empresas",
       "CHANGE_STATUS": "Cambiar estado",
       "PLATFORM": "Cuenta de la plataforma",
       "PAID": "Cliente de pago",
@@ -706,7 +718,15 @@
       "MODAL_TITLE": "Cambiar el estado de la empresa",
       "CANCEL": "Cancelar",
       "CONFIRM": "Confirmar",
-      "SAVING": "Guardando…"
+      "SAVING": "Guardando…",
+      "BACK_LIST": "Empresas",
+      "LAST_LOGIN": "Último acceso: {{date}}",
+      "NEVER_LOGGED": "No ha entrado nunca"
+    },
+    "NAV": {
+      "DASHBOARD": "Resumen",
+      "COMPANIES": "Empresas",
+      "USERS": "Usuarios"
     }
   },
   "about": {

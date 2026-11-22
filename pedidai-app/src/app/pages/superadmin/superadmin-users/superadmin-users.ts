@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { SuperAdminService, UserAdmin, PagedResponse } from '../../../services/super-admin.service';
-import { companyBadgeClass, userAccess } from '../company-badge';
+import { avatarClass, companyBadgeClass, initials, roleBadgeClass, userAccess } from '../company-badge';
+import { SuperadminHeader } from '../superadmin-header/superadmin-header';
 
 @Component({
   selector: 'app-superadmin-users',
-  imports: [RouterLink, FormsModule, TranslateModule, DatePipe],
+  imports: [RouterLink, FormsModule, TranslateModule, DatePipe, SuperadminHeader],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './superadmin-users.html',
 })
@@ -17,6 +18,9 @@ export class SuperadminUsers implements OnInit {
 
   readonly access = userAccess;
   readonly badgeClass = companyBadgeClass;
+  readonly roleBadge = roleBadgeClass;
+  readonly initials = initials;
+  readonly avatarClass = avatarClass;
 
   loading = signal(true);
   users = signal<UserAdmin[]>([]);
@@ -71,14 +75,6 @@ export class SuperadminUsers implements OnInit {
   goToPage(p: number) {
     this.currentPage.set(p);
     this.load();
-  }
-
-  roleBadge(role: string): string {
-    return role === 'ADMIN'
-      ? 'bg-blue-500/20 text-blue-400'
-      : role === 'SUPER_ADMIN'
-        ? 'bg-amber-500/20 text-amber-400'
-        : 'bg-slate-600/50 text-slate-400';
   }
 
   pages(): number[] {

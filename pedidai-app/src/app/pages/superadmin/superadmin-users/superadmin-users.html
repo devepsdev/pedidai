@@ -1,17 +1,19 @@
-<div class="min-h-screen bg-slate-950 text-slate-300 p-6">
-  <div class="mb-6 flex items-center gap-3">
-    <a routerLink="/superadmin" class="text-slate-500 hover:text-slate-300 transition-colors text-sm">{{ 'SUPERADMIN.BACK_DASHBOARD' | translate }}</a>
-    <span class="text-slate-700">/</span>
-    <h1 class="text-xl font-extrabold text-white">{{ 'SUPERADMIN.USERS.TITLE' | translate }}</h1>
-  </div>
+<div class="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+  <app-superadmin-header [title]="'SUPERADMIN.USERS.TITLE' | translate" [subtitle]="'SUPERADMIN.USERS.SUBTITLE' | translate" />
 
   <!-- Filtros -->
-  <div class="flex flex-col sm:flex-row gap-3 mb-5">
-    <input [(ngModel)]="searchValue" (ngModelChange)="onSearchChange($event)"
-      [placeholder]="'SUPERADMIN.USERS.SEARCH_PH' | translate"
-      class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"/>
+  <div class="flex flex-col sm:flex-row gap-3">
+    <label class="relative flex-1">
+      <span class="sr-only">{{ 'SUPERADMIN.USERS.SEARCH_PH' | translate }}</span>
+      <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+      </svg>
+      <input [(ngModel)]="searchValue" (ngModelChange)="onSearchChange($event)" type="search"
+        [placeholder]="'SUPERADMIN.USERS.SEARCH_PH' | translate"
+        class="sa-input w-full min-h-11 pl-9"/>
+    </label>
     <select [(ngModel)]="roleFilterValue" (ngModelChange)="onRoleFilterChange($event)"
-      class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+      [attr.aria-label]="'SUPERADMIN.COL.ROLE' | translate" class="sa-input min-h-11 sm:w-52">
       <option value="">{{ 'SUPERADMIN.USERS.ALL_ROLES' | translate }}</option>
       <option value="ADMIN">{{ 'SUPERADMIN.ROLE.ADMIN' | translate }}</option>
       <option value="USER">{{ 'SUPERADMIN.ROLE.USER' | translate }}</option>
@@ -19,65 +21,86 @@
     </select>
   </div>
 
-  <div class="bg-slate-800 rounded-xl overflow-hidden">
+  <div class="sa-card overflow-hidden">
     @if (loading()) {
-      <div class="p-8 text-center text-slate-500 text-sm animate-pulse">{{ 'SUPERADMIN.LOADING' | translate }}</div>
+      <div class="divide-y divide-gray-100">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="flex items-center gap-3 px-5 py-4 animate-pulse">
+            <div class="w-9 h-9 rounded-full bg-gray-100"></div>
+            <div class="h-3 w-40 rounded bg-gray-100"></div>
+          </div>
+        }
+      </div>
     } @else {
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
-          <thead class="border-b border-slate-700">
-            <tr class="text-xs text-slate-400 uppercase tracking-wider">
-              <th class="text-left px-4 py-3">{{ 'SUPERADMIN.COL.USER' | translate }}</th>
-              <th class="text-left px-4 py-3 hidden sm:table-cell">{{ 'SUPERADMIN.COL.EMAIL' | translate }}</th>
-              <th class="text-left px-4 py-3">{{ 'SUPERADMIN.COL.ROLE' | translate }}</th>
-              <th class="text-left px-4 py-3 hidden md:table-cell">{{ 'SUPERADMIN.COL.COMPANY' | translate }}</th>
-              <th class="text-center px-4 py-3 hidden lg:table-cell">{{ 'SUPERADMIN.COL.ACTIVE' | translate }}</th>
-              <th class="text-left px-4 py-3 hidden xl:table-cell">{{ 'SUPERADMIN.COL.CREATED' | translate }}</th>
+          <thead class="bg-gray-50/80 border-b border-gray-200">
+            <tr class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <th scope="col" class="text-left px-5 py-3">{{ 'SUPERADMIN.COL.USER' | translate }}</th>
+              <th scope="col" class="text-left px-4 py-3">{{ 'SUPERADMIN.COL.ROLE' | translate }}</th>
+              <th scope="col" class="text-left px-4 py-3 hidden md:table-cell">{{ 'SUPERADMIN.COL.COMPANY' | translate }}</th>
+              <th scope="col" class="text-left px-4 py-3 hidden lg:table-cell">{{ 'SUPERADMIN.COL.ACCESS' | translate }}</th>
+              <th scope="col" class="text-left px-5 py-3 hidden sm:table-cell">{{ 'SUPERADMIN.COL.CREATED' | translate }}</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-700/50">
+          <tbody class="divide-y divide-gray-100">
             @for (u of users(); track u.uuid) {
-              <tr class="hover:bg-slate-700/30 transition-colors">
-                <td class="px-4 py-3 text-white font-medium">{{ u.firstName }} {{ u.lastName }}</td>
-                <td class="px-4 py-3 text-slate-400 hidden sm:table-cell text-xs">{{ u.email }}</td>
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-3">
+                    <span class="sa-avatar w-9 h-9" [class]="avatarClass(u.firstName + ' ' + u.lastName)" aria-hidden="true">{{ initials(u.firstName + ' ' + u.lastName) }}</span>
+                    <div class="min-w-0">
+                      <p class="font-semibold text-gray-900 truncate">{{ u.firstName }} {{ u.lastName }}</p>
+                      <p class="text-xs text-gray-500 truncate">{{ u.email }}</p>
+                    </div>
+                  </div>
+                </td>
                 <td class="px-4 py-3">
-                  <span class="text-xs font-semibold px-2 py-0.5 rounded-full" [class]="roleBadge(u.role)">{{ 'SUPERADMIN.ROLE.' + u.role | translate }}</span>
+                  <span class="sa-badge" [class]="roleBadge(u.role)">{{ 'SUPERADMIN.ROLE.' + u.role | translate }}</span>
                 </td>
-                <td class="px-4 py-3 text-slate-400 hidden md:table-cell">
+                <td class="px-4 py-3 hidden md:table-cell">
                   <a [routerLink]="['/superadmin/companies', u.companyUuid]"
-                     class="hover:text-cyan-400 transition-colors">{{ u.companyName }}</a>
+                     class="text-gray-700 hover:text-blue-700 font-medium transition-colors">{{ u.companyName }}</a>
                 </td>
-                <td class="px-4 py-3 text-center hidden lg:table-cell">
+                <td class="px-4 py-3 hidden lg:table-cell">
                   @switch (access(u)) {
-                    @case ('OK') { <span class="text-green-400">✓</span> }
-                    @case ('DISABLED') { <span class="text-red-400">✗</span> }
+                    @case ('OK') {
+                      <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true"></span>{{ 'SUPERADMIN.USERS.CAN_LOG_IN' | translate }}
+                      </span>
+                    }
+                    @case ('DISABLED') {
+                      <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-700">
+                        <span class="w-2 h-2 rounded-full bg-red-500" aria-hidden="true"></span>{{ 'SUPERADMIN.USERS.DISABLED' | translate }}
+                      </span>
+                    }
                     @default {
-                      <span class="text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" [class]="badgeClass(access(u))"
+                      <span class="sa-badge" [class]="badgeClass(access(u))"
                         [title]="'SUPERADMIN.USERS.BLOCKED_HINT' | translate">{{ 'SUPERADMIN.STATUS.' + access(u) | translate }}</span>
                     }
                   }
                 </td>
-                <td class="px-4 py-3 text-slate-400 text-xs hidden xl:table-cell">{{ u.createdAt | date:'dd/MM/yy' }}</td>
+                <td class="px-5 py-3 text-gray-500 text-xs tabular-nums hidden sm:table-cell">{{ u.createdAt | date:'dd/MM/yy' }}</td>
               </tr>
             } @empty {
-              <tr><td colspan="6" class="px-4 py-10 text-center text-slate-500">{{ 'SUPERADMIN.USERS.EMPTY' | translate }}</td></tr>
+              <tr><td colspan="5" class="px-5 py-12 text-center text-gray-500">{{ 'SUPERADMIN.USERS.EMPTY' | translate }}</td></tr>
             }
           </tbody>
         </table>
       </div>
 
-      @if (totalPages() > 1) {
-        <div class="px-4 py-3 border-t border-slate-700 flex items-center justify-between text-xs text-slate-400">
-          <span>{{ 'SUPERADMIN.USERS.COUNT' | translate: { n: totalElements() } }}</span>
+      <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between gap-3 text-xs text-gray-500">
+        <span>{{ 'SUPERADMIN.USERS.COUNT' | translate: { n: totalElements() } }}</span>
+        @if (totalPages() > 1) {
           <div class="flex gap-1">
             @for (p of pages(); track p) {
-              <button (click)="goToPage(p)"
-                class="w-7 h-7 rounded text-xs transition-colors"
-                [class]="p === currentPage() ? 'bg-cyan-500 text-white' : 'hover:bg-slate-700'">{{ p + 1 }}</button>
+              <button type="button" (click)="goToPage(p)" [attr.aria-current]="p === currentPage() ? 'page' : null"
+                class="min-w-9 h-9 rounded-lg text-xs font-semibold transition-colors"
+                [class]="p === currentPage() ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'">{{ p + 1 }}</button>
             }
           </div>
-        </div>
-      }
+        }
+      </div>
     }
   </div>
 </div>

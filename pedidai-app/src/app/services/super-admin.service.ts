@@ -42,6 +42,7 @@ export interface CompanySummary {
   orderCount: number;
   createdAt: string;
   trialEndsAt: string | null;
+  platform: boolean;
   trialEnded: boolean;
   dataDeletionAt: string | null;
   lastOrderDate: string | null;
@@ -115,6 +116,22 @@ export interface PagedResponse<T> {
   size: number;
 }
 
+/** Lo que manda la API (PagedResponseDTO): los totales van dentro de `pageable`. */
+interface ApiPage<T> {
+  content: T[];
+  pageable?: { page: number; size: number; totalPages: number; totalElements: number };
+}
+
+export function toPagedResponse<T>(p: ApiPage<T>): PagedResponse<T> {
+  return {
+    content: p.content ?? [],
+    totalElements: p.pageable?.totalElements ?? p.content?.length ?? 0,
+    totalPages: p.pageable?.totalPages ?? 1,
+    number: p.pageable?.page ?? 0,
+    size: p.pageable?.size ?? p.content?.length ?? 0,
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class SuperAdminService {
   private api = inject(ApiService);
@@ -126,8 +143,8 @@ export class SuperAdminService {
   }
 
   getCompanies(params: { search?: string; status?: string; page?: number; size?: number } = {}): Observable<PagedResponse<CompanySummary>> {
-    return this.api.get<ApiResponse<PagedResponse<CompanySummary>>>('/superadmin/companies', params).pipe(
-      map(r => r.data)
+    return this.api.get<ApiResponse<ApiPage<CompanySummary>>>('/superadmin/companies', params).pipe(
+      map(r => toPagedResponse(r.data))
     );
   }
 
@@ -144,8 +161,8 @@ export class SuperAdminService {
   }
 
   getUsers(params: { search?: string; role?: string; companyUuid?: string; page?: number; size?: number } = {}): Observable<PagedResponse<UserAdmin>> {
-    return this.api.get<ApiResponse<PagedResponse<UserAdmin>>>('/superadmin/users', params).pipe(
-      map(r => r.data)
+    return this.api.get<ApiResponse<ApiPage<UserAdmin>>>('/superadmin/users', params).pipe(
+      map(r => toPagedResponse(r.data))
     );
   }
 

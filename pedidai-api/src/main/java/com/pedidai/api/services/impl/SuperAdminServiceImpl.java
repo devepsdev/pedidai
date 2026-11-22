@@ -239,6 +239,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .orderCount(orderCount)
                 .createdAt(c.getCreatedAt())
                 .trialEndsAt(c.getTrialEndsAt())
+                .platform(userRepository.existsByCompany_IdAndRole(c.getId(), User.UserRole.SUPER_ADMIN))
                 .trialEnded(trialEnded(c))
                 .dataDeletionAt(DataRetentionServiceImpl.deletionTime(c.getTrialEndsAt(), LocalDateTime.now()))
                 .lastOrderDate(lastOrder.orElse(null))

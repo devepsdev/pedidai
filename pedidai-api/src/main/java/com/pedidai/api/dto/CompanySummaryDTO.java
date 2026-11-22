@@ -14,6 +14,8 @@ public class CompanySummaryDTO {
     private long orderCount;
     private LocalDateTime createdAt;
     private LocalDateTime trialEndsAt;
+    /** Compte de la plataforma (la del SUPER_ADMIN), no és cap client. */
+    private boolean platform;
     /** La prova ha acabat sense contractar: ja no pot entrar. */
     private boolean trialEnded;
     /** Quan s'esborraran les seves dades (nul si no ha d'esborrar-se). */
